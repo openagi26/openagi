@@ -337,6 +337,32 @@ class MemoryManager:
             "core_dna": self.core_dna.get_stats(),
         }
 
+    # ── 会话管理（API层使用）───────────────────────────────────────────────────
+
+    def list_sessions(self) -> list[dict]:
+        """获取所有活跃会话的摘要列表（来自热记忆）。"""
+        sessions = {}
+        for item in self.working._items:
+            sid = item.session_id
+            if sid not in sessions:
+                sessions[sid] = {
+                    "id": sid,
+                    "title": f"对话 {sid[:8]}",
+                    "created_at": item.created_at,
+                    "message_count": 0,
+                }
+            sessions[sid]["message_count"] += 1
+        return list(sessions.values())
+
+    def get_messages(self, session_id: str) -> list[dict]:
+        """获取会话消息列表（供历史记录API使用）。"""
+        return self.working.get_messages(session_id)
+
+    def delete_session(self, session_id: str) -> None:
+        """删除会话（清空热记忆）。"""
+        self.working.clear_session(session_id)
+        logger.info(f"会话 {session_id} 已删除")
+
     def close(self) -> None:
         """关闭资源。"""
         self.archive.close()

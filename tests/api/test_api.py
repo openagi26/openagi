@@ -2,11 +2,22 @@
 
 import pytest
 from httpx import AsyncClient, ASGITransport
+import openagi.api.main as _main_module
 from openagi.api.main import app
+from openagi.api.deps import init_deps
 
 
 @pytest.fixture
 async def client():
+    # 确保 deps 已初始化（ASGI测试不自动触发 lifespan）
+    init_deps(
+        _main_module.heart,
+        _main_module.memory,
+        _main_module.router,
+        _main_module.persona_engine,
+        _main_module.tool_registry,
+        _main_module.commander,
+    )
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
         yield c

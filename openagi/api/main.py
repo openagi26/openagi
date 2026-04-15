@@ -40,8 +40,45 @@ from openagi.ghost.heartbeat import HeartbeatScheduler
 from openagi.api.routes import chat as chat_routes
 from openagi.api.routes import settings as settings_routes
 from openagi.api.routes import skills as skills_routes
+from openagi.api.deps import init_deps
 
 logger = logging.getLogger("openagi.api")
+
+
+def _setup_llm_from_env(llm_router) -> None:
+    """从环境变量加载中转站配置，设置主模型和回退链。"""
+    from openagi.cortex.llm.router import ModelEntry, ModelRole
+
+    # GLM-5.1（智谱AI中转站）
+    zhipu_key = os.getenv("ZHIPU_API_KEY", "")
+    zhipu_base = os.getenv("ZHIPU_API_BASE", "")
+    if zhipu_key and zhipu_base:
+        relay_glm = llm_router.add_relay("智谱AI-GLM", zhipu_base, zhipu_key)
+        llm_router._models.append(ModelEntry(
+            model_id="glm-4-plus",
+            provider="ZhipuAI",
+            relay_name="智谱AI-GLM",
+            key_suffix=relay_glm.key_suffix,
+            is_available=True,
+        ))
+        llm_router.set_primary("glm-4-plus", "智谱AI-GLM")
+        logger.info("✅ 主模型: GLM-4-Plus (智谱AI)")
+
+    # Claude opus-4 中转站
+    relay_key = os.getenv("RELAY_CLAUDE_KEY", "")
+    relay_base = os.getenv("RELAY_CLAUDE_BASE", "")
+    if relay_key and relay_base:
+        relay_claude = llm_router.add_relay("Claude中转", relay_base, relay_key)
+        llm_router._models.append(ModelEntry(
+            model_id="claude-opus-4-6",
+            provider="Anthropic",
+            relay_name="Claude中转",
+            key_suffix=relay_claude.key_suffix,
+            is_available=True,
+        ))
+        llm_router.set_fallback("claude-opus-4-6", "Claude中转", order=1)
+        logger.info("✅ 回退模型①: claude-opus-4-6 (中转站)")
+
 
 # ─── 全局实例 ───────────────────────────────────────────────────────────────
 
@@ -58,6 +95,12 @@ heartbeat = HeartbeatScheduler()
 async def lifespan(app: FastAPI):
     """应用生命周期管理——启动时初始化，关闭时优雅退出。"""
     logger.info("OpenAGI 启动中...")
+
+    # 注册全局依赖（供路由 Depends 使用）
+    init_deps(heart, memory, router, persona_engine, tool_registry, commander)
+
+    # 从环境变量加载 LLM 中转站配置
+    _setup_llm_from_env(router)
 
     # 检测本地Claude
     router.detect_local_claude()
