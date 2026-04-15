@@ -7,10 +7,10 @@ import { useStore, Theme } from '@/lib/store';
 import HeartStatus from './HeartStatus';
 
 const TABS = [
-  { label: '聊天', href: '/' },
-  { label: '群聊', href: '/group' },
-  { label: '工作流', href: '/workflow' },
-  { label: '设置', href: '/settings' },
+  { label: '深度聊天', href: '/', icon: '💬' },
+  { label: 'AI群聊', href: '/group', icon: '👥' },
+  { label: '记忆宫殿', href: '/memory', icon: '🧠' },
+  { label: '设置', href: '/settings', icon: '⚙️' },
 ];
 
 export default function TopNavWrapper() {
@@ -80,7 +80,7 @@ export default function TopNavWrapper() {
               href={tab.href}
               role="tab"
               aria-selected={active}
-              className="px-3.5 py-1.5 rounded-lg text-sm border transition-all"
+              className="px-3.5 py-1.5 rounded-lg text-sm border transition-all flex items-center gap-1.5"
               style={{
                 color: active ? '#fff' : 'rgba(255,255,255,0.6)',
                 background: active ? 'rgba(124,58,237,0.35)' : 'transparent',
@@ -88,6 +88,7 @@ export default function TopNavWrapper() {
                 textDecoration: 'none',
               }}
             >
+              {tab.icon && <span style={{ fontSize: 13 }}>{tab.icon}</span>}
               {tab.label}
             </Link>
           );

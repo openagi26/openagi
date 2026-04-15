@@ -31,6 +31,14 @@ interface DnaItem {
   category: string;
 }
 
+interface DreamEntry {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  tags?: string[];
+}
+
 const LAYER_LABELS: Record<string, { label: string; badge: string; color: string; bg: string; border: string }> = {
   working: {
     label: 'L0 工作记忆',
@@ -80,6 +88,10 @@ export default function MemoryPage() {
   const [dnaLoading, setDnaLoading] = useState(true);
   const [dnaError, setDnaError] = useState<string | null>(null);
 
+  const [dreams, setDreams] = useState<DreamEntry[]>([]);
+  const [dreamsLoading, setDreamsLoading] = useState(true);
+  const [dreamsError, setDreamsError] = useState<string | null>(null);
+
   useEffect(() => {
     setStatsLoading(true);
     fetch(`${BASE_URL}/api/v1/memory/stats`)
@@ -100,6 +112,16 @@ export default function MemoryPage() {
       })
       .catch(() => setDnaError('后端连接失败'))
       .finally(() => setDnaLoading(false));
+
+    setDreamsLoading(true);
+    fetch(`${BASE_URL}/api/v1/memory/dreams?limit=20`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) setDreams(data.data ?? []);
+        else setDreamsError('获取梦境日记失败');
+      })
+      .catch(() => setDreamsError('后端连接失败'))
+      .finally(() => setDreamsLoading(false));
   }, []);
 
   const handleSearch = useCallback(async () => {
@@ -275,7 +297,7 @@ export default function MemoryPage() {
       </section>
 
       {/* DNA核心知识 */}
-      <section>
+      <section className="mb-8">
         <h2 className="text-sm font-semibold mb-3 uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
           核心知识 DNA
         </h2>
@@ -312,6 +334,90 @@ export default function MemoryPage() {
                 </p>
               </div>
             ))}
+          </div>
+        )}
+      </section>
+
+      {/* 梦境日记 */}
+      <section>
+        <h2 className="text-sm font-semibold mb-1 uppercase tracking-wide flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+          梦境日记
+          <span
+            className="text-xs px-2 py-0.5 rounded-full normal-case"
+            style={{ background: 'rgba(251,146,60,0.1)', color: '#fb923c', border: '1px solid rgba(251,146,60,0.25)' }}
+          >
+            AI 沉睡时的思维片段
+          </span>
+        </h2>
+        <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+          记录 AI 在空闲周期中自主生成的思维碎片与潜意识整理
+        </p>
+
+        {dreamsLoading ? (
+          <div className="text-sm" style={{ color: 'var(--text-muted)' }}>加载中...</div>
+        ) : dreamsError ? (
+          <div
+            className="text-sm rounded-lg px-4 py-3"
+            style={{ background: 'rgba(248,113,113,0.08)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' }}
+          >
+            {dreamsError} — 梦境日记功能需后端支持
+          </div>
+        ) : dreams.length === 0 ? (
+          <div
+            className="rounded-xl p-6 flex flex-col items-center gap-2 text-center"
+            style={{ background: 'rgba(251,146,60,0.05)', border: '1px dashed rgba(251,146,60,0.2)' }}
+          >
+            <span style={{ fontSize: 32 }}>🌙</span>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>AI 尚未记录任何梦境</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>空闲时间越长，梦境积累越多</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {dreams.map(dream => {
+              const date = dream.created_at
+                ? new Date(dream.created_at).toLocaleString('zh-CN', {
+                    month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit',
+                  })
+                : '';
+              return (
+                <div
+                  key={dream.id}
+                  className="rounded-xl p-4 flex flex-col gap-2"
+                  style={{
+                    background: 'rgba(251,146,60,0.05)',
+                    border: '1px solid rgba(251,146,60,0.18)',
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-sm font-semibold" style={{ color: '#fb923c' }}>
+                      {dream.title || '无题梦境'}
+                    </span>
+                    {date && (
+                      <span className="text-xs flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+                        {date}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+                    {dream.content.slice(0, 200)}{dream.content.length > 200 ? '...' : ''}
+                  </p>
+                  {dream.tags && dream.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {dream.tags.map((tag, ti) => (
+                        <span
+                          key={ti}
+                          className="text-xs px-2 py-0.5 rounded-full"
+                          style={{ background: 'rgba(251,146,60,0.12)', color: '#fb923c' }}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </section>

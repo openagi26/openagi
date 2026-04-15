@@ -306,14 +306,18 @@ class LLMRouter:
 
                     response = await litellm.acompletion(**call_kwargs)
                     msg = response.choices[0].message
-                    content = msg.content
-                    # 推理模型（如 GLM-5.1）把答案放在 reasoning_content，content 可能为空
-                    if (not content or not content.strip()):
-                        reasoning = getattr(msg, "reasoning_content", None) or ""
-                        if reasoning.strip():
-                            content = reasoning  # 使用推理内容作为实际回复
-                        else:
-                            raise LLMError(f"模型 {model_entry.model_id} 返回空内容")
+                    content = msg.content or ""
+                    # 推理模型（GLM-5.1/o1等）内容在 reasoning_content 字段
+                    if not content.strip():
+                        rc = getattr(msg, "reasoning_content", None)
+                        if not rc:
+                            psf = getattr(msg, "provider_specific_fields", None)
+                            if psf and isinstance(psf, dict):
+                                rc = psf.get("reasoning_content", "")
+                        if rc and rc.strip():
+                            content = rc
+                    if not content or not content.strip():
+                        raise LLMError(f"模型 {model_entry.model_id} 返回空内容")
                     model_entry.consecutive_failures = 0
                     return {
                         "content": content,

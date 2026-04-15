@@ -161,12 +161,6 @@ app.include_router(skills_routes.router)
 
 # ─── 请求/响应模型 ──────────────────────────────────────────────────────────
 
-class ChatRequest(BaseModel):
-    message: str
-    session_id: str = "default"
-    model: str | None = None
-
-
 class TrinityRequest(BaseModel):
     title: str
     description: str
@@ -199,45 +193,7 @@ async def health():
     }
 
 
-# ─── 聊天 ───────────────────────────────────────────────────────────────────
-
-@app.post("/api/v1/chat/send", response_model=APIResponse)
-async def chat_send(req: ChatRequest):
-    """发送消息，经多核治理后返回回复。"""
-    # 记录到热记忆
-    memory.add_message(req.session_id, "user", req.message)
-    heart.push_event("llm_call_success", source="chat")
-
-    # MVP简化：直接用Trinity流水线处理
-    try:
-        result = await run_full_trinity_pipeline(
-            task_title="用户消息",
-            task_description=req.message,
-            model=req.model or "claude-haiku-4-5-20251001",
-            llm_router=router,
-        )
-        # 记录AI回复到热记忆
-        memory.add_message(req.session_id, "assistant", result.proposal)
-        heart.push_event("task_success", source="chat")
-
-        return APIResponse(success=True, data={
-            "reply": result.proposal,
-            "audit": result.audit,
-            "decision": result.decision,
-            "tokens": result.total_tokens,
-            "duration_ms": result.total_duration_ms,
-        })
-    except Exception as e:
-        heart.push_event("task_failed", source="chat")
-        return APIResponse(success=False, error=str(e))
-
-
-@app.get("/api/v1/chat/history", response_model=APIResponse)
-async def chat_history(session_id: str = "default"):
-    """获取对话历史。"""
-    messages = memory.get_context(session_id)
-    return APIResponse(success=True, data=messages)
-
+# ─── 聊天：由 chat_routes.router 提供（POST /send, GET /sessions, GET /history/{id}, group/*）
 
 # ─── 多核治理 ───────────────────────────────────────────────────────────────
 
@@ -291,17 +247,27 @@ async def memory_dna():
 
 @app.get("/api/v1/heart/status", response_model=APIResponse)
 async def heart_status():
-    """获取心绪状态。"""
+    """获取心绪状态（同时兼容前端 mood 嵌套格式和测试顶层字段）。"""
     status = heart.get_full_status()
+    valence = getattr(status, "valence", 0.8)
+    level_int = int(valence * 100)
+    emoji = getattr(status, "emoji", "✅")
+    description = getattr(status, "description", status.level)
     return APIResponse(success=True, data={
-        "entropy": status.entropy,
-        "valence": status.valence,
+        # 顶层字段（测试需要）
         "level": status.level,
-        "emoji": status.emoji,
-        "description": status.description,
-        "advice": status.advice,
-        "heartbeat_interval": heart.get_heartbeat_interval(),
-        "recommended_temperature": heart.get_recommended_temperature(),
+        "emoji": emoji,
+        "entropy": status.entropy,
+        "valence": valence,
+        "advice": getattr(status, "advice", ""),
+        # 前端 mood 嵌套对象
+        "version": "v0.1.0",
+        "uptime": int(heartbeat.get_uptime()),
+        "mood": {
+            "label": description,
+            "emoji": emoji,
+            "level": level_int,
+        },
     })
 
 
@@ -379,12 +345,20 @@ async def commander_inspect():
 
 @app.get("/api/v1/models", response_model=APIResponse)
 async def list_models():
-    """获取可用模型列表。"""
+    """获取可用模型列表（兼容前端格式：id/name/provider/available）。"""
     models = router.list_models()
     return APIResponse(success=True, data=[
-        {"model_id": m.model_id, "provider": m.provider, "relay": m.relay_name,
-         "key_suffix": m.key_suffix, "role": m.role, "fallback_order": m.fallback_order,
-         "latency_ms": m.latency_ms, "available": m.is_available, "local": m.is_local}
+        {
+            "id": m.model_id,
+            "name": m.model_id.split("/")[-1] if "/" in m.model_id else m.model_id,
+            "provider": m.provider,
+            "available": m.is_available,
+            # 额外字段
+            "relay": m.relay_name,
+            "role": m.role,
+            "latency_ms": m.latency_ms,
+            "local": m.is_local,
+        }
         for m in models
     ])
 
@@ -456,3 +430,17 @@ async def ws_chat(websocket: WebSocket):
         logger.info(f"WebSocket断开: {session_id}")
         # 会话结束，转存记忆
         memory.end_session(session_id)
+
+
+# ─── 宪法权重 ────────────────────────────────────────────────────────────────
+
+@app.get("/api/v1/constitution/weights", response_model=APIResponse)
+async def constitution_weights():
+    """返回五维宪法权重（合计=1.0）。"""
+    return APIResponse(success=True, data={
+        "quality":    0.30,
+        "risk":       0.25,
+        "reuse":      0.20,
+        "benefit":    0.15,
+        "compliance": 0.10,
+    })

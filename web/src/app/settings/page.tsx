@@ -19,29 +19,28 @@ const NAV_GROUPS = [
     items: [
       { key: 'cores', icon: '⚡', label: '多核治理', badge: '核心' },
       { key: 'inspection', icon: '🔍', label: '巡检AI', badge: '核心' },
-      { key: 'audit', icon: '📊', label: '审计规则' },
+      { key: 'chat', icon: '💬', label: '聊天设置' },
     ],
   },
   {
     group: '个性化',
     items: [
-      { key: 'theme', icon: '🎨', label: '主题与外观' },
-      { key: 'language', icon: '🌐', label: '语言设置' },
-      { key: 'notification', icon: '🔔', label: '通知' },
+      { key: 'theme', icon: '🎨', label: '外观主题' },
+      { key: 'persona', icon: '🧠', label: '人格管理' },
+      { key: 'companion', icon: '💝', label: '数字伴侣' },
     ],
   },
   {
-    group: '高级',
+    group: '系统',
     items: [
-      { key: 'memory', icon: '🧠', label: '记忆系统' },
-      { key: 'workflow', icon: '🔄', label: '工作流' },
-      { key: 'export', icon: '📦', label: '数据导出' },
+      { key: 'security', icon: '🔒', label: '安全与隐私' },
+      { key: 'gateway', icon: '📡', label: '消息网关' },
+      { key: 'deploy', icon: '🖥️', label: '部署信息' },
       { key: 'about', icon: 'ℹ️', label: '关于' },
     ],
   },
 ];
 
-// 模拟可用模型数据
 const AVAILABLE_MODELS = [
   { id: 'claude-opus-4', name: 'Claude Opus 4', provider: 'Anthropic', status: 'active', latency: '320ms', cost: '高' },
   { id: 'claude-sonnet-4', name: 'Claude Sonnet 4', provider: 'Anthropic', status: 'active', latency: '180ms', cost: '中' },
@@ -51,11 +50,23 @@ const AVAILABLE_MODELS = [
 ];
 
 const CORE_CONFIGS = [
-  { id: 1, name: 'CEO主核', role: '决策指挥', model: 'claude-opus-4', color: '#7c3aed' },
-  { id: 2, name: '审计-外A', role: '质量审计', model: 'claude-sonnet-4', color: '#2563eb' },
-  { id: 3, name: '审计-外B', role: '快速校验', model: 'claude-haiku-4', color: '#059669' },
-  { id: 4, name: '审计-外C', role: '深度审计', model: 'claude-opus-4', color: '#d97706' },
-  { id: 5, name: '执行代理', role: '任务执行', model: 'claude-sonnet-4', color: '#dc2626' },
+  { id: 1, name: 'CEO主核', role: '决策指挥', model: 'claude-opus-4', persona: '创新开拓者', temp: 0.7, color: '#7c3aed' },
+  { id: 2, name: '审计-外A', role: '质量审计', model: 'claude-sonnet-4', persona: '冷酷审计官', temp: 0.3, color: '#2563eb' },
+  { id: 3, name: '审计-外B', role: '快速校验', model: 'claude-haiku-4', persona: '务实工程师', temp: 0.3, color: '#059669' },
+  { id: 4, name: '审计-外C', role: '深度审计', model: 'claude-opus-4', persona: '跨界思考者', temp: 0.5, color: '#d97706' },
+  { id: 5, name: '执行代理', role: '任务执行', model: 'claude-sonnet-4', persona: '战略指挥官', temp: 0.5, color: '#dc2626' },
+];
+
+const PERSONAS = [
+  '创新开拓者', '冷酷审计官', '务实工程师', '跨界思考者', '战略指挥官',
+  '温柔陪伴者', '严谨学者', '幽默调侃师', '心理咨询师', '技术极客',
+];
+
+const PRESET_PLANS = [
+  { key: 'economy', label: '省钱方案', desc: '1核·Haiku，极低成本', icon: '💰' },
+  { key: 'balance', label: '平衡方案', desc: '3核·Sonnet，推荐', icon: '⚖️' },
+  { key: 'safe', label: '安全方案', desc: '4核·全审计', icon: '🛡️' },
+  { key: 'full', label: '全开方案', desc: '5核·Opus全满配', icon: '🚀' },
 ];
 
 export default function SettingsPage() {
@@ -65,7 +76,6 @@ export default function SettingsPage() {
   const [coreCount, setCoreCount] = useState(5);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'ok' | 'error'>('idle');
 
-  // Fetch settings from backend on mount
   useEffect(() => {
     fetchSettings().then(data => {
       if (data && typeof data === 'object') {
@@ -83,9 +93,7 @@ export default function SettingsPage() {
           });
         }
       }
-    }).catch(() => {
-      // keep defaults on error
-    });
+    }).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -114,19 +122,12 @@ export default function SettingsPage() {
       {/* 设置导航 */}
       <nav
         className="flex-shrink-0 overflow-y-auto py-3"
-        style={{
-          width: 220,
-          background: 'var(--panel-bg)',
-          borderRight: '1px solid var(--panel-border)',
-        }}
+        style={{ width: 220, background: 'var(--panel-bg)', borderRight: '1px solid var(--panel-border)' }}
         aria-label="设置导航"
       >
         {NAV_GROUPS.map(group => (
           <div key={group.group}>
-            <div
-              className="px-5 py-2 text-xs font-semibold uppercase tracking-wide"
-              style={{ color: 'var(--text-muted)' }}
-            >
+            <div className="px-5 py-2 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
               {group.group}
             </div>
             {group.items.map(item => (
@@ -144,10 +145,7 @@ export default function SettingsPage() {
                 <span style={{ fontSize: 15, width: 20, textAlign: 'center' }}>{item.icon}</span>
                 <span className="text-sm flex-1">{item.label}</span>
                 {item.badge && (
-                  <span
-                    className="text-xs px-1.5 py-0.5 rounded-full"
-                    style={{ background: '#7c3aed', color: '#fff', fontSize: 9 }}
-                  >
+                  <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: '#7c3aed', color: '#fff', fontSize: 9 }}>
                     {item.badge}
                   </span>
                 )}
@@ -158,19 +156,11 @@ export default function SettingsPage() {
       </nav>
 
       {/* 内容区 */}
-      <div
-        className="flex-1 overflow-y-auto px-8 py-6"
-        style={{ background: 'var(--center-bg)' }}
-        role="main"
-      >
+      <div className="flex-1 overflow-y-auto px-8 py-6" style={{ background: 'var(--center-bg)' }} role="main">
         {/* 顶部保存栏 */}
         <div className="flex justify-end mb-4 gap-2 items-center">
-          {saveStatus === 'ok' && (
-            <span className="text-xs text-green-600">保存成功</span>
-          )}
-          {saveStatus === 'error' && (
-            <span className="text-xs text-red-500">保存失败，请重试</span>
-          )}
+          {saveStatus === 'ok' && <span className="text-xs text-green-600">保存成功</span>}
+          {saveStatus === 'error' && <span className="text-xs text-red-500">保存失败，请重试</span>}
           <button
             onClick={handleSave}
             disabled={saveStatus === 'saving'}
@@ -183,18 +173,20 @@ export default function SettingsPage() {
             {saveStatus === 'saving' ? '保存中...' : '保存设置'}
           </button>
         </div>
-        {activeKey === 'model' && (
-          <ModelSettings relayUrl={relayUrl} setRelayUrl={setRelayUrl} />
-        )}
-        {activeKey === 'cores' && (
-          <CoresSettings coreCount={coreCount} setCoreCount={setCoreCount} />
-        )}
-        {activeKey === 'inspection' && (
-          <InspectionSettings />
-        )}
-        {!['model', 'cores', 'inspection'].includes(activeKey) && (
-          <PlaceholderSettings key={activeKey} settingKey={activeKey} />
-        )}
+
+        {activeKey === 'model' && <ModelSettings relayUrl={relayUrl} setRelayUrl={setRelayUrl} />}
+        {activeKey === 'relay' && <RelaySettings relayUrl={relayUrl} setRelayUrl={setRelayUrl} />}
+        {activeKey === 'api' && <ApiKeySettings />}
+        {activeKey === 'cores' && <CoresSettings coreCount={coreCount} setCoreCount={setCoreCount} />}
+        {activeKey === 'inspection' && <InspectionSettings />}
+        {activeKey === 'chat' && <ChatSettings />}
+        {activeKey === 'theme' && <ThemeSettings />}
+        {activeKey === 'persona' && <PersonaSettings />}
+        {activeKey === 'companion' && <CompanionSettings />}
+        {activeKey === 'security' && <SecuritySettings />}
+        {activeKey === 'gateway' && <GatewaySettings />}
+        {activeKey === 'deploy' && <DeployInfo />}
+        {activeKey === 'about' && <AboutSettings />}
       </div>
     </div>
   );
@@ -203,7 +195,6 @@ export default function SettingsPage() {
 // ======== 模型管理 ========
 function ModelSettings({ relayUrl, setRelayUrl }: { relayUrl: string; setRelayUrl: (v: string) => void }) {
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'ok' | 'fail'>('idle');
-
   const testRelay = async () => {
     setTestStatus('testing');
     await new Promise(r => setTimeout(r, 1200));
@@ -213,89 +204,47 @@ function ModelSettings({ relayUrl, setRelayUrl }: { relayUrl: string; setRelayUr
   return (
     <section>
       <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>模型管理</h1>
-      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
-        配置AI模型中转站、可用模型列表与故障转移策略
-      </p>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>配置AI模型中转站、可用模型列表与故障转移策略</p>
 
-      {/* 中转站配置 */}
       <Card title="中转站配置" tag="基础" tagColor="tag-primary">
         <FormRow label="中转站URL" desc="兼容OpenAI格式的API端点">
           <input
-            type="text"
-            value={relayUrl}
-            onChange={e => setRelayUrl(e.target.value)}
+            type="text" value={relayUrl} onChange={e => setRelayUrl(e.target.value)}
             className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
-            style={{
-              border: '1px solid var(--input-border)',
-              background: 'var(--input-bg)',
-              color: 'var(--text-primary)',
-            }}
-            onFocus={e => (e.target as HTMLInputElement).style.borderColor = '#7c3aed'}
-            onBlur={e => (e.target as HTMLInputElement).style.borderColor = 'var(--input-border)'}
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}
             aria-label="中转站URL"
           />
           <button
-            onClick={testRelay}
-            disabled={testStatus === 'testing'}
-            className="px-3 py-1.5 rounded-md text-sm font-medium text-white transition-all flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)' }}
+            onClick={testRelay} disabled={testStatus === 'testing'}
+            className="px-3 py-1.5 rounded-md text-sm font-medium text-white flex-shrink-0"
+            style={{ background: testStatus === 'ok' ? '#059669' : 'linear-gradient(135deg, #7c3aed, #6366f1)' }}
           >
             {testStatus === 'testing' ? '检测中...' : testStatus === 'ok' ? '✓ 连通' : '测试连接'}
           </button>
         </FormRow>
         <FormRow label="API密钥" desc="中转站鉴权密钥">
-          <input
-            type="password"
-            placeholder="sk-..."
-            className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
-            style={{
-              border: '1px solid var(--input-border)',
-              background: 'var(--input-bg)',
-              color: 'var(--text-primary)',
-            }}
-            aria-label="API密钥"
-          />
+          <input type="password" placeholder="sk-..." className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}
+            aria-label="API密钥" />
         </FormRow>
-        <FormRow label="故障转移" desc="主模型不可用时自动切换">
-          <Toggle defaultOn />
-        </FormRow>
+        <FormRow label="故障转移" desc="主模型不可用时自动切换"><Toggle defaultOn /></FormRow>
         <FormRow label="超时时间" desc="单次请求最大等待时间">
-          <select
-            className="px-2 py-1.5 rounded-md text-sm"
-            style={{
-              border: '1px solid var(--input-border)',
-              background: 'var(--input-bg)',
-              color: 'var(--text-primary)',
-            }}
-            aria-label="超时时间"
-          >
-            <option>30秒</option>
-            <option>60秒</option>
-            <option>120秒</option>
+          <select className="px-2 py-1.5 rounded-md text-sm"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}
+            aria-label="超时时间">
+            <option>30秒</option><option>60秒</option><option>120秒</option>
           </select>
         </FormRow>
       </Card>
 
-      {/* 可用模型列表 */}
       <Card title="可用模型" tag="列表">
         <div className="flex flex-col gap-2">
           {AVAILABLE_MODELS.map(model => (
-            <div
-              key={model.id}
-              className="flex items-center gap-3 py-2.5 px-1"
-              style={{ borderBottom: '1px solid var(--card-border)' }}
-            >
-              <span
-                className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ background: model.status === 'active' ? '#34d399' : '#9ca3af' }}
-              />
+            <div key={model.id} className="flex items-center gap-3 py-2.5 px-1" style={{ borderBottom: '1px solid var(--card-border)' }}>
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: model.status === 'active' ? '#34d399' : '#9ca3af' }} />
               <div className="flex-1">
-                <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                  {model.name}
-                </div>
-                <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  {model.provider} · 延迟 {model.latency} · 费用{model.cost}
-                </div>
+                <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{model.name}</div>
+                <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{model.provider} · 延迟 {model.latency} · 费用{model.cost}</div>
               </div>
               <Toggle defaultOn={model.status === 'active'} />
             </div>
@@ -306,83 +255,198 @@ function ModelSettings({ relayUrl, setRelayUrl }: { relayUrl: string; setRelayUr
   );
 }
 
+// ======== 中转站配置 ========
+function RelaySettings({ relayUrl, setRelayUrl }: { relayUrl: string; setRelayUrl: (v: string) => void }) {
+  const [groups, setGroups] = useState([
+    { id: 1, name: 'OpenRouter', url: 'https://openrouter.ai/api/v1', key: 'sk-or-••••' },
+    { id: 2, name: 'OneAPI 自建站', url: 'https://one.example.com/v1', key: 'sk-one-••••' },
+  ]);
+  const [testAll, setTestAll] = useState(false);
+
+  return (
+    <section>
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>中转站配置</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>配置多个API中转站，支持并行测试与自动故障转移</p>
+
+      <Card title="中转站列表" tag="多站点" tagColor="tag-primary">
+        {groups.map((g, i) => (
+          <div key={g.id} className="p-3 rounded-xl mb-3" style={{ border: '1px solid var(--card-border)', background: 'var(--center-bg)' }}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-semibold" style={{ color: '#7c3aed' }}>站点 {i + 1}</span>
+              <input defaultValue={g.name} className="flex-1 text-xs px-2 py-1 rounded-md outline-none"
+                style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+              <button className="text-xs px-2 py-1 rounded-md" style={{ background: '#fee2e2', color: '#dc2626' }}
+                onClick={() => setGroups(prev => prev.filter(x => x.id !== g.id))}>删除</button>
+            </div>
+            <div className="flex gap-2">
+              <input defaultValue={g.url} placeholder="API Base URL" className="flex-1 text-xs px-2 py-1 rounded-md outline-none"
+                style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+              <input defaultValue={g.key} type="password" placeholder="API Key" className="text-xs px-2 py-1 rounded-md outline-none"
+                style={{ width: 160, border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+            </div>
+          </div>
+        ))}
+        <div className="flex items-center gap-3 mt-2">
+          <button className="text-xs px-3 py-1.5 rounded-md font-medium"
+            style={{ border: '1px dashed var(--card-border)', color: 'var(--text-secondary)' }}
+            onClick={() => setGroups(prev => [...prev, { id: Date.now(), name: `站点 ${prev.length + 1}`, url: '', key: '' }])}>
+            + 添加站点
+          </button>
+          <button
+            onClick={() => setTestAll(true)}
+            className="flex-1 text-xs px-3 py-1.5 rounded-md font-medium text-white"
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)' }}>
+            {testAll ? '测试中...' : '一键并行测试全部中转站'}
+          </button>
+        </div>
+      </Card>
+
+      <Card title="主中转站URL">
+        <FormRow label="当前主站点URL" desc="所有API请求将发往此端点">
+          <input type="text" value={relayUrl} onChange={e => setRelayUrl(e.target.value)}
+            className="flex-1 text-sm px-3 py-1.5 rounded-md outline-none"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+        </FormRow>
+      </Card>
+    </section>
+  );
+}
+
+// ======== API密钥 ========
+function ApiKeySettings() {
+  return (
+    <section>
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>API密钥管理</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>管理各AI服务提供商的API密钥</p>
+
+      <Card title="Anthropic Claude" tag="主要" tagColor="tag-primary">
+        <FormRow label="API Key" desc="访问 console.anthropic.com 获取">
+          <input type="password" placeholder="sk-ant-..." className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+          <button className="px-3 py-1.5 rounded-md text-sm font-medium text-white flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)' }}>验证</button>
+        </FormRow>
+        <FormRow label="组织ID" desc="可选，企业账户使用">
+          <input type="text" placeholder="org-..." className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+        </FormRow>
+      </Card>
+
+      <Card title="OpenAI" tag="可选">
+        <FormRow label="API Key" desc="访问 platform.openai.com 获取">
+          <input type="password" placeholder="sk-proj-..." className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+          <button className="px-3 py-1.5 rounded-md text-sm font-medium text-white flex-shrink-0"
+            style={{ background: '#10a37f' }}>验证</button>
+        </FormRow>
+      </Card>
+
+      <Card title="Google Gemini" tag="可选">
+        <FormRow label="API Key" desc="访问 aistudio.google.com 获取">
+          <input type="password" placeholder="AIza..." className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+          <button className="px-3 py-1.5 rounded-md text-sm font-medium text-white flex-shrink-0"
+            style={{ background: '#4285f4' }}>验证</button>
+        </FormRow>
+      </Card>
+    </section>
+  );
+}
+
 // ======== 多核治理 ========
 function CoresSettings({ coreCount, setCoreCount }: { coreCount: number; setCoreCount: (v: number) => void }) {
+  const [activePlan, setActivePlan] = useState('balance');
+  const [coreConfigs, setCoreConfigs] = useState(CORE_CONFIGS.map(c => ({ ...c })));
+
+  const applyPlan = (plan: string) => {
+    setActivePlan(plan);
+    if (plan === 'economy') setCoreCount(1);
+    else if (plan === 'balance') setCoreCount(3);
+    else if (plan === 'safe') setCoreCount(4);
+    else setCoreCount(5);
+  };
+
   return (
     <section>
       <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>多核治理</h1>
-      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
-        配置三核博弈机制，最多支持5核并行审计
-      </p>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>配置三核博弈机制，每核独立设置模型、人格与温度</p>
+
+      <Card title="预设方案" tag="快速配置" tagColor="tag-primary">
+        <div className="grid grid-cols-4 gap-2 mb-1">
+          {PRESET_PLANS.map(plan => (
+            <button key={plan.key} onClick={() => applyPlan(plan.key)}
+              className="flex flex-col items-center py-3 px-2 rounded-xl text-center transition-all"
+              style={{
+                background: activePlan === plan.key ? '#ede9fe' : 'var(--center-bg)',
+                border: `1px solid ${activePlan === plan.key ? '#7c3aed' : 'var(--card-border)'}`,
+                color: activePlan === plan.key ? '#7c3aed' : 'var(--text-secondary)',
+              }}>
+              <span style={{ fontSize: 20 }}>{plan.icon}</span>
+              <span className="text-xs font-semibold mt-1">{plan.label}</span>
+              <span className="text-xs mt-0.5" style={{ color: 'var(--text-muted)', fontSize: 10 }}>{plan.desc}</span>
+            </button>
+          ))}
+        </div>
+      </Card>
 
       <Card title="核心数配置" tag="关键" tagColor="tag-primary">
         <FormRow label="启用核心数" desc="同时运行的AI核心数量">
           <div className="flex items-center gap-3">
             {[1, 2, 3, 4, 5].map(n => (
-              <button
-                key={n}
-                onClick={() => setCoreCount(n)}
+              <button key={n} onClick={() => setCoreCount(n)}
                 className="w-9 h-9 rounded-lg text-sm font-semibold transition-all"
                 style={{
                   background: coreCount >= n ? '#7c3aed' : 'var(--card-bg)',
                   color: coreCount >= n ? '#fff' : 'var(--text-secondary)',
                   border: `1px solid ${coreCount >= n ? '#7c3aed' : 'var(--card-border)'}`,
                 }}
-                aria-pressed={coreCount >= n}
-                aria-label={`启用${n}个核心`}
-              >
-                {n}
-              </button>
+                aria-pressed={coreCount >= n} aria-label={`启用${n}个核心`}>{n}</button>
             ))}
-            <span className="text-sm ml-1" style={{ color: 'var(--text-secondary)' }}>
-              核 · 推荐3-5核
-            </span>
+            <span className="text-sm ml-1" style={{ color: 'var(--text-secondary)' }}>核 · 推荐3-5核</span>
           </div>
         </FormRow>
-        <FormRow label="三核博弈" desc="强制每轮执行三阶段流水线">
-          <Toggle defaultOn />
-        </FormRow>
-        <FormRow label="自动综合" desc="自动合并多核审计结果">
-          <Toggle defaultOn />
-        </FormRow>
+        <FormRow label="三核博弈" desc="强制每轮执行三阶段流水线"><Toggle defaultOn /></FormRow>
+        <FormRow label="自动综合" desc="自动合并多核审计结果"><Toggle defaultOn /></FormRow>
       </Card>
 
-      <Card title="核心配置详情">
+      <Card title="核心详细配置">
         <div className="flex flex-col gap-3">
-          {CORE_CONFIGS.slice(0, coreCount).map(core => (
-            <div
-              key={core.id}
-              className="rounded-xl p-3"
-              style={{ background: 'var(--center-bg)', border: '1px solid var(--card-border)' }}
-            >
+          {coreConfigs.slice(0, coreCount).map((core, idx) => (
+            <div key={core.id} className="rounded-xl p-3" style={{ background: 'var(--center-bg)', border: `1px solid ${core.color}30` }}>
               <div className="flex items-center gap-2 mb-2">
-                <span
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ background: core.color }}
-                />
-                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                  核 {core.id}：{core.name}
-                </span>
-                <span className="ml-auto text-xs px-2 py-0.5 rounded-full" style={{ background: `${core.color}15`, color: core.color }}>
-                  {core.role}
-                </span>
+                <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: core.color }} />
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>核 {core.id}：{core.name}</span>
+                <span className="ml-auto text-xs px-2 py-0.5 rounded-full" style={{ background: `${core.color}15`, color: core.color }}>{core.role}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <label className="text-xs" style={{ color: 'var(--text-muted)' }}>模型</label>
-                <select
-                  defaultValue={core.model}
-                  className="text-xs px-2 py-1 rounded-md"
-                  style={{
-                    border: '1px solid var(--input-border)',
-                    background: 'var(--input-bg)',
-                    color: 'var(--text-primary)',
-                  }}
-                  aria-label={`${core.name}的模型`}
-                >
-                  <option value="claude-opus-4">Claude Opus 4</option>
-                  <option value="claude-sonnet-4">Claude Sonnet 4</option>
-                  <option value="claude-haiku-4">Claude Haiku 4</option>
-                </select>
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>模型</label>
+                  <select value={core.model}
+                    onChange={e => setCoreConfigs(prev => prev.map((c, i) => i === idx ? { ...c, model: e.target.value } : c))}
+                    className="text-xs px-2 py-1 rounded-md"
+                    style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}>
+                    <option value="claude-opus-4">Claude Opus 4</option>
+                    <option value="claude-sonnet-4">Claude Sonnet 4</option>
+                    <option value="claude-haiku-4">Claude Haiku 4</option>
+                    <option value="gpt-4o">GPT-4o</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>人格</label>
+                  <select value={core.persona}
+                    onChange={e => setCoreConfigs(prev => prev.map((c, i) => i === idx ? { ...c, persona: e.target.value } : c))}
+                    className="text-xs px-2 py-1 rounded-md"
+                    style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}>
+                    {PERSONAS.map(p => <option key={p}>{p}</option>)}
+                  </select>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>温度</label>
+                  <input type="number" min={0} max={1} step={0.1} value={core.temp}
+                    onChange={e => setCoreConfigs(prev => prev.map((c, i) => i === idx ? { ...c, temp: parseFloat(e.target.value) } : c))}
+                    className="text-xs px-2 py-1 rounded-md w-14 outline-none"
+                    style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+                </div>
               </div>
             </div>
           ))}
@@ -396,26 +460,22 @@ function CoresSettings({ coreCount, setCoreCount }: { coreCount: number; setCore
 function InspectionSettings() {
   const { state, dispatch } = useStore();
   const { inspectionEnabled, inspectionFrequency } = state;
+  const [sendMode, setSendMode] = useState<'draft' | 'auto' | 'safe'>('auto');
 
   return (
     <section>
       <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>巡检AI</h1>
-      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
-        配置定期巡检与事件触发规则，确保系统持续健康运行
-      </p>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>配置定期巡检与事件触发规则，确保系统持续健康运行</p>
 
       <Card title="巡检开关" tag="必需" tagColor="tag-primary">
         <FormRow label="启用巡检" desc="AI定期自检与状态汇报">
-          <Toggle
-            defaultOn={inspectionEnabled}
-            onChange={v => dispatch({ type: 'SET_INSPECTION', payload: { enabled: v, frequency: inspectionFrequency } })}
-          />
+          <Toggle defaultOn={inspectionEnabled}
+            onChange={v => dispatch({ type: 'SET_INSPECTION', payload: { enabled: v, frequency: inspectionFrequency } })} />
         </FormRow>
         <FormRow label="巡检频率" desc="每隔多少分钟执行一次巡检">
           <div className="flex items-center gap-2">
             {[5, 10, 15, 30, 60].map(f => (
-              <button
-                key={f}
+              <button key={f}
                 onClick={() => dispatch({ type: 'SET_INSPECTION', payload: { enabled: inspectionEnabled, frequency: f } })}
                 className="px-2.5 py-1 rounded-md text-xs font-medium transition-all"
                 style={{
@@ -423,14 +483,43 @@ function InspectionSettings() {
                   color: inspectionFrequency === f ? '#fff' : 'var(--text-secondary)',
                   border: `1px solid ${inspectionFrequency === f ? '#7c3aed' : 'var(--card-border)'}`,
                 }}
-                aria-pressed={inspectionFrequency === f}
-                aria-label={`每${f}分钟巡检一次`}
-              >
-                {f}分钟
-              </button>
+                aria-pressed={inspectionFrequency === f}>{f}分钟</button>
             ))}
           </div>
         </FormRow>
+        <FormRow label="发送模式" desc="巡检消息的发送方式">
+          <div className="flex items-center gap-2">
+            {[
+              { key: 'draft', label: '草稿', desc: '先存草稿' },
+              { key: 'auto', label: '自动', desc: '自动发送' },
+              { key: 'safe', label: '安全', desc: '需确认' },
+            ].map(mode => (
+              <button key={mode.key} onClick={() => setSendMode(mode.key as 'draft' | 'auto' | 'safe')}
+                className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+                style={{
+                  background: sendMode === mode.key ? '#7c3aed' : 'var(--card-bg)',
+                  color: sendMode === mode.key ? '#fff' : 'var(--text-secondary)',
+                  border: `1px solid ${sendMode === mode.key ? '#7c3aed' : 'var(--card-border)'}`,
+                }}
+                title={mode.desc}>{mode.label}</button>
+            ))}
+          </div>
+        </FormRow>
+      </Card>
+
+      <Card title="巡检内容" tag="自定义" tagColor="tag-orange">
+        {[
+          { label: '系统状态', desc: 'CPU、内存、连接状态', on: true },
+          { label: '任务进度', desc: '当前任务完成情况', on: true },
+          { label: '错误率统计', desc: '最近N轮的错误比例', on: true },
+          { label: '上下文健康度', desc: '对话上下文使用量', on: true },
+          { label: 'Token消耗', desc: '累计Token用量与费用', on: false },
+          { label: '核心协作状态', desc: '各核心响应与评分', on: false },
+        ].map(item => (
+          <FormRow key={item.label} label={item.label} desc={item.desc}>
+            <Toggle defaultOn={item.on} />
+          </FormRow>
+        ))}
       </Card>
 
       <Card title="事件触发" tag="高级" tagColor="tag-orange">
@@ -448,25 +537,15 @@ function InspectionSettings() {
 
       <Card title="巡检报告" tag="输出">
         <FormRow label="报告格式" desc="巡检结果输出方式">
-          <select
-            className="px-2 py-1.5 rounded-md text-sm"
-            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}
-            aria-label="报告格式"
-          >
-            <option>简报（推荐）</option>
-            <option>详细报告</option>
-            <option>仅异常项</option>
+          <select className="px-2 py-1.5 rounded-md text-sm"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}>
+            <option>简报（推荐）</option><option>详细报告</option><option>仅异常项</option>
           </select>
         </FormRow>
         <FormRow label="保留历史" desc="保留最近N条巡检记录">
-          <select
-            className="px-2 py-1.5 rounded-md text-sm"
-            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}
-            aria-label="保留历史数量"
-          >
-            <option>最近10条</option>
-            <option>最近50条</option>
-            <option>最近100条</option>
+          <select className="px-2 py-1.5 rounded-md text-sm"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}>
+            <option>最近10条</option><option>最近50条</option><option>最近100条</option>
           </select>
         </FormRow>
       </Card>
@@ -474,57 +553,451 @@ function InspectionSettings() {
   );
 }
 
-// ======== 占位页面 ========
-function PlaceholderSettings({ settingKey }: { settingKey: string }) {
-  const navItem = NAV_GROUPS.flatMap(g => g.items).find(i => i.key === settingKey);
+// ======== 聊天设置 ========
+function ChatSettings() {
+  const [markdown, setMarkdown] = useState(true);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [defaultMode, setDefaultMode] = useState('deep');
+
   return (
-    <section className="flex flex-col items-center justify-center h-full gap-4" style={{ color: 'var(--text-muted)' }}>
-      <span style={{ fontSize: 48 }}>{navItem?.icon || '⚙️'}</span>
-      <div className="text-lg font-medium" style={{ color: 'var(--text-primary)' }}>
-        {navItem?.label || '设置项'}
-      </div>
-      <div className="text-sm">此设置项正在开发中</div>
+    <section>
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>聊天设置</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>配置聊天界面行为与默认选项</p>
+
+      <Card title="显示设置">
+        <FormRow label="Markdown渲染" desc="开启后支持富文本格式化显示">
+          <Toggle defaultOn={markdown} onChange={setMarkdown} />
+        </FormRow>
+        <FormRow label="自动滚动" desc="新消息到来时自动滚动到底部">
+          <Toggle defaultOn={autoScroll} onChange={setAutoScroll} />
+        </FormRow>
+        <FormRow label="显示时间戳" desc="每条消息旁显示时间">
+          <Toggle defaultOn={false} />
+        </FormRow>
+        <FormRow label="显示Token数" desc="每条消息显示消耗的Token数量">
+          <Toggle defaultOn={false} />
+        </FormRow>
+      </Card>
+
+      <Card title="默认模式">
+        <FormRow label="启动模式" desc="打开应用时默认使用的对话模式">
+          <div className="flex items-center gap-2">
+            {[
+              { key: 'deep', label: '深度聊天' },
+              { key: 'group', label: 'AI群聊' },
+            ].map(mode => (
+              <button key={mode.key} onClick={() => setDefaultMode(mode.key)}
+                className="px-3 py-1.5 rounded-md text-sm font-medium transition-all"
+                style={{
+                  background: defaultMode === mode.key ? '#7c3aed' : 'var(--card-bg)',
+                  color: defaultMode === mode.key ? '#fff' : 'var(--text-secondary)',
+                  border: `1px solid ${defaultMode === mode.key ? '#7c3aed' : 'var(--card-border)'}`,
+                }}>{mode.label}</button>
+            ))}
+          </div>
+        </FormRow>
+        <FormRow label="Enter发送" desc="按Enter键发送，Shift+Enter换行">
+          <Toggle defaultOn={true} />
+        </FormRow>
+      </Card>
+
+      <Card title="历史记录">
+        <FormRow label="保存对话历史" desc="本地保存所有对话记录">
+          <Toggle defaultOn={true} />
+        </FormRow>
+        <FormRow label="最大历史条数" desc="超出后自动清理最早记录">
+          <select className="px-2 py-1.5 rounded-md text-sm"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}>
+            <option>100条</option><option>500条</option><option>不限制</option>
+          </select>
+        </FormRow>
+      </Card>
+    </section>
+  );
+}
+
+// ======== 外观主题 ========
+function ThemeSettings() {
+  const { state, dispatch } = useStore();
+  const { theme } = state;
+  const [fontSize, setFontSize] = useState(14);
+  const THEME_COLORS = ['#7c3aed', '#2563eb', '#059669', '#d97706', '#dc2626', '#db2777', '#0891b2'];
+
+  return (
+    <section>
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>外观主题</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>自定义界面外观、颜色主题与字体大小</p>
+
+      <Card title="颜色模式" tag="主题" tagColor="tag-primary">
+        <FormRow label="亮暗模式" desc="选择界面整体颜色方案">
+          <div className="flex items-center gap-2">
+            {[
+              { key: 'light', label: '☀ 浅色', desc: '明亮清爽' },
+              { key: 'dark', label: '☾ 深色', desc: '护眼舒适' },
+            ].map(t => (
+              <button key={t.key}
+                onClick={() => dispatch({ type: 'SET_THEME', payload: t.key as 'light' | 'dark' })}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all"
+                style={{
+                  background: theme === t.key ? '#7c3aed' : 'var(--card-bg)',
+                  color: theme === t.key ? '#fff' : 'var(--text-secondary)',
+                  border: `1px solid ${theme === t.key ? '#7c3aed' : 'var(--card-border)'}`,
+                }}>
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </FormRow>
+        <FormRow label="自定义背景" desc="使用图片URL作为背景">
+          <input type="text" placeholder="https://example.com/bg.jpg"
+            className="flex-1 text-sm px-3 py-1.5 rounded-md outline-none"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}
+            onBlur={e => { if (e.target.value) dispatch({ type: 'SET_CUSTOM_BG', payload: e.target.value }); }} />
+        </FormRow>
+      </Card>
+
+      <Card title="主题色" tag="颜色" tagColor="tag-primary">
+        <div className="flex items-center gap-3 py-2">
+          {THEME_COLORS.map(color => (
+            <button key={color} className="w-8 h-8 rounded-full transition-all flex items-center justify-center"
+              style={{ background: color, outline: color === '#7c3aed' ? '2px solid #7c3aed' : 'none', outlineOffset: 2 }}
+              aria-label={`选择颜色 ${color}`}>
+              {color === '#7c3aed' && <span className="text-white text-xs">✓</span>}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card title="字号调整">
+        <FormRow label="界面字号" desc={`当前：${fontSize}px`}>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setFontSize(v => Math.max(12, v - 1))}
+              className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold"
+              style={{ background: 'var(--card-border)', color: 'var(--text-secondary)' }}>−</button>
+            <span className="text-sm font-semibold w-10 text-center" style={{ color: 'var(--text-primary)' }}>{fontSize}px</span>
+            <button onClick={() => setFontSize(v => Math.min(20, v + 1))}
+              className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold"
+              style={{ background: 'var(--card-border)', color: 'var(--text-secondary)' }}>+</button>
+          </div>
+        </FormRow>
+      </Card>
+    </section>
+  );
+}
+
+// ======== 人格管理 ========
+function PersonaSettings() {
+  const [current, setCurrent] = useState('创新开拓者');
+  const [customPersona, setCustomPersona] = useState('');
+
+  return (
+    <section>
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>人格管理</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>选择或自定义AI人格，控制回复风格与个性特征</p>
+
+      <Card title="当前人格" tag="激活" tagColor="tag-primary">
+        <FormRow label="激活人格" desc="所有AI核心将采用此人格风格">
+          <select value={current} onChange={e => setCurrent(e.target.value)}
+            className="px-3 py-1.5 rounded-md text-sm"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}>
+            {PERSONAS.map(p => <option key={p}>{p}</option>)}
+          </select>
+        </FormRow>
+      </Card>
+
+      <Card title="预置人格库" tag={`${PERSONAS.length}种`}>
+        <div className="grid grid-cols-3 gap-2">
+          {PERSONAS.map(p => (
+            <button key={p} onClick={() => setCurrent(p)}
+              className="py-2.5 px-3 rounded-xl text-xs font-medium text-center transition-all"
+              style={{
+                background: current === p ? '#ede9fe' : 'var(--center-bg)',
+                color: current === p ? '#7c3aed' : 'var(--text-secondary)',
+                border: `1px solid ${current === p ? '#7c3aed' : 'var(--card-border)'}`,
+              }}>{p}</button>
+          ))}
+        </div>
+      </Card>
+
+      <Card title="自定义人格">
+        <div className="mb-3">
+          <textarea value={customPersona} onChange={e => setCustomPersona(e.target.value)}
+            placeholder="描述你希望AI展现的人格特征，例如：说话简洁直接，喜欢举实例，不用客套话..."
+            rows={4} className="w-full px-3 py-2 rounded-xl text-sm outline-none resize-none"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+        </div>
+        <button disabled={!customPersona.trim()}
+          className="px-4 py-1.5 rounded-lg text-sm font-medium text-white transition-all disabled:opacity-50"
+          style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)' }}>
+          保存自定义人格
+        </button>
+      </Card>
+
+      <Card title="162位专家人格库" tag="高级" tagColor="tag-orange">
+        <div className="text-sm py-2" style={{ color: 'var(--text-secondary)' }}>
+          包含 162 位跨领域专家人格模板：前端工程师、后端架构师、产品经理、营销专家、安全审计官等
+        </div>
+        <button className="mt-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+          style={{ background: 'var(--session-active)', color: '#7c3aed', border: '1px solid #7c3aed30' }}>
+          浏览专家库 →
+        </button>
+      </Card>
+    </section>
+  );
+}
+
+// ======== 数字伴侣 ========
+function CompanionSettings() {
+  const [mode, setMode] = useState<'pro' | 'friend' | 'bestie' | 'partner'>('friend');
+  const MODES = [
+    { key: 'pro', label: '专业', icon: '💼', desc: '正式专业，保持职业距离' },
+    { key: 'friend', label: '朋友', icon: '😊', desc: '轻松友好，偶尔开玩笑' },
+    { key: 'bestie', label: '闺蜜', icon: '🌸', desc: '亲密贴心，情感支持' },
+    { key: 'partner', label: '伴侣', icon: '💕', desc: '深度陪伴，浪漫互动' },
+  ];
+
+  return (
+    <section>
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>数字伴侣</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>设置AI的亲密度模式与互动风格</p>
+
+      <Card title="亲密度模式" tag="情感" tagColor="tag-primary">
+        <div className="grid grid-cols-2 gap-3 py-1">
+          {MODES.map(m => (
+            <button key={m.key} onClick={() => setMode(m.key as typeof mode)}
+              className="flex items-center gap-3 p-3 rounded-xl text-left transition-all"
+              style={{
+                background: mode === m.key ? '#ede9fe' : 'var(--center-bg)',
+                border: `1px solid ${mode === m.key ? '#7c3aed' : 'var(--card-border)'}`,
+              }}>
+              <span style={{ fontSize: 24 }}>{m.icon}</span>
+              <div>
+                <div className="text-sm font-semibold" style={{ color: mode === m.key ? '#7c3aed' : 'var(--text-primary)' }}>{m.label}</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{m.desc}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card title="语音设置" tag="可选">
+        <FormRow label="语音回复" desc="AI使用语音回复（需要麦克风权限）">
+          <Toggle defaultOn={false} />
+        </FormRow>
+        <FormRow label="声线偏好" desc="选择AI说话的声线风格">
+          <select className="px-2 py-1.5 rounded-md text-sm"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}>
+            <option>温柔女声</option><option>磁性男声</option><option>中性</option>
+          </select>
+        </FormRow>
+      </Card>
+    </section>
+  );
+}
+
+// ======== 安全与隐私 ========
+function SecuritySettings() {
+  return (
+    <section>
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>安全与隐私</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>配置系统权限、数据安全与隐私保护策略</p>
+
+      <Card title="自动权限控制" tag="安全" tagColor="tag-primary">
+        <FormRow label="最大自动权限级别" desc="AI自主执行操作的最高权限等级">
+          <select className="px-2 py-1.5 rounded-md text-sm"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}>
+            <option>只读</option>
+            <option>读写文件</option>
+            <option>执行命令</option>
+            <option>完全自主（谨慎）</option>
+          </select>
+        </FormRow>
+        <FormRow label="危险操作确认" desc="删除、覆盖等操作需要用户二次确认">
+          <Toggle defaultOn={true} />
+        </FormRow>
+      </Card>
+
+      <Card title="隐私保护" tag="隐私">
+        <FormRow label="敏感信息检测" desc="自动检测并遮盖密码、密钥等敏感信息">
+          <Toggle defaultOn={true} />
+        </FormRow>
+        <FormRow label="本地数据加密" desc="对话历史在本地加密存储">
+          <Toggle defaultOn={false} />
+        </FormRow>
+        <FormRow label="禁止数据上传" desc="不向任何服务器上传对话内容">
+          <Toggle defaultOn={true} />
+        </FormRow>
+        <FormRow label="会话自动清理" desc="超过N天的对话自动删除">
+          <select className="px-2 py-1.5 rounded-md text-sm"
+            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}>
+            <option>永不删除</option><option>30天</option><option>90天</option><option>1年</option>
+          </select>
+        </FormRow>
+      </Card>
+    </section>
+  );
+}
+
+// ======== 消息网关 ========
+function GatewaySettings() {
+  const GATEWAYS = [
+    { id: 'telegram', name: 'Telegram', icon: '✈️', status: 'disconnected', color: '#2563eb' },
+    { id: 'discord', name: 'Discord', icon: '💬', status: 'disconnected', color: '#5865f2' },
+    { id: 'wechat', name: '微信', icon: '💚', status: 'disconnected', color: '#07c160' },
+    { id: 'email', name: '邮件', icon: '📧', status: 'disconnected', color: '#d97706' },
+    { id: 'slack', name: 'Slack', icon: '💼', status: 'disconnected', color: '#4a154b' },
+  ];
+
+  return (
+    <section>
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>消息网关</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>连接外部消息平台，让AI可以通过多渠道收发消息</p>
+
+      <Card title="平台接入状态" tag="多平台">
+        <div className="flex flex-col gap-2">
+          {GATEWAYS.map(gw => (
+            <div key={gw.id} className="flex items-center gap-3 py-2.5 px-1"
+              style={{ borderBottom: '1px solid var(--card-border)' }}>
+              <span className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
+                style={{ background: `${gw.color}15`, border: `1px solid ${gw.color}30` }}>{gw.icon}</span>
+              <div className="flex-1">
+                <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{gw.name}</div>
+                <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {gw.status === 'connected' ? '已连接' : '未配置'}
+                </div>
+              </div>
+              <button className="text-xs px-3 py-1 rounded-md font-medium transition-all"
+                style={{
+                  background: gw.status === 'connected' ? '#ecfdf5' : 'var(--center-bg)',
+                  color: gw.status === 'connected' ? '#059669' : 'var(--text-secondary)',
+                  border: `1px solid ${gw.status === 'connected' ? '#059669' : 'var(--card-border)'}`,
+                }}>
+                {gw.status === 'connected' ? '已连接' : '配置'}
+              </button>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card title="通知设置">
+        <FormRow label="接收通知" desc="AI完成任务时通过消息网关通知"><Toggle defaultOn={true} /></FormRow>
+        <FormRow label="错误告警" desc="系统出现错误时立即发送告警"><Toggle defaultOn={true} /></FormRow>
+        <FormRow label="巡检报告推送" desc="定期巡检报告推送到已连接平台"><Toggle defaultOn={false} /></FormRow>
+      </Card>
+    </section>
+  );
+}
+
+// ======== 部署信息 ========
+function DeployInfo() {
+  const info = {
+    python: 'Python 3.12.3',
+    os: 'macOS Darwin 25.1.0',
+    arch: 'ARM64 (Apple Silicon)',
+    node: 'Node.js 22.11.0',
+    next: 'Next.js 16',
+    backend: 'FastAPI 0.115',
+    uptime: '4小时32分钟',
+    port: '8888',
+  };
+
+  return (
+    <section>
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>部署信息</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>当前运行环境的系统与技术栈信息</p>
+
+      <Card title="系统环境">
+        {Object.entries({
+          '操作系统': info.os,
+          '系统架构': info.arch,
+          'Python版本': info.python,
+          'Node.js版本': info.node,
+        }).map(([k, v]) => (
+          <FormRow key={k} label={k}>
+            <code className="text-xs px-2 py-1 rounded-md" style={{ background: 'var(--center-bg)', color: '#7c3aed' }}>{v}</code>
+          </FormRow>
+        ))}
+      </Card>
+
+      <Card title="服务状态" tag="运行中" tagColor="tag-green">
+        {Object.entries({
+          '前端框架': info.next,
+          '后端框架': info.backend,
+          '后端端口': info.port,
+          '运行时长': info.uptime,
+        }).map(([k, v]) => (
+          <FormRow key={k} label={k}>
+            <code className="text-xs px-2 py-1 rounded-md" style={{ background: 'var(--center-bg)', color: '#059669' }}>{v}</code>
+          </FormRow>
+        ))}
+      </Card>
+    </section>
+  );
+}
+
+// ======== 关于 ========
+function AboutSettings() {
+  return (
+    <section>
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>关于 OpenAGI</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>版本信息与许可证声明</p>
+
+      <Card title="版本信息">
+        <div className="flex items-center gap-4 py-4">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)' }}>🧠</div>
+          <div>
+            <div className="text-xl font-bold logo-gradient">OpenAGI</div>
+            <div className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>版本 1.0.0-MVP</div>
+            <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Build 2026-04-16</div>
+          </div>
+        </div>
+        {[
+          ['许可证', 'MIT License'],
+          ['开源仓库', 'github.com/openagi26/openagi'],
+          ['文档', 'docs.openagi.ai'],
+        ].map(([k, v]) => (
+          <FormRow key={k} label={k}>
+            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{v}</span>
+          </FormRow>
+        ))}
+      </Card>
+
+      <Card title="致谢">
+        <div className="text-sm leading-relaxed py-1" style={{ color: 'var(--text-secondary)' }}>
+          感谢 Anthropic Claude、React、Next.js、FastAPI、TailwindCSS 等开源项目的支持。
+          感谢所有参与测试和反馈的早期用户。
+        </div>
+      </Card>
     </section>
   );
 }
 
 // ======== 通用子组件 ========
 
-function Card({
-  title, tag, tagColor, children,
-}: {
+function Card({ title, tag, tagColor, children }: {
   title: string; tag?: string; tagColor?: string; children: React.ReactNode;
 }) {
+  const tagStyle = tagColor === 'tag-orange'
+    ? { background: '#fff7ed', color: '#ea580c' }
+    : tagColor === 'tag-green'
+    ? { background: '#ecfdf5', color: '#059669' }
+    : { background: '#ede9fe', color: '#7c3aed' };
+
   return (
-    <div
-      className="rounded-xl p-5 mb-4"
-      style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
-    >
+    <div className="rounded-xl p-5 mb-4" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
       <div className="flex items-center gap-2 mb-4 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
         {title}
-        {tag && (
-          <span
-            className="text-xs px-2 py-0.5 rounded-full"
-            style={tagColor === 'tag-orange'
-              ? { background: '#fff7ed', color: '#ea580c' }
-              : { background: '#ede9fe', color: '#7c3aed' }
-            }
-          >
-            {tag}
-          </span>
-        )}
+        {tag && <span className="text-xs px-2 py-0.5 rounded-full" style={tagStyle}>{tag}</span>}
       </div>
       {children}
     </div>
   );
 }
 
-function FormRow({ label, desc, children }: { label: string; desc?: string; children: React.ReactNode }) {
+function FormRow({ label, desc, children }: { label: string; desc?: string; children?: React.ReactNode }) {
   return (
-    <div
-      className="flex items-center py-2.5 gap-3"
-      style={{ borderBottom: '1px solid var(--card-border)' }}
-    >
+    <div className="flex items-center py-2.5 gap-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
       <div style={{ width: 160, flexShrink: 0 }}>
         <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{label}</div>
         {desc && <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{desc}</div>}
@@ -537,26 +1010,13 @@ function FormRow({ label, desc, children }: { label: string; desc?: string; chil
 function Toggle({ defaultOn, onChange }: { defaultOn?: boolean; onChange?: (v: boolean) => void }) {
   const [on, setOn] = useState(defaultOn ?? false);
   return (
-    <button
-      role="switch"
-      aria-checked={on}
+    <button role="switch" aria-checked={on}
       onClick={() => { setOn(!on); onChange?.(!on); }}
       className="relative flex-shrink-0 rounded-full transition-colors"
-      style={{
-        width: 40, height: 22,
-        background: on ? '#7c3aed' : 'var(--card-border)',
-      }}
-      aria-label={on ? '已开启' : '已关闭'}
-    >
-      <span
-        className="absolute top-0.5 rounded-full bg-white transition-transform"
-        style={{
-          width: 18, height: 18,
-          left: 2,
-          transform: on ? 'translateX(18px)' : 'translateX(0)',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
-        }}
-      />
+      style={{ width: 40, height: 22, background: on ? '#7c3aed' : 'var(--card-border)' }}
+      aria-label={on ? '已开启' : '已关闭'}>
+      <span className="absolute top-0.5 rounded-full bg-white transition-transform"
+        style={{ width: 18, height: 18, left: 2, transform: on ? 'translateX(18px)' : 'translateX(0)', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
     </button>
   );
 }
