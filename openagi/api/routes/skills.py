@@ -69,6 +69,23 @@ _MARKET_SKILLS: list[dict] = [
         "params": {"wd": "搜索关键词", "pageNum": "页码(默认0)", "enable_abstract": "是否返回摘要"},
     },
     {
+        "id": "agent_browser",
+        "name": "Agent浏览器自动化",
+        "description": "无头浏览器自动化工具：通过可访问性树快照+引用编码实现确定性网页交互，支持导航/点击/表单/截图/会话隔离/Cookie持久化",
+        "category": "浏览器工具",
+        "version": "1.0.0",
+        "author": "matrixy（安全加固版: murdochwa）",
+        "source": "github.com/jiajiawei994-ctrl/agent-browser-clawdbot",
+        "capabilities": {
+            "导航": ["打开URL", "返回/前进", "刷新", "关闭页面"],
+            "交互": ["点击(@ref引用)", "悬停", "拖拽", "表单填充", "键盘输入", "滚动"],
+            "信息获取": ["提取文本/HTML/属性", "截图/PDF", "元素可见性检查"],
+            "高级": ["会话隔离(多实例)", "Cookie持久化", "网络请求拦截"],
+        },
+        "workflow": "快照→解析引用→交互→重新快照（确定性循环）",
+        "security_notes": "需设置信任边界，避免对不可信网站执行风险自动化；敏感数据需脱敏处理",
+    },
+    {
         "id": "ai_news_collector",
         "name": "AI新闻收集器",
         "description": "6维度分层搜索AI领域最新动态（周报/社区热度/产品发布/融资/研究/政策），输出15-25条热度排序新闻",
