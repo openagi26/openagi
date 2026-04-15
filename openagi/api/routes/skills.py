@@ -70,6 +70,25 @@ _MARKET_SKILLS: list[dict] = [
     },
     # ── 排行榜Top20精选 + 用户推荐 ─────────────────────────────
     {
+        "id": "trading_agents",
+        "name": "TradingAgents 多代理金融分析",
+        "description": "模拟真实交易公司：4分析师+牛熊辩论+3风控辩论者+投资组合经理，多维度协作决策",
+        "category": "金融分析",
+        "version": "1.0.0",
+        "author": "TauricResearch（50K★）",
+        "source": "github.com/TauricResearch/TradingAgents",
+        "agent_roles": {
+            "分析师团队": ["基本面分析师", "情感分析师", "新闻分析师", "技术分析师"],
+            "研究员团队": ["牛方(看涨)研究员", "熊方(看跌)研究员"],
+            "风控团队": ["激进辩论者", "保守辩论者", "中立辩论者"],
+            "决策层": ["交易员", "投资组合经理"],
+        },
+        "debate_mechanism": "牛熊结构化辩论：多轮交锋，各自维护独立论点历史，基于四维数据（基本面/情感/新闻/技术）",
+        "risk_debate": "三方风控辩论：激进vs保守vs中立，对抗式论证寻找最优风险回报比",
+        "decision_flow": "分析师→研究员辩论→交易员→风控辩论→投资组合经理审批",
+        "openagi_value": "牛熊辩论模式可增强我们的三核审计对抗性：审计-外A=挑战者(熊) / 审计-外B=支持者(牛) / 审计-外C=中立评判",
+    },
+    {
         "id": "gsd_context_engineering",
         "name": "GSD上下文工程系统",
         "description": "解决'上下文腐烂'：任务原子化拆分+独立窗口隔离+8文档持久化+波形并行+XML验证",
