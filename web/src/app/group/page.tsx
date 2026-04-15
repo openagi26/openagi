@@ -15,7 +15,7 @@ const DEFAULT_MEMBERS = [
   { id: 'executor', name: '执行代理', model: 'claude-sonnet-4', role: '任务执行', color: '#dc2626', emoji: '🚀', online: false },
 ];
 
-// 预设团队模板
+// 预设团队模板（借鉴 OpenTeams 的 Team Protocol 设计）
 const TEAM_PRESETS = [
   {
     key: 'default',
@@ -23,43 +23,147 @@ const TEAM_PRESETS = [
     icon: '🤖',
     desc: 'CEO + 三审计 + 执行',
     members: DEFAULT_MEMBERS,
+    protocol: {
+      leader: 'ceo',
+      rules: ['CEO负责决策和任务分配', '审计核独立评分不互相影响', '执行代理接收CEO指令后执行', '所有成员消息控制在500字以内'],
+      mentionRules: 'open', // open=自由@, leader_only=只有leader能@, structured=按定义
+      maxRounds: 3,
+    },
   },
   {
     key: 'fullstack',
-    label: '全栈团队',
+    label: '全栈交付团队',
     icon: '💻',
-    desc: '前端+后端+产品+架构',
+    desc: '产品+前端+后端+QA+安全（学习OpenTeams fullstack_delivery_team协议）',
     members: [
-      { id: 'pm', name: '产品经理', model: 'claude-opus-4', role: '需求分析', color: '#7c3aed', emoji: '📋', online: true },
-      { id: 'fe', name: '前端工程师', model: 'claude-sonnet-4', role: 'React/UI', color: '#2563eb', emoji: '🎨', online: true },
-      { id: 'be', name: '后端架构师', model: 'claude-sonnet-4', role: 'API/数据库', color: '#059669', emoji: '⚙️', online: true },
-      { id: 'qa', name: '测试工程师', model: 'claude-haiku-4', role: 'QA/自动化', color: '#d97706', emoji: '🧪', online: true },
-      { id: 'sec', name: '安全工程师', model: 'claude-haiku-4', role: '安全审计', color: '#dc2626', emoji: '🔒', online: false },
+      { id: 'pm', name: '产品经理', model: 'claude-opus-4', role: '需求分析与计划', color: '#7c3aed', emoji: '📋', online: true },
+      { id: 'ux', name: 'UX设计师', model: 'claude-sonnet-4', role: 'UI/UX设计', color: '#db2777', emoji: '🎨', online: true },
+      { id: 'fe', name: '前端工程师', model: 'claude-sonnet-4', role: 'React/Vue/UI', color: '#2563eb', emoji: '💻', online: true },
+      { id: 'be', name: '后端工程师', model: 'claude-sonnet-4', role: 'API/数据库', color: '#059669', emoji: '⚙️', online: true },
+      { id: 'qa', name: 'QA测试员', model: 'claude-haiku-4', role: '测试与质量', color: '#d97706', emoji: '🧪', online: true },
+      { id: 'reviewer', name: '代码审查员', model: 'claude-opus-4', role: '代码审查', color: '#dc2626', emoji: '🔍', online: false },
     ],
+    protocol: {
+      leader: 'pm',
+      rules: [
+        '仅产品经理和UX设计师可直接在用户处@提及',
+        '计划文件位于 .openteams/plan.md，所有成员可读，仅产品经理可编辑',
+        '产品经理必须指派任务至具体成员，完成后成员通知产品经理更新状态',
+        '所有代码产出保存在各成员工作区，避免在群聊中发送大段代码',
+        '群组消息简洁扼要，控制在500字符以内',
+      ],
+      mentionRules: 'structured',
+      maxRounds: 5,
+    },
   },
   {
     key: 'marketing',
-    label: '营销团队',
+    label: '增长营销团队',
     icon: '📣',
-    desc: '文案+设计+数据+运营',
+    desc: '策略+文案+设计+数据+投放（学习OpenTeams growth_marketing_team协议）',
     members: [
-      { id: 'copy', name: '文案策划', model: 'claude-opus-4', role: '内容创作', color: '#db2777', emoji: '✍️', online: true },
-      { id: 'design', name: '视觉设计师', model: 'claude-sonnet-4', role: 'UI/品牌', color: '#7c3aed', emoji: '🎭', online: true },
-      { id: 'data', name: '数据分析师', model: 'claude-sonnet-4', role: '用户增长', color: '#2563eb', emoji: '📊', online: true },
-      { id: 'ops', name: '社媒运营', model: 'claude-haiku-4', role: '内容运营', color: '#059669', emoji: '📱', online: true },
+      { id: 'strategist', name: '增长策略师', model: 'claude-opus-4', role: '增长策略', color: '#7c3aed', emoji: '🎯', online: true },
+      { id: 'copy', name: '文案策划', model: 'claude-sonnet-4', role: '内容创作', color: '#db2777', emoji: '✍️', online: true },
+      { id: 'design', name: '视觉设计师', model: 'claude-sonnet-4', role: '视觉/品牌', color: '#2563eb', emoji: '🎭', online: true },
+      { id: 'data', name: '数据分析师', model: 'claude-sonnet-4', role: '数据洞察', color: '#059669', emoji: '📊', online: true },
+      { id: 'ads', name: '投放专员', model: 'claude-haiku-4', role: '广告投放', color: '#d97706', emoji: '📱', online: true },
     ],
+    protocol: {
+      leader: 'strategist',
+      rules: ['增长策略师制定整体方案并分配任务', '文案和设计产出需经策略师审核', '数据分析师每轮提供效果数据支持决策', '所有产出需符合品牌调性'],
+      mentionRules: 'open',
+      maxRounds: 4,
+    },
   },
   {
     key: 'research',
-    label: '研究团队',
+    label: '研究创新团队',
     icon: '🔬',
-    desc: '研究员+分析+写作',
+    desc: '首席研究员+分析+写作+评审（学习OpenTeams research_innovation_team协议）',
     members: [
-      { id: 'researcher', name: '首席研究员', model: 'claude-opus-4', role: '课题设计', color: '#7c3aed', emoji: '🔭', online: true },
+      { id: 'lead', name: '首席研究员', model: 'claude-opus-4', role: '课题设计', color: '#7c3aed', emoji: '🔭', online: true },
       { id: 'analyst', name: '数据科学家', model: 'claude-sonnet-4', role: '数据分析', color: '#2563eb', emoji: '📈', online: true },
       { id: 'writer', name: '技术作家', model: 'claude-sonnet-4', role: '报告撰写', color: '#059669', emoji: '📝', online: true },
       { id: 'reviewer', name: '同行评审', model: 'claude-opus-4', role: '质量把关', color: '#d97706', emoji: '⚖️', online: false },
     ],
+    protocol: {
+      leader: 'lead',
+      rules: ['首席研究员定义研究方向和假设', '数据科学家负责实验设计和数据验证', '技术作家整理研究成果为可发布格式', '同行评审独立审查，确保学术严谨性'],
+      mentionRules: 'structured',
+      maxRounds: 5,
+    },
+  },
+  {
+    key: 'content',
+    label: '内容工作室',
+    icon: '🎬',
+    desc: '主编+撰稿+编辑+SEO（学习OpenTeams content_studio_team协议）',
+    members: [
+      { id: 'editor', name: '主编', model: 'claude-opus-4', role: '选题与终审', color: '#7c3aed', emoji: '📰', online: true },
+      { id: 'author', name: '撰稿人', model: 'claude-sonnet-4', role: '原创写作', color: '#2563eb', emoji: '✏️', online: true },
+      { id: 'proofreader', name: '校对编辑', model: 'claude-haiku-4', role: '校对润色', color: '#059669', emoji: '📖', online: true },
+      { id: 'seo', name: 'SEO专家', model: 'claude-haiku-4', role: '搜索优化', color: '#d97706', emoji: '🔎', online: true },
+    ],
+    protocol: {
+      leader: 'editor',
+      rules: ['主编选题后分配给撰稿人', '撰稿人完成初稿后@校对编辑和SEO专家', 'SEO专家在发布前优化标题和关键词', '最终发布由主编审核确认'],
+      mentionRules: 'structured',
+      maxRounds: 4,
+    },
+  },
+  {
+    key: 'bugfix',
+    label: '快速修复团队',
+    icon: '🔧',
+    desc: '分诊+调试+修复+验证（学习OpenTeams rapid_bugfix_team协议）',
+    members: [
+      { id: 'triage', name: '分诊负责人', model: 'claude-opus-4', role: '问题分类', color: '#dc2626', emoji: '🚨', online: true },
+      { id: 'debugger', name: '调试工程师', model: 'claude-sonnet-4', role: '根因分析', color: '#2563eb', emoji: '🔬', online: true },
+      { id: 'fixer', name: '修复工程师', model: 'claude-sonnet-4', role: '代码修复', color: '#059669', emoji: '🛠️', online: true },
+      { id: 'verifier', name: '验证工程师', model: 'claude-haiku-4', role: '回归测试', color: '#d97706', emoji: '✅', online: true },
+    ],
+    protocol: {
+      leader: 'triage',
+      rules: ['分诊负责人评估优先级并分配给调试工程师', '调试工程师定位根因后@修复工程师', '修复完成后自动触发验证工程师回归测试', '紧急bug跳过排队直接处理'],
+      mentionRules: 'structured',
+      maxRounds: 6,
+    },
+  },
+  {
+    key: 'architecture',
+    label: '架构治理团队',
+    icon: '🏗️',
+    desc: '首席架构+领域专家+安全+性能（学习OpenTeams architecture_governance_team协议）',
+    members: [
+      { id: 'chief', name: '首席架构师', model: 'claude-opus-4', role: '架构决策', color: '#7c3aed', emoji: '🏛️', online: true },
+      { id: 'domain', name: '领域专家', model: 'claude-sonnet-4', role: '领域建模', color: '#2563eb', emoji: '🧩', online: true },
+      { id: 'security', name: '安全架构师', model: 'claude-sonnet-4', role: '安全设计', color: '#dc2626', emoji: '🛡️', online: true },
+      { id: 'perf', name: '性能工程师', model: 'claude-haiku-4', role: '性能优化', color: '#059669', emoji: '⚡', online: true },
+    ],
+    protocol: {
+      leader: 'chief',
+      rules: ['首席架构师主持ADR（架构决策记录）', '重大变更需安全架构师和性能工程师双重审查', '领域专家验证业务逻辑一致性', 'ADR文件由首席架构师最终签发'],
+      mentionRules: 'leader_only',
+      maxRounds: 3,
+    },
+  },
+  {
+    key: 'product',
+    label: '产品发现团队',
+    icon: '🎯',
+    desc: '产品+用研+原型+验证（学习OpenTeams product_discovery_team协议）',
+    members: [
+      { id: 'product', name: '产品负责人', model: 'claude-opus-4', role: '产品方向', color: '#7c3aed', emoji: '🧭', online: true },
+      { id: 'ux_researcher', name: '用户研究员', model: 'claude-sonnet-4', role: '用户洞察', color: '#2563eb', emoji: '🔍', online: true },
+      { id: 'prototype', name: '原型设计师', model: 'claude-sonnet-4', role: '快速原型', color: '#db2777', emoji: '✨', online: true },
+      { id: 'validator', name: '验证分析师', model: 'claude-haiku-4', role: '数据验证', color: '#059669', emoji: '📋', online: true },
+    ],
+    protocol: {
+      leader: 'product',
+      rules: ['产品负责人定义假设和验证标准', '用户研究员设计实验并收集反馈', '原型设计师快速出可测试原型', '验证分析师用数据验证或否定假设'],
+      mentionRules: 'open',
+      maxRounds: 4,
+    },
   },
 ];
 
