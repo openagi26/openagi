@@ -1,7 +1,15 @@
 .PHONY: dev test api web install clean kill pre-check docker-build docker-up docker-down docker-logs
 
+# 虚拟环境路径（自动检测）
+VENV := .venv
+PYTHON := $(VENV)/bin/python
+UVICORN := $(VENV)/bin/uvicorn
+PIP := $(VENV)/bin/pip
+PYTEST := $(VENV)/bin/pytest
+RUFF := $(VENV)/bin/ruff
+
 install:
-	pip install -e ".[dev]"
+	$(PIP) install -e ".[dev]"
 	cd web && pnpm install
 
 # ⚠️ 安全启动前置检查：清理残留进程 + 缓存
@@ -15,26 +23,24 @@ pre-check:
 	@rm -rf web/.next/cache 2>/dev/null || true
 	@echo "✅ 环境就绪"
 
-# 后端：必须指定 --reload-dir，避免监控 node_modules/.venv 导致内存爆炸
-# 严禁直接运行 uvicorn --reload 不带 --reload-dir
+# 后端：使用 .venv 内的 uvicorn，必须指定 --reload-dir 避免内存爆炸
 dev: pre-check
-	NODE_OPTIONS="--max-old-space-size=512" \
-	uvicorn openagi.api.main:app --reload --reload-dir openagi --port 8888
+	$(UVICORN) openagi.api.main:app --reload --reload-dir openagi --port 8888
 
-# 前端：限制 Node 内存上限为 1GB，独立终端运行
+# 前端：限制 Node 内存上限，需在独立终端运行
 web:
-	NODE_OPTIONS="--max-old-space-size=1024" pnpm dev --port 3000
+	cd web && NODE_OPTIONS="--max-old-space-size=1024" pnpm dev --port 3000
 
 test:
-	python -m pytest tests/ -v --tb=short
+	$(PYTEST) tests/ -v --tb=short
 
 test-quick:
-	python -m pytest tests/ -x -q --tb=line
+	$(PYTEST) tests/ -x -q --tb=line
 
 lint:
-	ruff check openagi/ tests/
+	$(RUFF) check openagi/ tests/
 
-# 清理所有后台进程（防内存泄漏）——包括 pytest 残留
+# 清理所有后台进程
 kill:
 	-pkill -f "uvicorn openagi" 2>/dev/null || true
 	-pkill -f "next-server" 2>/dev/null || true
