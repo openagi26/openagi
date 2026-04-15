@@ -68,10 +68,11 @@ async def send_message(
         effective_cores = max(req.core_count, 3)  # crisis自动升核
 
     try:
-        # 调用多核治理流水线
+        # 调用多核治理流水线（传入llm路由器，通过中转站调用）
         result = await run_full_trinity_pipeline(
             task_title="用户对话",
             task_description=req.message,
+            llm_router=llm,
         )
 
         reply = result.proposal

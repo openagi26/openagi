@@ -25,6 +25,10 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
+# 最优先加载 .env，确保所有环境变量在模块导入前就位
+from dotenv import load_dotenv
+load_dotenv(override=False)  # override=False: 已有环境变量不覆盖
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -49,35 +53,35 @@ def _setup_llm_from_env(llm_router) -> None:
     """从环境变量加载中转站配置，设置主模型和回退链。"""
     from openagi.cortex.llm.router import ModelEntry, ModelRole
 
-    # GLM-5.1（智谱AI中转站）
+    # GLM（智谱AI中转站）—— OpenAI 兼容接口，用 openai/ 前缀让 litellm 走 /chat/completions
     zhipu_key = os.getenv("ZHIPU_API_KEY", "")
     zhipu_base = os.getenv("ZHIPU_API_BASE", "")
     if zhipu_key and zhipu_base:
         relay_glm = llm_router.add_relay("智谱AI-GLM", zhipu_base, zhipu_key)
         llm_router._models.append(ModelEntry(
-            model_id="glm-4-plus",
+            model_id="openai/glm-4-plus",   # openai/ 前缀 → litellm 走 OpenAI 协议
             provider="ZhipuAI",
             relay_name="智谱AI-GLM",
             key_suffix=relay_glm.key_suffix,
             is_available=True,
         ))
-        llm_router.set_primary("glm-4-plus", "智谱AI-GLM")
-        logger.info("✅ 主模型: GLM-4-Plus (智谱AI)")
+        llm_router.set_primary("openai/glm-4-plus", "智谱AI-GLM")
+        logger.info("✅ 主模型: GLM-4-Plus (智谱AI OpenAI兼容)")
 
-    # Claude opus-4 中转站
+    # Claude 中转站 —— OpenAI 兼容接口，同样用 openai/ 前缀
     relay_key = os.getenv("RELAY_CLAUDE_KEY", "")
     relay_base = os.getenv("RELAY_CLAUDE_BASE", "")
     if relay_key and relay_base:
         relay_claude = llm_router.add_relay("Claude中转", relay_base, relay_key)
         llm_router._models.append(ModelEntry(
-            model_id="claude-opus-4-6",
+            model_id="openai/claude-opus-4-6",  # openai/ 前缀 → /chat/completions，不走 /v1/messages
             provider="Anthropic",
             relay_name="Claude中转",
             key_suffix=relay_claude.key_suffix,
             is_available=True,
         ))
-        llm_router.set_fallback("claude-opus-4-6", "Claude中转", order=1)
-        logger.info("✅ 回退模型①: claude-opus-4-6 (中转站)")
+        llm_router.set_fallback("openai/claude-opus-4-6", "Claude中转", order=1)
+        logger.info("✅ 回退模型①: claude-opus-4-6 (中转站 OpenAI兼容)")
 
 
 # ─── 全局实例 ───────────────────────────────────────────────────────────────
@@ -210,6 +214,7 @@ async def chat_send(req: ChatRequest):
             task_title="用户消息",
             task_description=req.message,
             model=req.model or "claude-haiku-4-5-20251001",
+            llm_router=router,
         )
         # 记录AI回复到热记忆
         memory.add_message(req.session_id, "assistant", result.proposal)
@@ -244,6 +249,7 @@ async def trinity_run(req: TrinityRequest):
             task_title=req.title,
             task_description=req.description,
             model=req.model,
+            llm_router=router,
         )
         return APIResponse(success=True, data={
             "proposal": result.proposal,
@@ -423,6 +429,7 @@ async def ws_chat(websocket: WebSocket):
                 result = await run_full_trinity_pipeline(
                     task_title="用户消息",
                     task_description=user_message,
+                    llm_router=router,
                 )
                 memory.add_message(session_id, "assistant", result.proposal)
                 heart.push_event("llm_call_success")
