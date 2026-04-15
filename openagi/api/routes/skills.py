@@ -70,6 +70,22 @@ _MARKET_SKILLS: list[dict] = [
     },
     # ── 排行榜Top20精选 + 用户推荐 ─────────────────────────────
     {
+        "id": "voice_skills",
+        "name": "语音对话+声音克隆+视频翻译",
+        "description": "全功能语音技能包：实时语音对话、声音克隆（几秒音频即可复刻）、视频多语言翻译配音、实时新闻语音播报",
+        "category": "语音交互",
+        "version": "1.0.0",
+        "author": "NoizAl（OpenClaw技能市场）",
+        "source": "clawhub-mirror.com/NoizAl/skills",
+        "capabilities": {
+            "语音对话": "实时STT→LLM→TTS全链路语音交互",
+            "声音克隆": "几秒音频样本即可复刻目标音色，支持多语言",
+            "视频翻译": "提取视频语音→翻译→用克隆声音重新配音",
+            "新闻播报": "聚合实时新闻→AI摘要→语音自动播报",
+        },
+        "openagi_integration": "增强数字伴侣(companion/)的语音能力，与TTS/STT模块对接",
+    },
+    {
         "id": "trading_agents",
         "name": "TradingAgents 多代理金融分析",
         "description": "模拟真实交易公司：4分析师+牛熊辩论+3风控辩论者+投资组合经理，多维度协作决策",
