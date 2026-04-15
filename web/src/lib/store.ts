@@ -15,6 +15,8 @@ export interface Message {
   agentColor?: string;
   timestamp: number;
   thinking?: boolean;
+  tokens?: number;
+  audit?: string;
 }
 
 export interface Session {
@@ -120,6 +122,8 @@ type Action =
   | { type: 'SET_ACTIVE_SESSION'; payload: string }
   | { type: 'NEW_SESSION' }
   | { type: 'ADD_MESSAGE'; payload: Message }
+  | { type: 'REPLACE_MESSAGE'; payload: { id: string; message: Message } }
+  | { type: 'REMOVE_MESSAGE'; payload: string }
   | { type: 'SET_AI_THINKING'; payload: boolean }
   | { type: 'SET_THINKING_SECONDS'; payload: number }
   | { type: 'UPDATE_CORE'; payload: { id: number; status: CoreStatus['status']; score?: number } }
@@ -154,6 +158,13 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'ADD_MESSAGE':
       return { ...state, messages: [...state.messages, action.payload] };
+    case 'REPLACE_MESSAGE':
+      return {
+        ...state,
+        messages: state.messages.map(m => m.id === action.payload.id ? action.payload.message : m),
+      };
+    case 'REMOVE_MESSAGE':
+      return { ...state, messages: state.messages.filter(m => m.id !== action.payload) };
     case 'SET_AI_THINKING':
       return { ...state, isAIThinking: action.payload, thinkingSeconds: action.payload ? 0 : state.thinkingSeconds };
     case 'SET_THINKING_SECONDS':

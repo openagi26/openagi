@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useStore, Session } from '@/lib/store';
 
 interface SidebarProps {
@@ -12,6 +14,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
   const { state, dispatch } = useStore();
   const { sessions, activeSessionId } = state;
   const [search, setSearch] = useState('');
+  const pathname = usePathname();
 
   const filtered = sessions.filter(s =>
     s.title.toLowerCase().includes(search.toLowerCase())
@@ -99,6 +102,23 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
             }}
             aria-label="搜索会话"
           />
+        </div>
+
+        {/* 快捷导航 */}
+        <div className="px-3 pb-2">
+          <Link
+            href="/memory"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all w-full"
+            style={{
+              background: pathname === '/memory' ? 'var(--session-active)' : 'transparent',
+              borderLeft: pathname === '/memory' ? '3px solid #7c3aed' : '3px solid transparent',
+              color: pathname === '/memory' ? '#7c3aed' : 'var(--text-secondary)',
+              textDecoration: 'none',
+            }}
+          >
+            <span>🧠</span>
+            <span>记忆</span>
+          </Link>
         </div>
 
         {/* 会话列表 */}

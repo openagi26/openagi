@@ -55,7 +55,23 @@ export async function fetchModels() {
 
 export async function fetchSessions() {
   try {
-    return await request<{ id: string; title: string; timestamp: number }[]>('/api/v1/chat/sessions');
+    const res = await request<{ success: boolean; data: { id: string; title: string; created_at: string; message_count: number; group?: string }[] }>('/api/v1/chat/sessions');
+    return (res.data ?? []).map(s => ({
+      id: s.id,
+      title: s.title,
+      timestamp: s.created_at ? new Date(s.created_at).getTime() : Date.now(),
+      messageCount: s.message_count ?? 0,
+      group: s.group,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchHistory(sessionId: string) {
+  try {
+    const res = await request<{ success: boolean; data: { role: string; content: string }[] }>(`/api/v1/chat/history/${sessionId}`);
+    return res.data ?? [];
   } catch {
     return [];
   }
@@ -74,10 +90,29 @@ export async function createSession(title?: string) {
 
 export async function sendMessage(sessionId: string, content: string, model: string) {
   try {
-    return await request<{ id: string; content: string; model: string }>('/api/v1/chat/send', {
+    const res = await request<{
+      success: boolean;
+      data: {
+        reply: string;
+        session_id: string;
+        tokens: number;
+        duration_ms: number;
+        model: string;
+        core_count: number;
+        audit: string;
+        heart_level: string;
+      };
+    }>('/api/v1/chat/send', {
       method: 'POST',
       body: JSON.stringify({ message: content, session_id: sessionId, model }),
     });
+    return {
+      id: Date.now().toString(),
+      content: res.data.reply,
+      model: res.data.model,
+      tokens: res.data.tokens,
+      audit: res.data.audit,
+    };
   } catch {
     // Fallback: 模拟AI回复
     await new Promise(r => setTimeout(r, 800));
@@ -85,6 +120,8 @@ export async function sendMessage(sessionId: string, content: string, model: str
       id: Date.now().toString(),
       content: `[演示模式] 您说：「${content}」\n\n后端服务暂未连接（${BASE_URL}），当前显示占位回复。请启动后端服务后重试。`,
       model,
+      tokens: undefined as number | undefined,
+      audit: undefined as string | undefined,
     };
   }
 }

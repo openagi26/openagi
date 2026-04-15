@@ -70,32 +70,41 @@ export default function SendBox() {
 
     try {
       const resp = await sendMessage(sessionId, text, currentModel);
-      // 替换thinking消息（这里简化为再加一条）
       dispatch({ type: 'SET_AI_THINKING', payload: false });
+      // 用真实回复替换thinking占位消息
       dispatch({
-        type: 'ADD_MESSAGE',
+        type: 'REPLACE_MESSAGE',
         payload: {
-          id: resp.id || Date.now().toString(),
-          role: 'assistant',
-          content: resp.content,
-          agentName: 'OpenAGI',
-          model: resp.model || currentModel,
-          agentColor: '#7c3aed',
-          timestamp: Date.now(),
+          id: thinkingId,
+          message: {
+            id: thinkingId,
+            role: 'assistant',
+            content: resp.content,
+            agentName: 'OpenAGI',
+            model: resp.model || currentModel,
+            agentColor: '#7c3aed',
+            timestamp: Date.now(),
+            thinking: false,
+            ...(resp.tokens !== undefined ? { tokens: resp.tokens } : {}),
+            ...(resp.audit !== undefined ? { audit: resp.audit } : {}),
+          },
         },
       });
     } catch {
       dispatch({ type: 'SET_AI_THINKING', payload: false });
       dispatch({
-        type: 'ADD_MESSAGE',
+        type: 'REPLACE_MESSAGE',
         payload: {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: '抱歉，发生了错误，请稍后重试。',
-          agentName: 'OpenAGI',
-          model: currentModel,
-          agentColor: '#dc2626',
-          timestamp: Date.now(),
+          id: thinkingId,
+          message: {
+            id: thinkingId,
+            role: 'assistant',
+            content: '抱歉，发生了错误，请稍后重试。',
+            agentName: 'OpenAGI',
+            model: currentModel,
+            agentColor: '#dc2626',
+            timestamp: Date.now(),
+          },
         },
       });
     }
