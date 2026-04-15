@@ -2,11 +2,50 @@
 
 from __future__ import annotations
 
+import json
+import os
+from pathlib import Path
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/v1/settings", tags=["设置"])
 
+# ---------------------------------------------------------------------------
+# Persistence helpers
+# ---------------------------------------------------------------------------
+
+_SETTINGS_PATH = Path.home() / ".openagi" / "data" / "settings.json"
+
+_DEFAULTS: dict = {
+    "multicore": {"core_count": 2, "auto_escalate": True},
+    "commander": {"enabled": True, "interval_seconds": 600, "send_mode": "draft"},
+    "theme": {"mode": "light", "primary_color": "#7c3aed"},
+    "chat": {"default_mode": "deep", "markdown": True, "auto_scroll": True},
+    "companion": {"relationship_mode": "professional", "emotion_intensity": 20},
+    "voice": {"tts_engine": "piper", "auto_read": False},
+    "avatar": {"type": "static"},
+    "security": {"max_auto_permission": "L2", "sensitive_detection": True},
+}
+
+
+def _load_settings() -> dict:
+    if _SETTINGS_PATH.exists():
+        try:
+            return json.loads(_SETTINGS_PATH.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+    return dict(_DEFAULTS)
+
+
+def _save_settings(data: dict) -> None:
+    os.makedirs(_SETTINGS_PATH.parent, exist_ok=True)
+    _SETTINGS_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# Pydantic Models
+# ---------------------------------------------------------------------------
 
 class MultiCoreSettings(BaseModel):
     core_count: int = 2
@@ -33,39 +72,50 @@ class ThemeSettings(BaseModel):
     animations: bool = True
 
 
+# ---------------------------------------------------------------------------
+# Routes
+# ---------------------------------------------------------------------------
+
 @router.get("/")
 async def get_all_settings():
     """获取所有设置。"""
-    return {
-        "success": True,
-        "data": {
-            "multicore": {"core_count": 2, "auto_escalate": True},
-            "commander": {"enabled": True, "interval_seconds": 600, "send_mode": "draft"},
-            "theme": {"mode": "light", "primary_color": "#7c3aed"},
-            "chat": {"default_mode": "deep", "markdown": True, "auto_scroll": True},
-            "companion": {"relationship_mode": "professional", "emotion_intensity": 20},
-            "voice": {"tts_engine": "piper", "auto_read": False},
-            "avatar": {"type": "static"},
-            "security": {"max_auto_permission": "L2", "sensitive_detection": True},
-        },
-    }
+    data = _load_settings()
+    return {"success": True, "data": data}
+
+
+@router.put("/")
+async def update_all_settings(body: dict):
+    """更新并持久化所有设置（全量合并）。"""
+    current = _load_settings()
+    current.update(body)
+    _save_settings(current)
+    return {"success": True, "data": current}
 
 
 @router.put("/multicore")
 async def update_multicore(settings: MultiCoreSettings):
     """更新多核治理设置。"""
+    current = _load_settings()
+    current["multicore"] = settings.model_dump()
+    _save_settings(current)
     return {"success": True, "data": settings.model_dump()}
 
 
 @router.put("/commander")
 async def update_commander(settings: CommanderSettings):
     """更新巡检AI设置。"""
+    current = _load_settings()
+    current["commander"] = settings.model_dump()
+    _save_settings(current)
     return {"success": True, "data": settings.model_dump()}
 
 
 @router.put("/theme")
 async def update_theme(settings: ThemeSettings):
     """更新外观主题。"""
+    current = _load_settings()
+    current["theme"] = settings.model_dump()
+    _save_settings(current)
     return {"success": True, "data": settings.model_dump()}
 
 

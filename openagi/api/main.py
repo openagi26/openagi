@@ -91,7 +91,7 @@ memory = MemoryManager()
 router = LLMRouter()
 persona_engine = PersonaEngine()
 tool_registry = create_default_registry()
-commander = Commander()
+commander = Commander(llm_client=router)
 heartbeat = HeartbeatScheduler()
 
 

@@ -305,9 +305,13 @@ class LLMRouter:
                         call_kwargs["api_key"] = relay.api_key
 
                     response = await litellm.acompletion(**call_kwargs)
+                    content = response.choices[0].message.content
+                    # 空内容视为软失败，继续重试
+                    if not content or not content.strip():
+                        raise LLMError(f"模型 {model_entry.model_id} 返回空内容")
                     model_entry.consecutive_failures = 0
                     return {
-                        "content": response.choices[0].message.content,
+                        "content": content,
                         "model": model_entry.model_id,
                         "relay": model_entry.relay_name,
                         "tokens": {

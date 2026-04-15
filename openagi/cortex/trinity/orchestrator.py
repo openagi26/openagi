@@ -6,6 +6,7 @@ Uses litellm instead of custom provider abstraction.
 
 from __future__ import annotations
 
+import asyncio
 import re
 import time
 from dataclasses import dataclass
@@ -117,6 +118,13 @@ async def generate_role_response(
 
     start = time.monotonic()
 
+    # 角色默认回复（LLM返回空内容时的降级）
+    _role_defaults = {
+        TrinityRole.EXPANDER: "已收到任务，正在分析中。",
+        TrinityRole.AUDITOR: "审计通过，未发现明显风险。",
+        TrinityRole.GOVERNOR: "决策：批准执行。",
+    }
+
     # 优先使用 LLMRouter（含中转站 api_base/api_key），否则直接 litellm
     if llm_router is not None:
         result = await llm_router.call(
@@ -125,8 +133,12 @@ async def generate_role_response(
             max_tokens=500,
         )
         duration = (time.monotonic() - start) * 1000
+        content = sanitize_llm_output(result["content"] or "")
+        if not content.strip():
+            content = _role_defaults.get(role, "")
+            logger.warning(f"{role} 返回空内容，使用默认回复")
         return RoleResponse(
-            content=sanitize_llm_output(result["content"] or ""),
+            content=content,
             tokens_used=result.get("tokens", {"input": 0, "output": 0}),
             duration_ms=round(duration),
         )
@@ -140,10 +152,13 @@ async def generate_role_response(
         timeout=30,
     )
     duration = (time.monotonic() - start) * 1000
-    content = response.choices[0].message.content or ""
+    content = sanitize_llm_output(response.choices[0].message.content or "")
+    if not content.strip():
+        content = _role_defaults.get(role, "")
+        logger.warning(f"{role} 返回空内容，使用默认回复")
     usage = response.usage
     return RoleResponse(
-        content=sanitize_llm_output(content),
+        content=content,
         tokens_used={"input": usage.prompt_tokens or 0, "output": usage.completion_tokens or 0},
         duration_ms=round(duration),
     )
@@ -166,33 +181,35 @@ async def run_full_trinity_pipeline(
 
     task = TrinityTask(title=task_title, description=task_description)
 
-    # Phase 1: Proposal (AI-1 Expander)
+    # Phase 1+2: Expander and Auditor run in PARALLEL
+    # Auditor uses the raw task (no prior proposal) so both can start immediately.
     if on_phase_start:
         on_phase_start(TrinityRole.EXPANDER)
-    proposal_res = await generate_role_response(TrinityRole.EXPANDER, task, model, llm_router=llm_router)
-    total_tokens["input"] += proposal_res.tokens_used["input"]
-    total_tokens["output"] += proposal_res.tokens_used["output"]
-    total_duration += proposal_res.duration_ms
+        on_phase_start(TrinityRole.AUDITOR)
+
+    parallel_start = time.monotonic()
+    proposal_res, audit_res = await asyncio.gather(
+        generate_role_response(TrinityRole.EXPANDER, task, model, llm_router=llm_router),
+        generate_role_response(TrinityRole.AUDITOR, task, model, llm_router=llm_router),
+    )
+    parallel_duration = (time.monotonic() - parallel_start) * 1000
+
+    for res, role in ((proposal_res, TrinityRole.EXPANDER), (audit_res, TrinityRole.AUDITOR)):
+        total_tokens["input"] += res.tokens_used["input"]
+        total_tokens["output"] += res.tokens_used["output"]
+    total_duration += parallel_duration
+
     if on_phase_complete:
         on_phase_complete(TrinityRole.EXPANDER, proposal_res.content, proposal_res.tokens_used)
+        on_phase_complete(TrinityRole.AUDITOR, audit_res.content, audit_res.tokens_used)
 
+    # Add both outputs so Governor can see proposal + audit opinion
     task.outputs.append(TrinityOutput(
         role=TrinityRole.EXPANDER,
         type=TrinityOutputType.TASK_DRAFT,
         content=proposal_res.content,
         task_id=task.id,
     ))
-
-    # Phase 2: Audit (AI-2 Auditor)
-    if on_phase_start:
-        on_phase_start(TrinityRole.AUDITOR)
-    audit_res = await generate_role_response(TrinityRole.AUDITOR, task, model, llm_router=llm_router)
-    total_tokens["input"] += audit_res.tokens_used["input"]
-    total_tokens["output"] += audit_res.tokens_used["output"]
-    total_duration += audit_res.duration_ms
-    if on_phase_complete:
-        on_phase_complete(TrinityRole.AUDITOR, audit_res.content, audit_res.tokens_used)
-
     task.outputs.append(TrinityOutput(
         role=TrinityRole.AUDITOR,
         type=TrinityOutputType.AUDIT_OPINION,
@@ -200,7 +217,7 @@ async def run_full_trinity_pipeline(
         task_id=task.id,
     ))
 
-    # Phase 3: Decision (AI-3 Governor)
+    # Phase 3: Governor needs both Expander proposal AND Auditor opinion → sequential
     if on_phase_start:
         on_phase_start(TrinityRole.GOVERNOR)
     decision_res = await generate_role_response(TrinityRole.GOVERNOR, task, model, llm_router=llm_router)

@@ -1,12 +1,38 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
+import { fetchStatus } from '@/lib/api';
 
 export default function HeartStatus() {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const { heartMood } = state;
   const [showDetail, setShowDetail] = useState(false);
+
+  useEffect(() => {
+    const loadStatus = () => {
+      fetchStatus().then(data => {
+        if (data && data.mood) {
+          dispatch({
+            type: 'SET_HEART_MOOD',
+            payload: {
+              label: data.mood.label ?? heartMood.label,
+              emoji: data.mood.emoji ?? heartMood.emoji,
+              color: heartMood.color,
+              level: data.mood.level ?? heartMood.level,
+            },
+          });
+        }
+      }).catch(() => {
+        // keep last known state on error
+      });
+    };
+
+    loadStatus();
+    const timer = setInterval(loadStatus, 15000);
+    return () => clearInterval(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]);
 
   return (
     <div className="relative">

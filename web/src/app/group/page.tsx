@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useStore, Message } from '@/lib/store';
 import Sidebar from '@/components/Sidebar';
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8888';
+
 // AI团队成员配置
 const TEAM_MEMBERS = [
   { id: 'ceo', name: 'CEO主核', model: 'claude-opus-4', role: '决策与协调', color: '#7c3aed', emoji: '👑', online: true },
@@ -42,6 +44,9 @@ export default function GroupPage() {
   const [input, setInput] = useState('');
   const [showMentionPicker, setShowMentionPicker] = useState(false);
   const [mentionFilter, setMentionFilter] = useState('');
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -77,9 +82,10 @@ export default function GroupPage() {
     inputRef.current?.focus();
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const text = input.trim();
-    if (!text) return;
+    if (!text || isSending) return;
+
     const userMsg: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -88,20 +94,59 @@ export default function GroupPage() {
     };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
+    setIsSending(true);
+    setSendError(null);
 
-    // 模拟AI回复
-    setTimeout(() => {
-      const member = TEAM_MEMBERS[Math.floor(Math.random() * 3)];
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `收到陛下指令：「${text.slice(0, 40)}${text.length > 40 ? '...' : ''}」，正在处理中...`,
-        agentName: member.name,
-        agentColor: member.color,
-        model: member.model,
-        timestamp: Date.now(),
-      }]);
-    }, 800);
+    try {
+      // 若没有房间ID，先创建群聊
+      let currentRoomId = roomId;
+      if (!currentRoomId) {
+        const createRes = await fetch(`${BASE_URL}/api/v1/chat/group/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: 'OpenAGI 多核团队',
+            members: TEAM_MEMBERS.map(m => ({ name: m.name, model: m.model })),
+          }),
+        });
+        const createData = await createRes.json();
+        if (!createData.success) throw new Error(createData.message || '创建群聊失败');
+        currentRoomId = createData.data.room_id;
+        setRoomId(currentRoomId);
+      }
+
+      // 发送消息
+      const sendRes = await fetch(`${BASE_URL}/api/v1/chat/group/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ room_id: currentRoomId, message: text, mentions: [] }),
+      });
+      const sendData = await sendRes.json();
+      if (!sendData.success) throw new Error(sendData.message || '发送失败');
+
+      const replies: { member: string; content: string }[] = sendData.data?.replies || [];
+      const now = Date.now();
+      const replyMsgs: Message[] = replies.map((r, i) => {
+        const member = TEAM_MEMBERS.find(m => m.name === r.member);
+        return {
+          id: `${now}-${i}`,
+          role: 'assistant' as const,
+          content: r.content,
+          agentName: r.member,
+          agentColor: member?.color,
+          model: member?.model,
+          timestamp: now + i,
+        };
+      });
+      if (replyMsgs.length > 0) {
+        setMessages(prev => [...prev, ...replyMsgs]);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '未知错误';
+      setSendError(msg);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -296,17 +341,17 @@ export default function GroupPage() {
               className="flex items-center justify-between px-3 py-1.5 border-t"
               style={{ borderColor: 'var(--panel-border)' }}
             >
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                输入 @ 提及成员
+              <span className="text-xs" style={{ color: sendError ? '#ef4444' : 'var(--text-muted)' }}>
+                {sendError ? `错误：${sendError}` : '输入 @ 提及成员'}
               </span>
               <button
                 onClick={handleSend}
-                disabled={!input.trim()}
+                disabled={!input.trim() || isSending}
                 className="px-4 py-1 rounded-lg text-xs font-medium text-white transition-all disabled:opacity-50"
                 style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)' }}
                 aria-label="发送消息"
               >
-                发送
+                {isSending ? '发送中...' : '发送'}
               </button>
             </div>
           </div>

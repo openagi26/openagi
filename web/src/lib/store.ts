@@ -22,7 +22,7 @@ export interface Message {
 export interface Session {
   id: string;
   title: string;
-  lastMessage: string;
+  lastMessage?: string;
   timestamp: number;
   messageCount: number;
   group?: string;
@@ -86,12 +86,7 @@ const INITIAL_CORES: CoreStatus[] = [
   { id: 5, name: '执行代理', model: 'claude-sonnet-4', role: '任务执行', status: 'idle', color: '#dc2626' },
 ];
 
-const INITIAL_SESSIONS: Session[] = [
-  { id: '1', title: '分析竞品市场策略', lastMessage: '已完成分析报告...', timestamp: Date.now() - 3600000, messageCount: 12, group: '今天' },
-  { id: '2', title: '设计OpenAGI前端架构', lastMessage: '推荐使用Next.js 15...', timestamp: Date.now() - 7200000, messageCount: 8, group: '今天' },
-  { id: '3', title: '用户增长策略讨论', lastMessage: '三个核心方向：...', timestamp: Date.now() - 86400000, messageCount: 23, group: '昨天' },
-  { id: '4', title: '代码审查与优化', lastMessage: '发现3个性能瓶颈...', timestamp: Date.now() - 172800000, messageCount: 15, group: '更早' },
-];
+const INITIAL_SESSIONS: Session[] = [];
 
 const INITIAL_STATE: AppState = {
   theme: 'light',
@@ -129,7 +124,9 @@ type Action =
   | { type: 'UPDATE_CORE'; payload: { id: number; status: CoreStatus['status']; score?: number } }
   | { type: 'SET_HEART_MOOD'; payload: HeartMood }
   | { type: 'SET_MODEL'; payload: string }
-  | { type: 'SET_INSPECTION'; payload: { enabled: boolean; frequency: number } };
+  | { type: 'SET_INSPECTION'; payload: { enabled: boolean; frequency: number } }
+  | { type: 'SET_SESSIONS'; payload: Session[] }
+  | { type: 'SET_MESSAGES'; payload: Message[] };
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -184,6 +181,10 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, currentModel: action.payload };
     case 'SET_INSPECTION':
       return { ...state, inspectionEnabled: action.payload.enabled, inspectionFrequency: action.payload.frequency };
+    case 'SET_SESSIONS':
+      return { ...state, sessions: action.payload };
+    case 'SET_MESSAGES':
+      return { ...state, messages: action.payload };
     default:
       return state;
   }

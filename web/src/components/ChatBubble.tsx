@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Message } from '@/lib/store';
 import { ThinkingDots } from './RadarAnimation';
 
@@ -15,6 +15,7 @@ function formatTime(ts: number) {
 
 export default function ChatBubble({ message }: ChatBubbleProps) {
   const isUser = message.role === 'user';
+  const [auditOpen, setAuditOpen] = useState(false);
 
   if (isUser) {
     return (
@@ -84,9 +85,39 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
           )}
         </div>
 
-        <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-          {formatTime(message.timestamp)}
+        {/* tokens + audit */}
+        <div className="flex flex-wrap items-center gap-2 mt-1">
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            {formatTime(message.timestamp)}
+          </span>
+          {message.tokens != null && (
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              🔢 {message.tokens} tokens
+            </span>
+          )}
+          {message.audit && (
+            <button
+              onClick={() => setAuditOpen(o => !o)}
+              className="text-xs flex items-center gap-1 transition-opacity hover:opacity-80"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              📋 审计 {auditOpen ? '▲' : '▼'}
+            </button>
+          )}
         </div>
+        {message.audit && auditOpen && (
+          <div
+            className="mt-1 px-3 py-2 rounded-xl text-xs leading-relaxed"
+            style={{
+              background: 'rgba(124,58,237,0.06)',
+              border: '1px solid rgba(124,58,237,0.15)',
+              color: 'var(--text-muted)',
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            {message.audit}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -97,8 +97,9 @@ class Commander:
     定期或按事件检查系统状态，总结进展，规划下一步，生成指令。
     """
 
-    def __init__(self, config: CommanderConfig | None = None):
+    def __init__(self, config: CommanderConfig | None = None, llm_client=None):
         self._config = config or CommanderConfig()
+        self._llm_client = llm_client  # LLMRouter，可选
         self._running = False
         self._inspection_count = 0
         self._last_inspection: InspectionResult | None = None
@@ -210,26 +211,58 @@ class Commander:
             except Exception as e:
                 logger.error(f"信息收集异常: {e}")
 
-        # Step 2: 总结+规划（MVP简化版，后续接入LLM）
-        result = InspectionResult(
-            summary=f"巡检完成。收集到{len(collected_info)}项信息。",
-            issues=[],
-            next_action="继续当前任务",
-            command="",
-            triggered_by=triggered_by,
-        )
-
-        # 基于收集到的信息生成摘要
+        # Step 2: 总结+规划
+        # 先用规则生成基础摘要和问题列表
+        issues: list[str] = []
         if "heart_status" in collected_info:
             heart = collected_info["heart_status"]
             if heart.get("level") in ("anxious", "crisis"):
-                result.issues.append(f"系统熵值偏高: {heart.get('entropy', '?')}")
+                issues.append(f"系统熵值偏高: {heart.get('entropy', '?')}")
 
         if "memory_stats" in collected_info:
             mem = collected_info["memory_stats"]
             working = mem.get("working", {})
             if working.get("total_items", 0) > 50:
-                result.issues.append("热记忆条目过多，建议清理或蒸馏")
+                issues.append("热记忆条目过多，建议清理或蒸馏")
+
+        summary = f"巡检完成。收集到{len(collected_info)}项信息。"
+        command = ""
+
+        # 如果有LLM客户端，调用LLM生成更智能的摘要和指令
+        if self._llm_client is not None:
+            try:
+                info_text = "\n".join(
+                    f"- {k}: {v}" for k, v in collected_info.items()
+                ) or "（无收集到的信息）"
+                issues_text = "\n".join(f"- {i}" for i in issues) or "（无）"
+                prompt = (
+                    f"你是系统巡检AI。以下是当前系统状态：\n{info_text}\n\n"
+                    f"已识别风险：\n{issues_text}\n\n"
+                    f"请用1-2句话总结系统当前状态，并给出下一步最优指令（如无需操作，指令留空）。"
+                    f"回复格式：\n摘要：<摘要内容>\n指令：<指令内容或空>"
+                )
+                llm_result = await self._llm_client.call(
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.5,
+                    max_tokens=200,
+                )
+                llm_text = llm_result.get("content", "")
+                if llm_text:
+                    for line in llm_text.splitlines():
+                        if line.startswith("摘要："):
+                            summary = line[3:].strip()
+                        elif line.startswith("指令："):
+                            command = line[3:].strip()
+            except Exception as e:
+                logger.warning(f"LLM生成摘要失败，降级为规则摘要: {e}")
+
+        result = InspectionResult(
+            summary=summary,
+            issues=issues,
+            next_action="继续当前任务",
+            command=command,
+            triggered_by=triggered_by,
+        )
 
         self._last_inspection = result
 

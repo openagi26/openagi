@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
+import { fetchSettings, saveSettings } from '@/lib/api';
 
 // 设置导航结构
 const NAV_GROUPS = [
@@ -62,6 +63,51 @@ export default function SettingsPage() {
   const [activeKey, setActiveKey] = useState('model');
   const [relayUrl, setRelayUrl] = useState('https://api.openagi.ai/v1');
   const [coreCount, setCoreCount] = useState(5);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'ok' | 'error'>('idle');
+
+  // Fetch settings from backend on mount
+  useEffect(() => {
+    fetchSettings().then(data => {
+      if (data && typeof data === 'object') {
+        const d = data as Record<string, unknown>;
+        if (typeof d.relay_url === 'string') setRelayUrl(d.relay_url);
+        if (typeof d.core_count === 'number') setCoreCount(d.core_count);
+        if (d.inspection && typeof d.inspection === 'object') {
+          const insp = d.inspection as Record<string, unknown>;
+          dispatch({
+            type: 'SET_INSPECTION',
+            payload: {
+              enabled: typeof insp.enabled === 'boolean' ? insp.enabled : state.inspectionEnabled,
+              frequency: typeof insp.frequency === 'number' ? insp.frequency : state.inspectionFrequency,
+            },
+          });
+        }
+      }
+    }).catch(() => {
+      // keep defaults on error
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSave = async () => {
+    setSaveStatus('saving');
+    try {
+      await saveSettings({
+        relay_url: relayUrl,
+        core_count: coreCount,
+        inspection: {
+          enabled: state.inspectionEnabled,
+          frequency: state.inspectionFrequency,
+        },
+        model: state.currentModel,
+      });
+      setSaveStatus('ok');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    }
+  };
 
   return (
     <div className="flex h-full overflow-hidden">
@@ -117,6 +163,26 @@ export default function SettingsPage() {
         style={{ background: 'var(--center-bg)' }}
         role="main"
       >
+        {/* 顶部保存栏 */}
+        <div className="flex justify-end mb-4 gap-2 items-center">
+          {saveStatus === 'ok' && (
+            <span className="text-xs text-green-600">保存成功</span>
+          )}
+          {saveStatus === 'error' && (
+            <span className="text-xs text-red-500">保存失败，请重试</span>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={saveStatus === 'saving'}
+            className="px-4 py-1.5 rounded-lg text-sm font-medium text-white transition-all"
+            style={{
+              background: saveStatus === 'saving' ? '#a78bfa' : 'linear-gradient(135deg, #7c3aed, #6366f1)',
+              opacity: saveStatus === 'saving' ? 0.7 : 1,
+            }}
+          >
+            {saveStatus === 'saving' ? '保存中...' : '保存设置'}
+          </button>
+        </div>
         {activeKey === 'model' && (
           <ModelSettings relayUrl={relayUrl} setRelayUrl={setRelayUrl} />
         )}

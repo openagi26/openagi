@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore, Session } from '@/lib/store';
+import { fetchSessions, fetchHistory } from '@/lib/api';
 
 interface SidebarProps {
   open: boolean;
@@ -22,6 +23,32 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
 
   // 按group分组
   const groups = Array.from(new Set(filtered.map(s => s.group || '其他')));
+
+  // Load sessions from backend on mount
+  useEffect(() => {
+    fetchSessions().then(sessions => {
+      if (sessions.length > 0) {
+        dispatch({ type: 'SET_SESSIONS', payload: sessions });
+      }
+    }).catch(() => {
+      // fallback: keep empty list, no crash
+    });
+  }, [dispatch]);
+
+  const handleSessionClick = (sessionId: string) => {
+    dispatch({ type: 'SET_ACTIVE_SESSION', payload: sessionId });
+    fetchHistory(sessionId).then(history => {
+      const messages = history.map((m, i) => ({
+        id: `${sessionId}-${i}`,
+        role: m.role as 'user' | 'assistant' | 'system',
+        content: m.content,
+        timestamp: Date.now() - (history.length - i) * 1000,
+      }));
+      dispatch({ type: 'SET_MESSAGES', payload: messages });
+    }).catch(() => {
+      // fallback: keep empty messages on error
+    });
+  };
 
   const handleNewChat = () => {
     dispatch({ type: 'NEW_SESSION' });
@@ -138,7 +165,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
                     key={session.id}
                     session={session}
                     active={session.id === activeSessionId}
-                    onClick={() => dispatch({ type: 'SET_ACTIVE_SESSION', payload: session.id })}
+                    onClick={() => handleSessionClick(session.id)}
                   />
                 ))}
               </div>
