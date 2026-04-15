@@ -70,6 +70,24 @@ _MARKET_SKILLS: list[dict] = [
     },
     # ── 排行榜Top20精选 + 用户推荐 ─────────────────────────────
     {
+        "id": "evermemos_memory",
+        "name": "EverMemOS 长效记忆系统",
+        "description": "自进化长期记忆OS：HyperMem超图索引(93%准确率碾压Mem0的78%)、Agentic多轮检索、5种记忆类型",
+        "category": "记忆增强",
+        "version": "1.0.0",
+        "author": "EverMind-AI（4K★）",
+        "source": "github.com/EverMind-AI/EverMemOS",
+        "hypermem": {
+            "三层结构": "Topic(主题)→Episode(事件)→Fact(事实)",
+            "超边传播": "节点→超边→节点双向传播，融合多元关系信息",
+            "双索引": "BM25稀疏(关键词3x权重)+FAISS密集(超边增强向量)",
+        },
+        "memory_types": ["EpisodeMemory(情节)", "AtomicFact(原子事实)", "Foresight(前景预测)", "AgentCase(代理案例)", "AgentSkill(代理技能)"],
+        "retrieval_4modes": ["KEYWORD(jieba+ES)", "VECTOR(嵌入+Milvus)", "HYBRID(混合+重排)", "AGENTIC(LLM充分性判断+多轮精化)"],
+        "benchmark": {"LoCoMo": "93.05%", "vs_Mem0": "+15%", "vs_Zep": "+21%"},
+        "openagi_value": "超图索引可增强我们的L1温记忆检索；Agentic检索可用于build_system_context智能注入",
+    },
+    {
         "id": "voice_skills",
         "name": "语音对话+声音克隆+视频翻译",
         "description": "全功能语音技能包：实时语音对话、声音克隆（几秒音频即可复刻）、视频多语言翻译配音、实时新闻语音播报",
