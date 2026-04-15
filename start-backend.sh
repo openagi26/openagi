@@ -32,6 +32,9 @@ echo "📡 访问地址: http://localhost:8888"
 echo "🏥 健康检查: http://localhost:8888/health"
 echo "────────────────────────────────────────"
 
+# 禁用LiteLLM联网，避免SSL超时卡住启动
+export LITELLM_LOCAL_MODEL_COST_TOKEN_KEYS=True
+
 # 启动
 .venv/bin/uvicorn openagi.api.main:app \
     --host 0.0.0.0 \

@@ -25,7 +25,7 @@ pre-check:
 
 # 后端：使用 .venv 内的 uvicorn，必须指定 --reload-dir 避免内存爆炸
 dev: pre-check
-	$(UVICORN) openagi.api.main:app --host 0.0.0.0 --reload --reload-dir openagi --port 8888
+	LITELLM_LOCAL_MODEL_COST_TOKEN_KEYS=True $(UVICORN) openagi.api.main:app --host 0.0.0.0 --reload --reload-dir openagi --port 8888
 
 # 前端：限制 Node 内存上限，需在独立终端运行
 web:
