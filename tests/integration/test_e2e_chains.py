@@ -50,6 +50,7 @@ async def test_chain1_chat_full_flow(mock_trinity, client):
     r = await client.post("/api/v1/chat/send", json={
         "message": "你好，这是链路1测试",
         "session_id": session_id,
+        "core_count": 2,
     })
 
     assert r.status_code == 200, f"期望200，实际：{r.status_code}, body={r.text}"
@@ -89,6 +90,7 @@ async def test_chain2_session_management(mock_trinity, client):
     r1 = await client.post("/api/v1/chat/send", json={
         "message": "第一条消息",
         "session_id": session_id,
+        "core_count": 2,
     })
     assert r1.status_code == 200
     assert r1.json()["success"] is True
@@ -97,6 +99,7 @@ async def test_chain2_session_management(mock_trinity, client):
     r2 = await client.post("/api/v1/chat/send", json={
         "message": "第二条消息",
         "session_id": session_id,
+        "core_count": 2,
     })
     assert r2.status_code == 200
     assert r2.json()["success"] is True
@@ -137,6 +140,7 @@ async def test_chain3_memory_search(client):
         await client.post("/api/v1/chat/send", json={
             "message": "测试记忆写入内容，用于跨层检索验证",
             "session_id": "chain3_memory_session",
+            "core_count": 2,
         })
 
     # 搜索记忆

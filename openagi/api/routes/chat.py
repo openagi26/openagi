@@ -32,7 +32,7 @@ class SendMessageRequest(BaseModel):
     message: str
     session_id: str = "default"
     model: str | None = None
-    core_count: int = 2  # 1-4核
+    core_count: int = 1  # 1=直通快速, 2-4=多核治理
 
 
 class CreateGroupRequest(BaseModel):
@@ -68,14 +68,31 @@ async def send_message(
         effective_cores = max(req.core_count, 3)  # crisis自动升核
 
     try:
-        # 调用多核治理流水线（传入llm路由器，通过中转站调用）
-        result = await run_full_trinity_pipeline(
-            task_title="用户对话",
-            task_description=req.message,
-            llm_router=llm,
-        )
+        if effective_cores <= 1:
+            # 1核直通模式：跳过 Trinity 管线，直接调 LLM（快速响应）
+            llm_result = await llm.call(
+                messages=[
+                    {"role": "system", "content": "你是OpenAGI，一个开源的多核AI治理框架。用中文回答。"},
+                    {"role": "user", "content": req.message},
+                ],
+                max_tokens=2048,
+            )
+            reply = llm_result["content"]
+            tokens = llm_result["tokens"]["input"] + llm_result["tokens"]["output"]
+            model_used = llm_result.get("model", "unknown")
+            audit = "1核直通，无审计"
+        else:
+            # 多核模式：调用 Trinity 治理流水线
+            result = await run_full_trinity_pipeline(
+                task_title="用户对话",
+                task_description=req.message,
+                llm_router=llm,
+            )
+            reply = result.proposal
+            tokens = result.total_tokens
+            model_used = result.model_used if hasattr(result, "model_used") else "unknown"
+            audit = result.audit
 
-        reply = result.proposal
         heart.push_event("llm_call_success")
 
         # 写入AI回复到工作记忆
@@ -88,11 +105,11 @@ async def send_message(
             "data": {
                 "reply": reply,
                 "session_id": req.session_id,
-                "tokens": result.total_tokens,
+                "tokens": tokens,
                 "duration_ms": duration_ms,
-                "model": result.model_used if hasattr(result, "model_used") else "unknown",
+                "model": model_used,
                 "core_count": effective_cores,
-                "audit": result.audit,
+                "audit": audit,
                 "heart_level": heart.level,
             },
         }
