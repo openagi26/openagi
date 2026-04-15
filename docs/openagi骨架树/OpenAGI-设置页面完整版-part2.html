@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<title>OpenAGI 设置页面 Part2 (页面12-22)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;background:#fafbfc;color:#1f2937;padding:24px 32px;}
+.settings-page{display:block;margin-bottom:60px;border-bottom:3px dashed #e5e7eb;padding-bottom:40px;}
+.section-title{font-size:18px;font-weight:600;color:#1f2937;margin-bottom:4px;}
+.section-desc{font-size:13px;color:#6b7280;margin-bottom:20px;}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px;}
+.card-title{font-size:14px;font-weight:600;color:#374151;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.tag{font-size:10px;padding:2px 8px;border-radius:999px;font-weight:500;}
+.tag-primary{background:#ede9fe;color:#7c3aed;}
+.tag-green{background:#ecfdf5;color:#059669;}
+.tag-orange{background:#fff7ed;color:#ea580c;}
+.tag-red{background:#fef2f2;color:#dc2626;}
+.tag-blue{background:#eff6ff;color:#2563eb;}
+.tag-gray{background:#f3f4f6;color:#6b7280;}
+.tag-purple{background:#faf5ff;color:#7c3aed;}
+.form-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6;gap:12px;}
+.form-row:last-child{border-bottom:none;}
+.form-label{font-size:13px;color:#374151;font-weight:500;width:140px;flex-shrink:0;}
+.form-desc{font-size:11px;color:#9ca3af;margin-top:2px;}
+.form-input{flex:1;padding:7px 10px;border-radius:6px;border:1px solid #d1d5db;font-size:13px;color:#1f2937;background:#fff;font-family:inherit;}
+.form-select{padding:7px 10px;border-radius:6px;border:1px solid #d1d5db;font-size:13px;color:#1f2937;background:#fff;font-family:inherit;cursor:pointer;}
+.toggle{width:40px;height:22px;border-radius:11px;background:#d1d5db;position:relative;cursor:pointer;flex-shrink:0;}
+.toggle.on{background:#7c3aed;}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.15);}
+.toggle.on::after{transform:translateX(18px);}
+.btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;border:1px solid;}
+.btn-primary{background:#7c3aed;color:#fff;border-color:#7c3aed;}
+.btn-outline{background:#fff;color:#7c3aed;border-color:#7c3aed;}
+.btn-danger{background:#fff;color:#dc2626;border-color:#dc2626;}
+.btn-orange{background:#fff;color:#ea580c;border-color:#ea580c;}
+.btn-sm{padding:4px 10px;font-size:11px;}
+.btn-gray{background:#fff;color:#6b7280;border-color:#d1d5db;}
+.freq-options{display:flex;gap:4px;flex-wrap:wrap;}
+.freq-opt{padding:4px 10px;border-radius:6px;border:1px solid #d1d5db;font-size:11px;color:#6b7280;cursor:pointer;background:#fff;}
+.freq-opt.active{background:#7c3aed;color:#fff;border-color:#7c3aed;}
+.checkbox-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;color:#374151;}
+.checkbox{width:16px;height:16px;border-radius:4px;border:1px solid #d1d5db;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;flex-shrink:0;}
+.checkbox.checked{background:#7c3aed;border-color:#7c3aed;color:#fff;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+.stat-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;text-align:center;}
+.stat-num{font-size:24px;font-weight:700;color:#1f2937;}
+.stat-label{font-size:11px;color:#6b7280;margin-top:4px;}
+.stat-sub{font-size:10px;color:#9ca3af;margin-top:2px;}
+.server-row{display:flex;align-items:center;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px;gap:10px;background:#fafbfc;}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.status-dot.green{background:#10b981;}
+.status-dot.gray{background:#9ca3af;}
+.status-dot.yellow{background:#f59e0b;}
+.hook-row{display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid #f3f4f6;gap:10px;}
+.hook-row:last-child{border-bottom:none;}
+.tab-bar{display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;}
+.tab-item{padding:6px 14px;border-radius:8px 8px 0 0;font-size:12px;cursor:pointer;color:#6b7280;border:1px solid transparent;}
+.tab-item.active{background:#ede9fe;color:#7c3aed;border-color:#c4b5fd;font-weight:500;}
+.collapse-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:8px 0;}
+.collapse-header:hover{color:#7c3aed;}
+.collapse-title{font-size:13px;font-weight:500;color:#374151;}
+.collapse-icon{font-size:12px;color:#9ca3af;}
+.memory-layer{border-radius:8px;padding:12px 16px;margin-bottom:8px;}
+.ml-hot{background:#fff5f0;border:1px solid #fed7aa;}
+.ml-warm{background:#fffbeb;border:1px solid #fde68a;}
+.ml-cold{background:#eff6ff;border:1px solid #bfdbfe;}
+.ml-dna{background:#faf5ff;border:1px solid #e9d5ff;}
+.dream-card{border-radius:10px;padding:16px;flex:1;border:1px solid #e5e7eb;}
+.dc-blue{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#93c5fd;}
+.dc-purple{background:linear-gradient(135deg,#faf5ff,#ede9fe);border-color:#c4b5fd;}
+.dc-deep{background:linear-gradient(135deg,#1e1b4b,#312e81);color:#e0e7ff;}
+.dc-deep .dream-title{color:#a78bfa;}
+.dc-deep .dream-sub{color:#818cf8;}
+.platform-row{display:flex;align-items:center;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px;gap:10px;background:#fafbfc;}
+.security-level{display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid #f3f4f6;gap:10px;}
+.security-level:last-child{border-bottom:none;}
+.level-badge{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+table th{background:#f9fafb;padding:8px 10px;text-align:left;color:#6b7280;font-weight:500;border-bottom:1px solid #e5e7eb;}
+table td{padding:8px 10px;border-bottom:1px solid #f3f4f6;color:#374151;}
+table tr:last-child td{border-bottom:none;}
+.upload-zone{border:2px dashed #d1d5db;border-radius:10px;padding:32px;text-align:center;color:#9ca3af;font-size:13px;background:#fafbfc;cursor:pointer;}
+.upload-zone:hover{border-color:#7c3aed;color:#7c3aed;background:#faf5ff;}
+.about-logo{font-size:48px;font-weight:800;background:linear-gradient(90deg,#7c3aed,#2563eb,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:8px;}
+.about-center{text-align:center;}
+.thanks-card{padding:12px 14px;border:1px solid #e5e7eb;border-radius:8px;background:#fafbfc;}
+.thanks-name{font-size:12px;font-weight:600;color:#374151;}
+.thanks-desc{font-size:10px;color:#9ca3af;margin-top:2px;}
+.color-dot{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0;}
+.color-dot.active{border-color:#1f2937;box-shadow:0 0 0 2px #fff inset;}
+.range-input{flex:1;accent-color:#7c3aed;}
+.page-label{display:inline-block;background:#1e1b4b;color:#a78bfa;font-size:10px;padding:2px 10px;border-radius:999px;margin-bottom:12px;font-weight:600;letter-spacing:1px;}
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- 页面12：MCP集成 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-mcp">
+  <div class="page-label">PAGE 12 / 22</div>
+  <div class="section-title">🔌 MCP集成</div>
+  <div class="section-desc">连接 Model Context Protocol 服务器，扩展工具能力</div>
+
+  <!-- 已连接服务器列表 -->
+  <div class="card">
+    <div class="card-title">
+      已连接服务器
+      <span class="tag tag-green">2 运行中</span>
+      <span class="tag tag-gray">1 已停止</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto;">＋ 添加服务器</button>
+    </div>
+
+    <!-- filesystem -->
+    <div class="server-row">
+      <div style="font-size:18px;">📁</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;color:#1f2937;">filesystem</div>
+        <div style="font-size:11px;color:#6b7280;">npx @modelcontextprotocol/server-filesystem ~/Desktop</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div class="status-dot green"></div>
+        <span style="font-size:11px;color:#059669;">运行中</span>
+      </div>
+      <span style="font-size:10px;background:#ecfdf5;color:#059669;padding:2px 8px;border-radius:999px;">12 工具</span>
+      <button class="btn btn-sm btn-outline">查看</button>
+      <button class="btn btn-sm btn-gray">重连</button>
+      <button class="btn btn-sm btn-gray">编辑</button>
+      <button class="btn btn-sm btn-danger">删除</button>
+    </div>
+
+    <!-- brave-search -->
+    <div class="server-row">
+      <div style="font-size:18px;">🔍</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;color:#1f2937;">brave-search</div>
+        <div style="font-size:11px;color:#6b7280;">npx @modelcontextprotocol/server-brave-search</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div class="status-dot green"></div>
+        <span style="font-size:11px;color:#059669;">运行中</span>
+      </div>
+      <span style="font-size:10px;background:#ecfdf5;color:#059669;padding:2px 8px;border-radius:999px;">3 工具</span>
+      <button class="btn btn-sm btn-outline">查看</button>
+      <button class="btn btn-sm btn-gray">重连</button>
+      <button class="btn btn-sm btn-gray">编辑</button>
+      <button class="btn btn-sm btn-danger">删除</button>
+    </div>
+
+    <!-- sqlite -->
+    <div class="server-row" style="opacity:0.7;">
+      <div style="font-size:18px;">🗃️</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;color:#1f2937;">sqlite</div>
+        <div style="font-size:11px;color:#6b7280;">npx @modelcontextprotocol/server-sqlite ~/data.db</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div class="status-dot gray"></div>
+        <span style="font-size:11px;color:#9ca3af;">已停止</span>
+      </div>
+      <span style="font-size:10px;background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:999px;">8 工具</span>
+      <button class="btn btn-sm btn-outline">查看</button>
+      <button class="btn btn-sm btn-primary">重连</button>
+      <button class="btn btn-sm btn-gray">编辑</button>
+      <button class="btn btn-sm btn-danger">删除</button>
+    </div>
+  </div>
+
+  <!-- 添加服务器（折叠展开） -->
+  <div class="card">
+    <div class="collapse-header">
+      <div class="collapse-title">＋ 添加新服务器</div>
+      <div class="collapse-icon">▼ 展开</div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="form-row">
+        <div class="form-label">服务器名称</div>
+        <input class="form-input" placeholder="例：my-custom-server" />
+      </div>
+      <div class="form-row">
+        <div class="form-label">启动命令</div>
+        <input class="form-input" placeholder="例：npx @modelcontextprotocol/server-xxx" />
+      </div>
+      <div class="form-row">
+        <div class="form-label">启动参数</div>
+        <textarea class="form-input" rows="3" placeholder="每行一个参数&#10;--arg1 value1&#10;--arg2 value2" style="resize:vertical;"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-label">环境变量</div>
+        <div style="flex:1;">
+          <div style="display:flex;gap:6px;margin-bottom:6px;">
+            <input class="form-input" placeholder="KEY" style="flex:1;" />
+            <span style="line-height:32px;color:#9ca3af;">=</span>
+            <input class="form-input" placeholder="VALUE" style="flex:2;" />
+            <button class="btn btn-sm btn-danger" style="padding:4px 8px;">✕</button>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:6px;">
+            <input class="form-input" placeholder="KEY" style="flex:1;" />
+            <span style="line-height:32px;color:#9ca3af;">=</span>
+            <input class="form-input" placeholder="VALUE" style="flex:2;" />
+            <button class="btn btn-sm btn-danger" style="padding:4px 8px;">✕</button>
+          </div>
+          <button class="btn btn-sm btn-outline">＋ 添加环境变量</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;">
+        <button class="btn btn-outline">🔗 测试连接</button>
+        <button class="btn btn-primary">💾 保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MCP工具浏览器（折叠） -->
+  <div class="card">
+    <div class="collapse-header">
+      <div class="collapse-title">🔧 MCP工具浏览器</div>
+      <div class="collapse-icon">▼ 展开</div>
+    </div>
+    <div style="margin-top:12px;">
+      <div style="margin-bottom:12px;padding:10px 12px;background:#f9fafb;border-radius:8px;">
+        <div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:8px;">📁 filesystem (12 工具)</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:#ede9fe;color:#7c3aed;">read_file</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:#ede9fe;color:#7c3aed;">write_file</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:#ede9fe;color:#7c3aed;">list_directory</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:#ede9fe;color:#7c3aed;">create_directory</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:#ede9fe;color:#7c3aed;">delete_file</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:#ede9fe;color:#7c3aed;">move_file</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:#f3f4f6;color:#6b7280;">+6 更多...</span>
+        </div>
+      </div>
+      <div style="padding:10px 12px;background:#f9fafb;border-radius:8px;">
+        <div style="font-size:12px;font-weight:600;color:#2563eb;margin-bottom:8px;">🔍 brave-search (3 工具)</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:#eff6ff;color:#2563eb;">brave_web_search</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:#eff6ff;color:#2563eb;">brave_local_search</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;background:#eff6ff;color:#2563eb;">brave_news_search</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 页面13：Hook管理 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-hooks">
+  <div class="page-label">PAGE 13 / 22</div>
+  <div class="section-title">🪝 Hook管理</div>
+  <div class="section-desc">在关键生命周期节点注入自定义逻辑</div>
+
+  <!-- Tab切换 -->
+  <div class="tab-bar">
+    <div class="tab-item active">📄 文件Hook <span style="font-size:9px;background:#7c3aed;color:#fff;padding:1px 5px;border-radius:999px;margin-left:3px;">●</span></div>
+    <div class="tab-item">🌿 Git Hook</div>
+    <div class="tab-item">🤖 Agent Hook</div>
+    <div class="tab-item">🌐 API Hook</div>
+  </div>
+
+  <!-- 文件Hook -->
+  <div class="card">
+    <div class="card-title">📄 文件Hook <span class="tag tag-primary">5 个</span></div>
+    <div class="hook-row" style="background:#f9fafb;border-radius:6px;padding:6px 12px;margin-bottom:2px;font-size:10px;color:#9ca3af;font-weight:600;letter-spacing:0.5px;">
+      <div style="width:160px;">HOOK名称</div>
+      <div style="flex:1;">说明</div>
+      <div style="width:80px;text-align:center;">优先级</div>
+      <div style="width:50px;text-align:center;">启用</div>
+    </div>
+    <div class="hook-row">
+      <div style="width:160px;font-size:12px;font-weight:500;color:#374151;">PreFileRead</div>
+      <div style="flex:1;font-size:11px;color:#6b7280;">文件读取前触发，可修改路径或拦截</div>
+      <div style="width:80px;text-align:center;"><input class="form-input" type="number" value="50" style="width:56px;padding:3px 6px;font-size:11px;text-align:center;" /></div>
+      <div style="width:50px;text-align:center;"><div class="toggle"></div></div>
+    </div>
+    <div class="hook-row">
+      <div style="width:160px;font-size:12px;font-weight:500;color:#374151;">PostFileRead</div>
+      <div style="flex:1;font-size:11px;color:#6b7280;">文件读取后触发，可处理内容</div>
+      <div style="width:80px;text-align:center;"><input class="form-input" type="number" value="50" style="width:56px;padding:3px 6px;font-size:11px;text-align:center;" /></div>
+      <div style="width:50px;text-align:center;"><div class="toggle"></div></div>
+    </div>
+    <div class="hook-row">
+      <div style="width:160px;font-size:12px;font-weight:500;color:#374151;">PreFileWrite</div>
+      <div style="flex:1;font-size:11px;color:#6b7280;">文件写入前触发，可做内容审查</div>
+      <div style="width:80px;text-align:center;"><input class="form-input" type="number" value="50" style="width:56px;padding:3px 6px;font-size:11px;text-align:center;" /></div>
+      <div style="width:50px;text-align:center;"><div class="toggle on"></div></div>
+    </div>
+    <div class="hook-row">
+      <div style="width:160px;font-size:12px;font-weight:500;color:#374151;">PostFileWrite</div>
+      <div style="flex:1;font-size:11px;color:#6b7280;">文件写入后触发，可触发后续流程</div>
+      <div style="width:80px;text-align:center;"><input class="form-input" type="number" value="50" style="width:56px;padding:3px 6px;font-size:11px;text-align:center;" /></div>
+      <div style="width:50px;text-align:center;"><div class="toggle"></div></div>
+    </div>
+    <div class="hook-row">
+      <div style="width:160px;font-size:12px;font-weight:500;color:#374151;">OnFileDelete</div>
+      <div style="flex:1;font-size:11px;color:#6b7280;">文件删除时触发，可记录或拦截</div>
+      <div style="width:80px;text-align:center;"><input class="form-input" type="number" value="80" style="width:56px;padding:3px 6px;font-size:11px;text-align:center;" /></div>
+      <div style="width:50px;text-align:center;"><div class="toggle on"></div></div>
+    </div>
+  </div>
+
+  <!-- Agent Hook（显示但折叠内容，用于说明） -->
+  <div class="card">
+    <div class="card-title">🤖 Agent Hook <span class="tag tag-primary">6 个</span> <span class="tag tag-green">3 已启用</span></div>
+    <div class="hook-row">
+      <div style="width:160px;font-size:12px;font-weight:500;color:#374151;">OnTaskStart</div>
+      <div style="flex:1;font-size:11px;color:#6b7280;">任务开始时触发，可注入上下文</div>
+      <div style="width:80px;text-align:center;"><input class="form-input" type="number" value="50" style="width:56px;padding:3px 6px;font-size:11px;text-align:center;" /></div>
+      <div style="width:50px;text-align:center;"><div class="toggle"></div></div>
+    </div>
+    <div class="hook-row">
+      <div style="width:160px;font-size:12px;font-weight:500;color:#374151;">OnToolCall</div>
+      <div style="flex:1;font-size:11px;color:#6b7280;">工具调用前触发，可修改参数</div>
+      <div style="width:80px;text-align:center;"><input class="form-input" type="number" value="50" style="width:56px;padding:3px 6px;font-size:11px;text-align:center;" /></div>
+      <div style="width:50px;text-align:center;"><div class="toggle on"></div></div>
+    </div>
+    <div class="hook-row">
+      <div style="width:160px;font-size:12px;font-weight:500;color:#374151;">OnToolResult</div>
+      <div style="flex:1;font-size:11px;color:#6b7280;">工具返回后触发，可处理结果</div>
+      <div style="width:80px;text-align:center;"><input class="form-input" type="number" value="50" style="width:56px;padding:3px 6px;font-size:11px;text-align:center;" /></div>
+      <div style="width:50px;text-align:center;"><div class="toggle"></div></div>
+    </div>
+    <div class="hook-row">
+      <div style="width:160px;font-size:12px;font-weight:500;color:#374151;">OnTaskComplete</div>
+      <div style="flex:1;font-size:11px;color:#6b7280;">任务完成后触发，可做收尾工作</div>
+      <div style="width:80px;text-align:center;"><input class="form-input" type="number" value="50" style="width:56px;padding:3px 6px;font-size:11px;text-align:center;" /></div>
+      <div style="width:50px;text-align:center;"><div class="toggle"></div></div>
+    </div>
+    <div class="hook-row">
+      <div style="width:160px;font-size:12px;font-weight:500;color:#374151;">OnError</div>
+      <div style="flex:1;font-size:11px;color:#6b7280;">错误发生时触发，可记录或恢复</div>
+      <div style="width:80px;text-align:center;"><input class="form-input" type="number" value="90" style="width:56px;padding:3px 6px;font-size:11px;text-align:center;" /></div>
+      <div style="width:50px;text-align:center;"><div class="toggle on"></div></div>
+    </div>
+    <div class="hook-row">
+      <div style="width:160px;font-size:12px;font-weight:500;color:#374151;">OnPermissionRequest</div>
+      <div style="flex:1;font-size:11px;color:#6b7280;">权限请求时触发，可自定义审批逻辑</div>
+      <div style="width:80px;text-align:center;"><input class="form-input" type="number" value="100" style="width:56px;padding:3px 6px;font-size:11px;text-align:center;" /></div>
+      <div style="width:50px;text-align:center;"><div class="toggle on"></div></div>
+    </div>
+  </div>
+
+  <!-- Hook脚本编辑器 -->
+  <div class="card">
+    <div class="card-title">📝 Hook脚本编辑器</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+      <select class="form-select" style="font-size:12px;">
+        <option>选择Hook...</option>
+        <option>PreFileWrite</option>
+        <option>OnError</option>
+        <option>OnToolCall</option>
+      </select>
+      <div class="freq-options">
+        <div class="freq-opt active">Python</div>
+        <div class="freq-opt">Shell</div>
+        <div class="freq-opt">JavaScript</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <button class="btn btn-sm btn-outline">▶ 测试运行</button>
+        <button class="btn btn-sm btn-primary">💾 保存</button>
+      </div>
+    </div>
+    <textarea style="width:100%;height:160px;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:12px;background:#1e1b4b;color:#a5b4fc;resize:vertical;line-height:1.6;" spellcheck="false">def pre_file_write(path: str, content: str) -> dict:
+    """PreFileWrite Hook - 写入前内容审查"""
+    # 检查敏感信息
+    sensitive_patterns = ["password", "secret", "api_key"]
+    for pattern in sensitive_patterns:
+        if pattern in content.lower():
+            return {
+                "action": "warn",
+                "message": f"检测到敏感词: {pattern}"
+            }
+    return {"action": "allow"}</textarea>
+  </div>
+
+  <!-- Hook执行日志 -->
+  <div class="card">
+    <div class="collapse-header">
+      <div class="collapse-title">📋 Hook执行日志（最近10条）</div>
+      <div class="collapse-icon">▼ 展开</div>
+    </div>
+    <div style="margin-top:12px;">
+      <table>
+        <tr><th>时间</th><th>Hook名称</th><th>状态</th><th>耗时</th></tr>
+        <tr><td>17:02:34</td><td>PreFileWrite</td><td><span class="tag tag-green">成功</span></td><td>2ms</td></tr>
+        <tr><td>17:01:12</td><td>OnToolCall</td><td><span class="tag tag-green">成功</span></td><td>5ms</td></tr>
+        <tr><td>17:00:58</td><td>OnError</td><td><span class="tag tag-orange">警告</span></td><td>1ms</td></tr>
+        <tr><td>16:59:44</td><td>OnPermissionRequest</td><td><span class="tag tag-green">成功</span></td><td>3ms</td></tr>
+        <tr><td>16:58:20</td><td>PreFileWrite</td><td><span class="tag tag-red">拦截</span></td><td>1ms</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 页面14：记忆系统 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-memory">
+  <div class="page-label">PAGE 14 / 22</div>
+  <div class="section-title">🧠 记忆系统</div>
+  <div class="section-desc">四层记忆架构，从热记忆到核心DNA的分级存储</div>
+
+  <!-- 四层记忆概览 -->
+  <div class="grid-2" style="margin-bottom:16px;">
+    <div class="memory-layer ml-hot">
+      <div style="font-size:13px;font-weight:600;color:#ea580c;margin-bottom:8px;">🔥 热记忆</div>
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <div style="font-size:28px;font-weight:700;color:#c2410c;">847</div>
+        <div style="font-size:12px;color:#9a3412;">条</div>
+      </div>
+      <div style="font-size:11px;color:#9a3412;margin-top:2px;">12.3 MB · 近期高频访问</div>
+      <div style="margin-top:8px;background:#fed7aa;border-radius:4px;height:4px;"><div style="background:#ea580c;width:15%;height:100%;border-radius:4px;"></div></div>
+    </div>
+    <div class="memory-layer ml-warm">
+      <div style="font-size:13px;font-weight:600;color:#d97706;margin-bottom:8px;">🌡 温记忆</div>
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <div style="font-size:28px;font-weight:700;color:#b45309;">3,241</div>
+        <div style="font-size:12px;color:#92400e;">条</div>
+      </div>
+      <div style="font-size:11px;color:#92400e;margin-top:2px;">48.7 MB · 中期存储，定期压缩</div>
+      <div style="margin-top:8px;background:#fde68a;border-radius:4px;height:4px;"><div style="background:#d97706;width:42%;height:100%;border-radius:4px;"></div></div>
+    </div>
+    <div class="memory-layer ml-cold">
+      <div style="font-size:13px;font-weight:600;color:#2563eb;margin-bottom:8px;">❄ 冷记忆</div>
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <div style="font-size:28px;font-weight:700;color:#1d4ed8;">18,520</div>
+        <div style="font-size:12px;color:#1e40af;">条</div>
+      </div>
+      <div style="font-size:11px;color:#1e40af;margin-top:2px;">234 MB · 长期归档，按需检索</div>
+      <div style="margin-top:8px;background:#bfdbfe;border-radius:4px;height:4px;"><div style="background:#2563eb;width:78%;height:100%;border-radius:4px;"></div></div>
+    </div>
+    <div class="memory-layer ml-dna">
+      <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px;">🧬 核心DNA</div>
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <div style="font-size:28px;font-weight:700;color:#6d28d9;">23</div>
+        <div style="font-size:12px;color:#5b21b6;">条</div>
+      </div>
+      <div style="font-size:11px;color:#5b21b6;margin-top:2px;">最核心的用户特征与价值观</div>
+      <div style="margin-top:8px;background:#e9d5ff;border-radius:4px;height:4px;"><div style="background:#7c3aed;width:5%;height:100%;border-radius:4px;"></div></div>
+    </div>
+  </div>
+
+  <!-- 记忆搜索 -->
+  <div class="card">
+    <div class="card-title">🔍 记忆搜索</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+      <div class="freq-options">
+        <div class="freq-opt active">🔤 关键词搜索</div>
+        <div class="freq-opt">🧠 语义搜索</div>
+      </div>
+      <input class="form-input" placeholder="搜索记忆内容..." style="flex:1;min-width:200px;" />
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label class="checkbox-row"><div class="checkbox checked">✓</div>热</label>
+        <label class="checkbox-row"><div class="checkbox checked">✓</div>温</label>
+        <label class="checkbox-row"><div class="checkbox checked">✓</div>冷</label>
+        <label class="checkbox-row"><div class="checkbox">　</div>DNA</label>
+      </div>
+      <button class="btn btn-primary">搜索</button>
+    </div>
+    <!-- 搜索结果示例 -->
+    <div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+      <div style="padding:10px 14px;border-bottom:1px solid #f3f4f6;display:flex;align-items:flex-start;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-size:12px;color:#374151;line-height:1.5;">用户偏好使用 claude-sonnet-4-6 作为默认模型，在复杂任务时切换至 opus...</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <span class="tag tag-orange">热记忆</span>
+          <span style="font-size:10px;color:#9ca3af;white-space:nowrap;">2小时前</span>
+          <span style="font-size:10px;background:#ecfdf5;color:#059669;padding:1px 6px;border-radius:4px;">98%</span>
+        </div>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;flex-shrink:0;">删除</button>
+      </div>
+      <div style="padding:10px 14px;border-bottom:1px solid #f3f4f6;display:flex;align-items:flex-start;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-size:12px;color:#374151;line-height:1.5;">用户喜欢简洁的中文回复，不喜欢过多的废话和客套，技术术语需要括号备注...</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <span class="tag tag-green" style="background:#ecfdf5;color:#059669;">温记忆</span>
+          <span style="font-size:10px;color:#9ca3af;white-space:nowrap;">3天前</span>
+          <span style="font-size:10px;background:#ecfdf5;color:#059669;padding:1px 6px;border-radius:4px;">95%</span>
+        </div>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;flex-shrink:0;">删除</button>
+      </div>
+      <div style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-size:12px;color:#374151;line-height:1.5;">项目 OpenAGI 目标是打造全球100万用户的AI意识延伸工具，参考了多个开源项目...</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <span class="tag" style="background:#eff6ff;color:#2563eb;">冷记忆</span>
+          <span style="font-size:10px;color:#9ca3af;white-space:nowrap;">2周前</span>
+          <span style="font-size:10px;background:#ecfdf5;color:#059669;padding:1px 6px;border-radius:4px;">91%</span>
+        </div>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;flex-shrink:0;">删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 核心DNA编辑 -->
+  <div class="card">
+    <div class="card-title">🧬 核心DNA编辑 <span class="tag tag-primary">23 条</span></div>
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#faf5ff;border-radius:6px;margin-bottom:6px;border:1px solid #e9d5ff;">
+        <span style="font-size:14px;">🎯</span>
+        <div style="flex:1;font-size:12px;color:#374151;">价值观：效率优先，简洁胜于复杂，价值导向</div>
+        <button class="btn btn-sm btn-gray">编辑</button>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#faf5ff;border-radius:6px;margin-bottom:6px;border:1px solid #e9d5ff;">
+        <span style="font-size:14px;">💡</span>
+        <div style="flex:1;font-size:12px;color:#374151;">工作风格：并行执行、快速迭代、数据驱动决策</div>
+        <button class="btn btn-sm btn-gray">编辑</button>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#faf5ff;border-radius:6px;margin-bottom:6px;border:1px solid #e9d5ff;">
+        <span style="font-size:14px;">🌐</span>
+        <div style="flex:1;font-size:12px;color:#374151;">目标：OpenAGI推向全球，获取100万用户</div>
+        <button class="btn btn-sm btn-gray">编辑</button>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;">✕</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <input class="form-input" placeholder="新增DNA条目（核心特征/价值观/目标...）" />
+      <button class="btn btn-primary">＋ 添加</button>
+    </div>
+  </div>
+
+  <!-- 向量库状态 -->
+  <div class="card">
+    <div class="card-title">🔮 向量库状态</div>
+    <div class="form-row">
+      <div class="form-label">向量数据库</div>
+      <div style="font-size:13px;color:#374151;flex:1;">ChromaDB v0.4.15</div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">嵌入维度</div>
+      <div style="font-size:13px;color:#374151;flex:1;">1536 维</div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">运行状态</div>
+      <div style="display:flex;align-items:center;gap:6px;flex:1;">
+        <div class="status-dot green"></div>
+        <span style="font-size:13px;color:#059669;">正常运行</span>
+        <span style="font-size:11px;color:#9ca3af;">延迟 3ms</span>
+      </div>
+      <button class="btn btn-sm btn-outline">🔄 重建索引</button>
+    </div>
+  </div>
+
+  <!-- 手动清理（红色边框警告） -->
+  <div class="card" style="border-color:#fca5a5;background:#fff5f5;">
+    <div class="card-title" style="color:#dc2626;">⚠️ 手动清理</div>
+    <div style="font-size:11px;color:#9ca3af;margin-bottom:12px;">清理操作不可恢复，请谨慎操作</div>
+    <div class="checkbox-row" style="margin-bottom:4px;"><div class="checkbox">　</div>清除所有热记忆（847条）</div>
+    <div class="checkbox-row" style="margin-bottom:4px;"><div class="checkbox">　</div>清除所有温记忆（3,241条）</div>
+    <div class="checkbox-row" style="margin-bottom:4px;"><div class="checkbox">　</div>清除所有冷记忆（18,520条）</div>
+    <div class="checkbox-row" style="margin-bottom:12px;"><div class="checkbox">　</div>清除重复内容（自动去重）</div>
+    <button class="btn btn-danger" style="background:#dc2626;color:#fff;">🗑️ 执行清理</button>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 页面15：梦境蒸馏 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-dreaming">
+  <div class="page-label">PAGE 15 / 22</div>
+  <div class="section-title">🌊 梦境蒸馏</div>
+  <div class="section-desc">AI在"睡眠"期间自动蒸馏记忆，提炼知识精华</div>
+
+  <!-- 三阶段状态卡片 -->
+  <div style="display:flex;gap:12px;margin-bottom:16px;">
+    <div class="dream-card dc-blue">
+      <div style="font-size:20px;margin-bottom:6px;">💤</div>
+      <div style="font-size:13px;font-weight:600;color:#1d4ed8;margin-bottom:4px;">Light Sleep</div>
+      <div style="font-size:11px;color:#3730a3;line-height:1.5;">2小时前 · 处理 312 条<br>去除重复，整理索引</div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid #bfdbfe;">
+        <div style="font-size:10px;color:#6b7280;">下次执行</div>
+        <div style="font-size:12px;color:#2563eb;font-weight:500;">3小时后</div>
+      </div>
+    </div>
+    <div class="dream-card dc-purple">
+      <div style="font-size:20px;margin-bottom:6px;">🌙</div>
+      <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:4px;">REM Sleep</div>
+      <div style="font-size:11px;color:#6d28d9;line-height:1.5;">昨晚 23:30 · 生成 5 条<br>模式摘要与主题聚类</div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid #e9d5ff;">
+        <div style="font-size:10px;color:#6b7280;">下次执行</div>
+        <div style="font-size:12px;color:#7c3aed;font-weight:500;">今晚 23:00</div>
+      </div>
+    </div>
+    <div class="dream-card dc-deep">
+      <div style="font-size:20px;margin-bottom:6px;">🌊</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;" class="dream-title">Deep Dreaming</div>
+      <div style="font-size:11px;line-height:1.5;" class="dream-sub">3天前 · 更新 2 条<br>核心DNA与长期价值观</div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(139,92,246,0.3);">
+        <div style="font-size:10px;color:#818cf8;">下次执行</div>
+        <div style="font-size:12px;color:#a78bfa;font-weight:500;">明天凌晨</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 最近梦境日记 -->
+  <div class="card">
+    <div class="card-title">📔 最近梦境日记</div>
+    <div style="border-left:3px solid #7c3aed;padding:12px 16px;margin-bottom:12px;background:#faf5ff;border-radius:0 8px 8px 0;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="font-size:11px;color:#9ca3af;">2026-04-14 23:30</span>
+        <span class="tag tag-primary">REM Sleep</span>
+        <span style="font-size:10px;color:#9ca3af;">处理 1,247 条</span>
+      </div>
+      <div style="font-size:12px;color:#374151;line-height:1.8;font-style:italic;">
+        在记忆的深海里打捞碎片，<br>
+        将相似的波纹编织成图谱，<br>
+        五条新的洞见悄然浮出水面。
+      </div>
+    </div>
+    <div style="border-left:3px solid #2563eb;padding:12px 16px;margin-bottom:12px;background:#eff6ff;border-radius:0 8px 8px 0;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="font-size:11px;color:#9ca3af;">2026-04-14 06:00</span>
+        <span class="tag" style="background:#eff6ff;color:#2563eb;">Light Sleep</span>
+        <span style="font-size:10px;color:#9ca3af;">处理 312 条</span>
+      </div>
+      <div style="font-size:12px;color:#374151;line-height:1.8;font-style:italic;">
+        清晨的微风吹散重叠的记忆，<br>
+        213条重复被轻柔折叠收起，<br>
+        索引焕然一新，检索更加敏捷。
+      </div>
+    </div>
+    <div style="border-left:3px solid #1e1b4b;padding:12px 16px;background:#f5f3ff;border-radius:0 8px 8px 0;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="font-size:11px;color:#9ca3af;">2026-04-11 03:00</span>
+        <span class="tag" style="background:#1e1b4b;color:#a78bfa;">Deep Dreaming</span>
+        <span style="font-size:10px;color:#9ca3af;">处理 18,520 条</span>
+      </div>
+      <div style="font-size:12px;color:#374151;line-height:1.8;font-style:italic;">
+        潜入最深的意识海洋，<br>
+        两颗新的DNA从历史中结晶，<br>
+        "效率即美"与"价值先于形式"永久刻入。
+      </div>
+    </div>
+  </div>
+
+  <!-- 蒸馏参数（折叠） -->
+  <div class="card">
+    <div class="collapse-header">
+      <div class="collapse-title">⚙️ 蒸馏参数配置</div>
+      <div class="collapse-icon">▼ 展开</div>
+    </div>
+    <div style="margin-top:16px;">
+      <div style="font-size:12px;font-weight:600;color:#2563eb;margin-bottom:8px;">💤 Light Sleep 参数</div>
+      <div class="form-row">
+        <div class="form-label" style="width:120px;">执行频率</div>
+        <select class="form-select"><option>每6小时</option><option>每12小时</option><option>每24小时</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-label" style="width:120px;">去重阈值</div>
+        <input type="range" class="range-input" min="50" max="100" value="80" />
+        <span style="font-size:12px;color:#374151;width:36px;text-align:right;">80%</span>
+      </div>
+      <div class="form-row">
+        <div class="form-label" style="width:120px;">最小批量</div>
+        <input class="form-input" type="number" value="20" style="width:80px;" />
+        <span style="font-size:12px;color:#9ca3af;">条</span>
+      </div>
+
+      <div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:8px;margin-top:16px;">🌙 REM Sleep 参数</div>
+      <div class="form-row">
+        <div class="form-label" style="width:120px;">执行频率</div>
+        <select class="form-select"><option>每天</option><option>每2天</option><option>每周</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-label" style="width:120px;">执行时间</div>
+        <input class="form-input" type="time" value="23:00" style="width:100px;" />
+      </div>
+      <div class="form-row">
+        <div class="form-label" style="width:120px;">置信度阈值</div>
+        <input type="range" class="range-input" min="0" max="100" value="70" />
+        <span style="font-size:12px;color:#374151;width:36px;text-align:right;">70</span>
+      </div>
+
+      <div style="font-size:12px;font-weight:600;color:#1e1b4b;margin-bottom:8px;margin-top:16px;">🌊 Deep Dreaming 参数</div>
+      <div class="form-row">
+        <div class="form-label" style="width:120px;">执行频率</div>
+        <select class="form-select"><option>每周</option><option>每月</option><option>手动</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-label" style="width:120px;">保守程度</div>
+        <input type="range" class="range-input" min="0" max="100" value="60" />
+        <span style="font-size:12px;color:#374151;width:36px;text-align:right;">60%</span>
+      </div>
+      <div class="form-row">
+        <div class="form-label" style="width:120px;">人工确认</div>
+        <div class="toggle on"></div>
+        <span style="font-size:11px;color:#6b7280;margin-left:8px;">DNA更新前需人工确认</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手动触发 -->
+  <div class="card">
+    <div class="card-title">▶ 手动触发</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-outline" style="font-size:12px;">💤 触发 Light Sleep</button>
+      <button class="btn btn-outline" style="font-size:12px;border-color:#7c3aed;color:#7c3aed;">🌙 触发 REM Sleep</button>
+      <button class="btn btn-outline" style="font-size:12px;border-color:#1e1b4b;color:#1e1b4b;">🌊 触发 Deep Dreaming</button>
+      <button class="btn btn-primary" style="font-size:12px;">⚡ 全部触发</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 页面16：数据统计 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-stats">
+  <div class="page-label">PAGE 16 / 22</div>
+  <div class="section-title">📊 数据统计</div>
+  <div class="section-desc">Token消耗、对话频率和成本分析</div>
+
+  <!-- 时间范围 -->
+  <div style="margin-bottom:16px;">
+    <div class="freq-options">
+      <div class="freq-opt">今日</div>
+      <div class="freq-opt">本周</div>
+      <div class="freq-opt active">本月</div>
+      <div class="freq-opt">90天</div>
+      <div class="freq-opt">全部</div>
+    </div>
+  </div>
+
+  <!-- 4核心指标卡片 -->
+  <div class="grid-4" style="margin-bottom:16px;">
+    <div class="stat-card">
+      <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">Token消耗</div>
+      <div class="stat-num">2,847,230</div>
+      <div style="font-size:11px;color:#059669;margin-top:4px;">▲ 12% 同比</div>
+    </div>
+    <div class="stat-card">
+      <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">对话次数</div>
+      <div class="stat-num">1,243</div>
+      <div style="font-size:11px;color:#059669;margin-top:4px;">▲ 5% 同比</div>
+    </div>
+    <div class="stat-card">
+      <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">平均轮次</div>
+      <div class="stat-num">8.3</div>
+      <div style="font-size:11px;color:#9ca3af;margin-top:4px;">轮/对话</div>
+    </div>
+    <div class="stat-card">
+      <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">估算费用</div>
+      <div class="stat-num" style="color:#7c3aed;">¥34.20</div>
+      <div style="font-size:11px;color:#059669;margin-top:4px;">本月累计</div>
+    </div>
+  </div>
+
+  <!-- Token用量趋势（表格） -->
+  <div class="card">
+    <div class="card-title">📈 Token用量趋势（最近7天）</div>
+    <table>
+      <tr><th>日期</th><th>输入Token</th><th>输出Token</th><th>总计</th></tr>
+      <tr><td>04-08</td><td>82,340</td><td>41,220</td><td>123,560</td></tr>
+      <tr><td>04-09</td><td>95,670</td><td>48,330</td><td>144,000</td></tr>
+      <tr><td>04-10</td><td>78,920</td><td>39,460</td><td>118,380</td></tr>
+      <tr><td>04-11</td><td>112,450</td><td>56,780</td><td>169,230</td></tr>
+      <tr><td>04-12</td><td>134,200</td><td>67,100</td><td>201,300</td></tr>
+      <tr><td>04-13</td><td>108,760</td><td>54,380</td><td>163,140</td></tr>
+      <tr><td style="font-weight:600;">04-14</td><td style="font-weight:600;">89,440</td><td style="font-weight:600;">44,720</td><td style="font-weight:600;">134,160</td></tr>
+    </table>
+  </div>
+
+  <!-- 模型使用分布 -->
+  <div class="card">
+    <div class="card-title">🤖 模型使用分布</div>
+    <table>
+      <tr><th>模型名称</th><th>使用占比</th><th>Token消耗</th></tr>
+      <tr>
+        <td>claude-sonnet-4-6</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#e5e7eb;border-radius:4px;height:6px;"><div style="background:#7c3aed;width:62%;height:100%;border-radius:4px;"></div></div>
+            <span>62%</span>
+          </div>
+        </td>
+        <td>1,765,283</td>
+      </tr>
+      <tr>
+        <td>claude-opus-4-6</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#e5e7eb;border-radius:4px;height:6px;"><div style="background:#7c3aed;width:28%;height:100%;border-radius:4px;"></div></div>
+            <span>28%</span>
+          </div>
+        </td>
+        <td>797,224</td>
+      </tr>
+      <tr>
+        <td>claude-haiku-4-6</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:80px;background:#e5e7eb;border-radius:4px;height:6px;"><div style="background:#7c3aed;width:10%;height:100%;border-radius:4px;"></div></div>
+            <span>10%</span>
+          </div>
+        </td>
+        <td>284,723</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 成本估算 -->
+  <div class="card">
+    <div class="card-title">💰 成本估算</div>
+    <table>
+      <tr><th>模型</th><th>输入Token</th><th>输出Token</th><th>单价(输入/输出)</th><th>小计</th></tr>
+      <tr>
+        <td>claude-sonnet-4-6</td>
+        <td>1,177,522</td>
+        <td>587,761</td>
+        <td>¥0.02 / ¥0.06 (每千)</td>
+        <td>¥58.93</td>
+      </tr>
+      <tr>
+        <td>claude-opus-4-6</td>
+        <td>531,483</td>
+        <td>265,741</td>
+        <td>¥0.10 / ¥0.30 (每千)</td>
+        <td>¥132.87</td>
+      </tr>
+      <tr>
+        <td>claude-haiku-4-6</td>
+        <td>189,815</td>
+        <td>94,908</td>
+        <td>¥0.004 / ¥0.012 (每千)</td>
+        <td>¥1.90</td>
+      </tr>
+      <tr style="background:#f9fafb;font-weight:600;">
+        <td colspan="4" style="text-align:right;">合计（原价）</td>
+        <td style="color:#dc2626;">¥193.70</td>
+      </tr>
+      <tr style="background:#f0fdf4;font-weight:600;">
+        <td colspan="4" style="text-align:right;">中转折扣后（约82折）</td>
+        <td style="color:#059669;">¥34.20</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 页面17：外观主题 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-theme">
+  <div class="page-label">PAGE 17 / 22</div>
+  <div class="section-title">🎨 外观主题</div>
+  <div class="section-desc">自定义界面外观、颜色与动画风格</div>
+
+  <!-- 主题模式 -->
+  <div class="card">
+    <div class="card-title">🌓 主题模式</div>
+    <div class="grid-3">
+      <div style="border:2px solid #7c3aed;border-radius:10px;padding:16px;text-align:center;background:#f5f3ff;cursor:pointer;">
+        <div style="font-size:28px;margin-bottom:6px;">☀️</div>
+        <div style="font-size:13px;font-weight:500;color:#7c3aed;">白天模式</div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:2px;">浅色背景</div>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:16px;text-align:center;background:#fafbfc;cursor:pointer;">
+        <div style="font-size:28px;margin-bottom:6px;">🌙</div>
+        <div style="font-size:13px;font-weight:500;color:#374151;">夜晚模式</div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:2px;">深色背景</div>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:16px;text-align:center;background:#fafbfc;cursor:pointer;">
+        <div style="font-size:28px;margin-bottom:6px;">🔄</div>
+        <div style="font-size:13px;font-weight:500;color:#374151;">跟随系统</div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:2px;">自动切换</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 自定义背景 -->
+  <div class="card">
+    <div class="card-title">🖼️ 自定义背景</div>
+    <div class="form-row">
+      <div class="form-label">背景类型</div>
+      <div class="freq-options">
+        <div class="freq-opt">纯色</div>
+        <div class="freq-opt">渐变</div>
+        <div class="freq-opt active">图片</div>
+        <div class="freq-opt">无</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">背景图片</div>
+      <div style="flex:1;">
+        <div class="upload-zone" style="padding:16px;">
+          <div style="font-size:20px;margin-bottom:4px;">📷</div>
+          <div style="font-size:12px;">点击上传或拖拽图片（已选：bg-aurora.jpg）</div>
+          <div style="font-size:10px;color:#d1d5db;margin-top:2px;">支持 JPG / PNG / WebP，建议 1920×1080</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">背景透明度</div>
+      <input type="range" class="range-input" min="0" max="100" value="85" style="flex:1;" />
+      <span style="font-size:12px;color:#374151;width:36px;text-align:right;">85%</span>
+    </div>
+  </div>
+
+  <!-- 主色调 -->
+  <div class="card">
+    <div class="card-title">🎨 主色调</div>
+    <div class="form-row">
+      <div class="form-label">预设颜色</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;align-items:center;">
+        <div class="color-dot active" style="background:#7c3aed;" title="靛蓝（默认）"></div>
+        <div class="color-dot" style="background:#0891b2;" title="青色"></div>
+        <div class="color-dot" style="background:#059669;" title="绿色"></div>
+        <div class="color-dot" style="background:#9333ea;" title="紫色"></div>
+        <div class="color-dot" style="background:#e11d48;" title="玫红"></div>
+        <div class="color-dot" style="background:#ea580c;" title="橙色"></div>
+        <div class="color-dot" style="background:#dc2626;" title="红色"></div>
+        <div class="color-dot" style="background:#b45309;" title="棕金"></div>
+        <div class="color-dot" style="background:#1f2937;" title="黑白"></div>
+        <div class="color-dot" style="background:linear-gradient(135deg,#7c3aed,#2563eb,#059669);" title="彩虹"></div>
+        <button class="btn btn-sm btn-outline" style="font-size:11px;">+ 自定义色</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 字体与排版 -->
+  <div class="card">
+    <div class="card-title">✍️ 字体与排版</div>
+    <div class="form-row">
+      <div class="form-label">字体大小</div>
+      <input type="range" class="range-input" min="12" max="20" value="14" style="flex:1;" />
+      <span style="font-size:12px;color:#374151;width:40px;text-align:right;">14px</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">字体选择</div>
+      <select class="form-select" style="flex:1;">
+        <option>系统默认</option>
+        <option>思源黑体 (Noto Sans SC)</option>
+        <option>霞鹜文楷 (LXGW WenKai)</option>
+        <option>Inter</option>
+        <option>JetBrains Mono</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">圆角大小</div>
+      <input type="range" class="range-input" min="0" max="20" value="8" style="flex:1;" />
+      <span style="font-size:12px;color:#374151;width:40px;text-align:right;">8px</span>
+    </div>
+  </div>
+
+  <!-- 动画与侧边栏 -->
+  <div class="card">
+    <div class="card-title">✨ 动画与布局</div>
+    <div class="form-row">
+      <div class="form-label">界面动画</div>
+      <div class="toggle on"></div>
+      <span style="font-size:11px;color:#6b7280;margin-left:8px;">开启过渡动画</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">动画速度</div>
+      <div class="freq-options">
+        <div class="freq-opt">慢</div>
+        <div class="freq-opt active">适中</div>
+        <div class="freq-opt">快</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">侧边栏宽度</div>
+      <input type="range" class="range-input" min="200" max="360" value="260" style="flex:1;" />
+      <span style="font-size:12px;color:#374151;width:40px;text-align:right;">260px</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 页面18：权限与安全 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-security">
+  <div class="page-label">PAGE 18 / 22</div>
+  <div class="section-title">🔒 权限与安全</div>
+  <div class="section-desc">细粒度权限控制与安全策略配置</div>
+
+  <!-- 权限等级说明 -->
+  <div class="card">
+    <div class="card-title">📋 L0-L4 权限等级说明</div>
+    <table>
+      <tr><th>级别</th><th>名称</th><th>允许操作</th><th>自动执行</th><th>标识</th></tr>
+      <tr>
+        <td><div class="level-badge" style="background:#f3f4f6;color:#6b7280;">L0</div></td>
+        <td style="font-weight:500;">只读</td>
+        <td>读取文件、查看信息</td>
+        <td><span class="tag tag-green">✓ 自动</span></td>
+        <td><span style="color:#6b7280;">●</span> 灰色</td>
+      </tr>
+      <tr>
+        <td><div class="level-badge" style="background:#eff6ff;color:#2563eb;">L1</div></td>
+        <td style="font-weight:500;">基础操作</td>
+        <td>写文件、运行脚本、搜索</td>
+        <td><span class="tag tag-green">✓ 自动</span></td>
+        <td><span style="color:#2563eb;">●</span> 蓝色</td>
+      </tr>
+      <tr>
+        <td><div class="level-badge" style="background:#ecfdf5;color:#059669;">L2</div></td>
+        <td style="font-weight:500;">系统操作</td>
+        <td>安装软件、修改配置、网络请求</td>
+        <td><span class="tag tag-green">✓ 自动</span></td>
+        <td><span style="color:#059669;">●</span> 绿色</td>
+      </tr>
+      <tr>
+        <td><div class="level-badge" style="background:#fff7ed;color:#ea580c;">L3</div></td>
+        <td style="font-weight:500;">高危操作</td>
+        <td>删除数据、发送消息、调用外部API</td>
+        <td><span class="tag tag-orange">⚠ 需确认</span></td>
+        <td><span style="color:#ea580c;">●</span> 橙色</td>
+      </tr>
+      <tr>
+        <td><div class="level-badge" style="background:#fef2f2;color:#dc2626;">L4</div></td>
+        <td style="font-weight:500;">核弹级</td>
+        <td>格式化磁盘、大量删除、危险指令</td>
+        <td><span class="tag tag-red">✕ 禁止自动</span></td>
+        <td><span style="color:#dc2626;">●</span> 红色</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 全局权限设置 -->
+  <div class="card">
+    <div class="card-title">🛡️ 全局权限设置</div>
+    <div class="form-row">
+      <div class="form-label">最高自动执行级别</div>
+      <select class="form-select">
+        <option>L0 - 只读</option>
+        <option>L1 - 基础操作</option>
+        <option selected>L2 - 系统操作</option>
+        <option>L3 - 高危操作</option>
+      </select>
+      <div class="form-desc" style="margin-left:8px;width:auto;">超过此级别需人工确认</div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">自动升核许可</div>
+      <div class="toggle on"></div>
+      <span style="font-size:11px;color:#6b7280;margin-left:8px;">允许AI在需要时自动提升权限</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">L3+ 二次确认</div>
+      <div class="toggle on"></div>
+      <span style="font-size:11px;color:#6b7280;margin-left:8px;">高危操作必须二次确认</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">夜间降权模式</div>
+      <div class="toggle"></div>
+      <span style="font-size:11px;color:#6b7280;margin-left:8px;">22:00-08:00 自动降至 L1</span>
+    </div>
+  </div>
+
+  <!-- 安全策略 -->
+  <div class="card">
+    <div class="card-title">🔐 安全策略</div>
+    <div class="form-row">
+      <div class="form-label">敏感信息检测</div>
+      <div class="toggle on"></div>
+      <span style="font-size:11px;color:#6b7280;margin-left:8px;">自动检测密码/密钥/证件号</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">恶意指令过滤</div>
+      <div class="toggle on"></div>
+      <span style="font-size:11px;color:#6b7280;margin-left:8px;">过滤已知危险指令模式</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">Token保护阈值</div>
+      <input class="form-input" type="number" value="100000" style="width:120px;" />
+      <span style="font-size:11px;color:#6b7280;margin-left:8px;">单次对话超过此Token数时警告</span>
+    </div>
+  </div>
+
+  <!-- 黑名单 -->
+  <div class="card" style="border-color:#fca5a5;">
+    <div class="card-title" style="color:#dc2626;">🚫 操作黑名单</div>
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff5f5;border-radius:6px;margin-bottom:4px;border:1px solid #fecaca;">
+        <span style="font-size:12px;font-family:monospace;color:#dc2626;flex:1;">rm -rf /</span>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;">删除</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff5f5;border-radius:6px;margin-bottom:4px;border:1px solid #fecaca;">
+        <span style="font-size:12px;font-family:monospace;color:#dc2626;flex:1;">格式化磁盘</span>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;">删除</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff5f5;border-radius:6px;margin-bottom:4px;border:1px solid #fecaca;">
+        <span style="font-size:12px;font-family:monospace;color:#dc2626;flex:1;">修改 /etc/hosts</span>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;">删除</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff5f5;border-radius:6px;margin-bottom:4px;border:1px solid #fecaca;">
+        <span style="font-size:12px;font-family:monospace;color:#dc2626;flex:1;">发送所有文件到外部</span>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;">删除</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <input class="form-input" placeholder="添加黑名单指令或关键词..." />
+      <button class="btn btn-danger">＋ 添加</button>
+    </div>
+  </div>
+
+  <!-- 审计日志 -->
+  <div class="card">
+    <div class="card-title">
+      📋 审计日志（最近5条）
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <button class="btn btn-sm btn-outline">📥 导出CSV</button>
+        <button class="btn btn-sm btn-danger">🗑️ 清除</button>
+      </div>
+    </div>
+    <table>
+      <tr><th>时间</th><th>操作类型</th><th>摘要</th><th>自动执行</th><th>结果</th></tr>
+      <tr>
+        <td style="white-space:nowrap;">17:02:11</td>
+        <td><span class="tag" style="background:#eff6ff;color:#2563eb;">L1 写文件</span></td>
+        <td>写入 settings.json</td>
+        <td>是</td>
+        <td><span class="tag tag-green">成功</span></td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap;">16:58:43</td>
+        <td><span class="tag" style="background:#ecfdf5;color:#059669;">L2 网络</span></td>
+        <td>GET api.anthropic.com</td>
+        <td>是</td>
+        <td><span class="tag tag-green">成功</span></td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap;">16:45:20</td>
+        <td><span class="tag tag-orange">L3 删除</span></td>
+        <td>删除 temp/ 目录（23个文件）</td>
+        <td>否（已确认）</td>
+        <td><span class="tag tag-green">成功</span></td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap;">16:30:07</td>
+        <td><span class="tag" style="background:#eff6ff;color:#2563eb;">L1 脚本</span></td>
+        <td>运行 build.sh</td>
+        <td>是</td>
+        <td><span class="tag tag-green">成功</span></td>
+      </tr>
+      <tr>
+        <td style="white-space:nowrap;">16:12:55</td>
+        <td><span class="tag tag-red">L4 拦截</span></td>
+        <td>尝试执行 rm -rf / — 已拦截</td>
+        <td>-</td>
+        <td><span class="tag tag-red">拦截</span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 页面19：导入导出 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-export">
+  <div class="page-label">PAGE 19 / 22</div>
+  <div class="section-title">💾 导入导出</div>
+  <div class="section-desc">备份数据、迁移配置或从其他工具导入</div>
+
+  <!-- 导出区 -->
+  <div class="card">
+    <div class="card-title">📤 导出数据</div>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:12px;color:#6b7280;margin-bottom:8px;">选择要导出的内容：</div>
+      <div class="grid-2" style="gap:6px;">
+        <label class="checkbox-row"><div class="checkbox checked">✓</div>对话历史（1,243 条）</label>
+        <label class="checkbox-row"><div class="checkbox checked">✓</div>记忆系统（22,631 条）</label>
+        <label class="checkbox-row"><div class="checkbox checked">✓</div>系统配置（所有设置）</label>
+        <label class="checkbox-row"><div class="checkbox checked">✓</div>自定义技能（8 个）</label>
+        <label class="checkbox-row"><div class="checkbox">　</div>技能列表（快捷键绑定）</label>
+        <label class="checkbox-row"><div class="checkbox">　</div>审计日志（全量）</label>
+        <label class="checkbox-row"><div class="checkbox">　</div>蒸馏记录（梦境日记）</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">导出格式</div>
+      <div class="freq-options">
+        <div class="freq-opt active">完整包 .zip</div>
+        <div class="freq-opt">JSON</div>
+        <div class="freq-opt">加密包 .enc</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn btn-primary" style="font-size:13px;padding:8px 20px;">⬇️ 一键导出</button>
+      <span style="font-size:11px;color:#9ca3af;margin-left:10px;">预计大小：约 12.4 MB</span>
+    </div>
+  </div>
+
+  <!-- 导入区 -->
+  <div class="card">
+    <div class="card-title">📥 导入数据</div>
+    <div class="upload-zone" style="margin-bottom:12px;">
+      <div style="font-size:32px;margin-bottom:8px;">📂</div>
+      <div style="font-size:13px;font-weight:500;color:#374151;">拖拽文件到此处，或点击选择文件</div>
+      <div style="font-size:11px;color:#9ca3af;margin-top:4px;">支持 .zip / .json / .enc 格式</div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">导入模式</div>
+      <div style="display:flex;gap:10px;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;">
+          <input type="radio" name="import-mode" checked style="accent-color:#7c3aed;" />
+          合并模式（推荐）
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:#dc2626;">
+          <input type="radio" name="import-mode" style="accent-color:#dc2626;" />
+          覆盖模式
+          <span class="tag tag-red" style="font-size:9px;">⚠ 将清空现有数据</span>
+        </label>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn btn-outline" style="font-size:13px;padding:8px 20px;">⬆️ 开始导入</button>
+    </div>
+  </div>
+
+  <!-- 迁移工具 -->
+  <div class="card">
+    <div class="card-title">🔀 迁移工具</div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:12px;">从其他工具一键迁移数据到 OpenAGI</div>
+    <div class="grid-2" style="gap:10px;">
+      <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;background:#fafbfc;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:18px;">🐾</span>
+          <div style="font-size:13px;font-weight:500;color:#374151;">从 NewClaw 迁移</div>
+        </div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">迁移对话历史、记忆DNA、技能配置</div>
+        <button class="btn btn-sm btn-outline">开始迁移</button>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;background:#fafbfc;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:18px;">🦀</span>
+          <div style="font-size:13px;font-weight:500;color:#374151;">从 OpenClaw 迁移</div>
+        </div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">兼容 OpenClaw v2+ 导出格式</div>
+        <button class="btn btn-sm btn-outline">开始迁移</button>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;background:#fafbfc;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:18px;">🪐</span>
+          <div style="font-size:13px;font-weight:500;color:#374151;">从 Hermes 迁移</div>
+        </div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">导入 Hermes 记忆宫殿数据</div>
+        <button class="btn btn-sm btn-outline">开始迁移</button>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;background:#fafbfc;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:18px;">🤖</span>
+          <div style="font-size:13px;font-weight:500;color:#374151;">从 Claude 导入</div>
+        </div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">从 Claude.ai 导出的对话 JSON</div>
+        <button class="btn btn-sm btn-outline">开始迁移</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 页面20：消息网关 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-gateway">
+  <div class="page-label">PAGE 20 / 22</div>
+  <div class="section-title">📡 消息网关</div>
+  <div class="section-desc">连接多平台消息通道，随处与 AI 对话</div>
+
+  <!-- 已配置平台 -->
+  <div class="card">
+    <div class="card-title">
+      已配置平台
+      <span class="tag tag-green">2 在线</span>
+      <span class="tag tag-orange">1 配置中</span>
+      <span class="tag tag-gray">5 未配置</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto;">＋ 添加平台</button>
+    </div>
+
+    <!-- Telegram -->
+    <div class="platform-row">
+      <div style="font-size:22px;">✈️</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;color:#1f2937;">Telegram</div>
+        <div style="font-size:11px;color:#6b7280;">@openagi_bot · 最后活跃：2分钟前</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div class="status-dot green"></div>
+        <span style="font-size:11px;color:#059669;">在线</span>
+      </div>
+      <button class="btn btn-sm btn-gray">配置</button>
+      <button class="btn btn-sm btn-outline">测试</button>
+      <button class="btn btn-sm btn-danger">断开</button>
+    </div>
+
+    <!-- Discord -->
+    <div class="platform-row">
+      <div style="font-size:22px;">🎮</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;color:#1f2937;">Discord</div>
+        <div style="font-size:11px;color:#6b7280;">OpenAGI#0001 · 最后活跃：15分钟前</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div class="status-dot green"></div>
+        <span style="font-size:11px;color:#059669;">在线</span>
+      </div>
+      <button class="btn btn-sm btn-gray">配置</button>
+      <button class="btn btn-sm btn-outline">测试</button>
+      <button class="btn btn-sm btn-danger">断开</button>
+    </div>
+
+    <!-- 微信 -->
+    <div class="platform-row">
+      <div style="font-size:22px;">💬</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;color:#1f2937;">微信</div>
+        <div style="font-size:11px;color:#f59e0b;">正在扫码授权...</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div class="status-dot yellow"></div>
+        <span style="font-size:11px;color:#d97706;">配置中</span>
+      </div>
+      <button class="btn btn-sm btn-primary">继续配置</button>
+      <button class="btn btn-sm btn-danger">取消</button>
+    </div>
+
+    <!-- Slack、WhatsApp、飞书、钉钉、邮件（未配置） -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed #e5e7eb;border-radius:8px;opacity:0.6;">
+        <span style="font-size:16px;">💼</span>
+        <div style="flex:1;font-size:12px;color:#6b7280;">Slack</div>
+        <div class="status-dot gray"></div>
+        <button class="btn btn-sm btn-outline">配置</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed #e5e7eb;border-radius:8px;opacity:0.6;">
+        <span style="font-size:16px;">📱</span>
+        <div style="flex:1;font-size:12px;color:#6b7280;">WhatsApp</div>
+        <div class="status-dot gray"></div>
+        <button class="btn btn-sm btn-outline">配置</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed #e5e7eb;border-radius:8px;opacity:0.6;">
+        <span style="font-size:16px;">🪁</span>
+        <div style="flex:1;font-size:12px;color:#6b7280;">飞书</div>
+        <div class="status-dot gray"></div>
+        <button class="btn btn-sm btn-outline">配置</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed #e5e7eb;border-radius:8px;opacity:0.6;">
+        <span style="font-size:16px;">📎</span>
+        <div style="flex:1;font-size:12px;color:#6b7280;">钉钉</div>
+        <div class="status-dot gray"></div>
+        <button class="btn btn-sm btn-outline">配置</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed #e5e7eb;border-radius:8px;opacity:0.6;grid-column:1/-1;max-width:50%;">
+        <span style="font-size:16px;">📧</span>
+        <div style="flex:1;font-size:12px;color:#6b7280;">邮件 (SMTP/IMAP)</div>
+        <div class="status-dot gray"></div>
+        <button class="btn btn-sm btn-outline">配置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全局消息设置 -->
+  <div class="card">
+    <div class="card-title">⚙️ 全局消息设置</div>
+    <div class="form-row">
+      <div class="form-label">响应延迟</div>
+      <input class="form-input" type="number" value="0" style="width:80px;" />
+      <span style="font-size:11px;color:#6b7280;margin-left:6px;">秒（模拟人工输入感）</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">最大并发会话</div>
+      <input class="form-input" type="number" value="3" style="width:80px;" />
+      <span style="font-size:11px;color:#6b7280;margin-left:6px;">个平台同时接收消息</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">跨平台同步</div>
+      <div class="toggle"></div>
+      <span style="font-size:11px;color:#6b7280;margin-left:8px;">在所有平台同步显示对话记录</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 页面21：部署与永生 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-deploy">
+  <div class="page-label">PAGE 21 / 22</div>
+  <div class="section-title">🐳 部署与永生</div>
+  <div class="section-desc">容器化部署、持久化与高可用配置</div>
+
+  <!-- 运行状态 -->
+  <div class="card" style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-color:#86efac;">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div>
+        <span class="tag" style="background:#1e40af;color:#bfdbfe;font-size:11px;">单机模式</span>
+      </div>
+      <div style="flex:1;">
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:10px;color:#6b7280;">运行时长</div>
+            <div style="font-size:14px;font-weight:600;color:#059669;">3天 14小时</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:#6b7280;">进程 PID</div>
+            <div style="font-size:14px;font-weight:600;color:#374151;">14823</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:#6b7280;">内存占用</div>
+            <div style="font-size:14px;font-weight:600;color:#374151;">340 MB</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:#6b7280;">CPU</div>
+            <div style="font-size:14px;font-weight:600;color:#374151;">2.3%</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-orange" style="font-size:12px;">🔄 重启</button>
+        <button class="btn btn-danger" style="font-size:12px;">⏹ 停止</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Docker配置（折叠） -->
+  <div class="card">
+    <div class="collapse-header">
+      <div class="collapse-title">🐳 Docker配置</div>
+      <div class="collapse-icon">▼ 展开</div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="form-row">
+        <div class="form-label">镜像标签</div>
+        <input class="form-input" value="openagi:v0.1.0-alpha" />
+      </div>
+      <div class="form-row">
+        <div class="form-label">端口映射</div>
+        <input class="form-input" value="8080:8080, 8443:8443" />
+      </div>
+      <div class="form-row">
+        <div class="form-label">数据卷</div>
+        <input class="form-input" value="~/.openagi:/app/data" />
+      </div>
+      <div class="form-row">
+        <div class="form-label">环境变量</div>
+        <input class="form-input" value="OPENAGI_ENV=production, LOG_LEVEL=info" />
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;">
+        <button class="btn btn-outline">📋 生成 compose.yml</button>
+        <button class="btn btn-primary">🐳 Docker重启</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 持久化 -->
+  <div class="card">
+    <div class="card-title">💾 持久化设置</div>
+    <div class="form-row">
+      <div class="form-label">自动保存</div>
+      <div class="toggle on"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">保存间隔</div>
+      <input class="form-input" type="number" value="5" style="width:80px;" />
+      <span style="font-size:11px;color:#6b7280;margin-left:6px;">分钟</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">存储路径</div>
+      <input class="form-input" value="~/.openagi/state/" />
+    </div>
+    <div class="form-row">
+      <div class="form-label">保存内容</div>
+      <div>
+        <label class="checkbox-row"><div class="checkbox checked">✓</div>对话状态</label>
+        <label class="checkbox-row"><div class="checkbox checked">✓</div>记忆系统</label>
+        <label class="checkbox-row"><div class="checkbox checked">✓</div>系统配置</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 高可用 -->
+  <div class="card">
+    <div class="card-title">🔁 高可用设置</div>
+    <div class="form-row">
+      <div class="form-label">崩溃自动恢复</div>
+      <div class="toggle on"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">最大重试次数</div>
+      <input class="form-input" type="number" value="5" style="width:80px;" />
+      <span style="font-size:11px;color:#6b7280;margin-left:6px;">次</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">重试间隔</div>
+      <input class="form-input" type="number" value="5" style="width:80px;" />
+      <span style="font-size:11px;color:#6b7280;margin-left:6px;">秒</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">心跳检测</div>
+      <div class="toggle on"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">心跳间隔</div>
+      <input class="form-input" type="number" value="30" style="width:80px;" />
+      <span style="font-size:11px;color:#6b7280;margin-left:6px;">秒</span>
+    </div>
+    <div class="form-row">
+      <div class="form-label">超时判定</div>
+      <input class="form-input" type="number" value="3" style="width:80px;" />
+      <span style="font-size:11px;color:#6b7280;margin-left:6px;">次心跳无响应视为宕机</span>
+    </div>
+  </div>
+
+  <!-- 备份策略 -->
+  <div class="card">
+    <div class="card-title">🗄️ 备份策略</div>
+    <div class="form-row">
+      <div class="form-label">定时备份</div>
+      <div class="toggle"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">备份频率</div>
+      <select class="form-select"><option>每周</option><option>每天</option><option>每月</option></select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">备份时间</div>
+      <input class="form-input" type="time" value="03:00" style="width:100px;" />
+    </div>
+    <div class="form-row">
+      <div class="form-label">备份位置</div>
+      <div class="freq-options">
+        <div class="freq-opt active">本地</div>
+        <div class="freq-opt">SFTP</div>
+        <div class="freq-opt">S3</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">保留份数</div>
+      <input class="form-input" type="number" value="7" style="width:80px;" />
+      <span style="font-size:11px;color:#6b7280;margin-left:6px;">份（超出自动删除最旧）</span>
+    </div>
+    <div style="margin-top:8px;">
+      <button class="btn btn-outline">📦 立即备份</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- 页面22：关于 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-about" style="margin-bottom:0;border-bottom:none;padding-bottom:0;">
+  <div class="page-label">PAGE 22 / 22</div>
+
+  <!-- Logo & 标语（居中） -->
+  <div style="text-align:center;padding:32px 0 24px;">
+    <div class="about-logo">OpenAGI</div>
+    <div style="font-size:15px;color:#6b7280;margin-bottom:8px;">成为你的 AI 意识延伸</div>
+    <div style="display:inline-block;background:#ede9fe;color:#7c3aed;font-size:12px;padding:4px 14px;border-radius:999px;font-weight:500;">v0.1.0-alpha</div>
+  </div>
+
+  <!-- 协议与链接 -->
+  <div class="card" style="text-align:center;">
+    <div style="font-size:12px;color:#6b7280;margin-bottom:12px;">
+      开源协议：<span style="font-weight:600;color:#374151;">Apache-2.0</span>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-outline" style="font-size:12px;">🐙 GitHub</button>
+      <button class="btn btn-outline" style="font-size:12px;">📖 文档</button>
+      <button class="btn btn-outline" style="font-size:12px;">💬 反馈</button>
+      <button class="btn btn-outline" style="font-size:12px;">👥 社区</button>
+    </div>
+  </div>
+
+  <!-- 致谢卡片（2×6网格） -->
+  <div class="card">
+    <div class="card-title">🙏 致谢 · 参考项目</div>
+    <div class="grid-2" style="gap:8px;">
+      <div class="thanks-card">
+        <div class="thanks-name">Claude Code</div>
+        <div class="thanks-desc">核心 Agent 执行框架与工具调用设计</div>
+      </div>
+      <div class="thanks-card">
+        <div class="thanks-name">OpenClaw</div>
+        <div class="thanks-desc">多模型路由与中转站管理架构</div>
+      </div>
+      <div class="thanks-card">
+        <div class="thanks-name">CocoLoop</div>
+        <div class="thanks-desc">永动指挥链与自主循环执行理念</div>
+      </div>
+      <div class="thanks-card">
+        <div class="thanks-name">NewClaw</div>
+        <div class="thanks-desc">三核博弈机制与 99/1 极致自主准则</div>
+      </div>
+      <div class="thanks-card">
+        <div class="thanks-name">Hermes</div>
+        <div class="thanks-desc">消息网关多平台接入与路由设计</div>
+      </div>
+      <div class="thanks-card">
+        <div class="thanks-name">MemPalace</div>
+        <div class="thanks-desc">四层记忆架构与向量检索方法</div>
+      </div>
+      <div class="thanks-card">
+        <div class="thanks-name">AIRI</div>
+        <div class="thanks-desc">AI 伴侣人格设定与情感交互设计</div>
+      </div>
+      <div class="thanks-card">
+        <div class="thanks-name">Clawra</div>
+        <div class="thanks-desc">梦境蒸馏与记忆压缩算法灵感</div>
+      </div>
+      <div class="thanks-card">
+        <div class="thanks-name">OpenTeams</div>
+        <div class="thanks-desc">AI 群聊协同与多 Agent 团队调度</div>
+      </div>
+      <div class="thanks-card">
+        <div class="thanks-name">bb-browser</div>
+        <div class="thanks-desc">浏览器自动化与网页交互引擎</div>
+      </div>
+      <div class="thanks-card">
+        <div class="thanks-name">Agency Agents</div>
+        <div class="thanks-desc">Hook 生命周期管理与权限控制模型</div>
+      </div>
+      <div class="thanks-card">
+        <div class="thanks-name">Claw Code</div>
+        <div class="thanks-desc">代码生成、工具链集成与 MCP 接入</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 更新日志（折叠） -->
+  <div class="card">
+    <div class="collapse-header">
+      <div class="collapse-title">📝 更新日志</div>
+      <div class="collapse-icon">▼ 展开</div>
+    </div>
+    <div style="margin-top:12px;">
+      <div style="margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:4px;">v0.1.0-alpha <span style="font-weight:400;color:#9ca3af;">2026-04-14</span></div>
+        <ul style="font-size:11px;color:#6b7280;padding-left:16px;line-height:1.8;">
+          <li>首个公开 Alpha 版本发布</li>
+          <li>实现 22 个设置页面全覆盖</li>
+          <li>集成四层记忆系统与梦境蒸馏</li>
+          <li>支持 MCP、Hook、消息网关</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;">v0.0.9 <span style="font-weight:400;color:#9ca3af;">2026-04-07</span></div>
+        <ul style="font-size:11px;color:#6b7280;padding-left:16px;line-height:1.8;">
+          <li>新增 L0-L4 权限等级体系</li>
+          <li>完成消息网关 Telegram/Discord 接入</li>
+          <li>优化三核博弈流水线性能</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;">v0.0.8 <span style="font-weight:400;color:#9ca3af;">2026-03-28</span></div>
+        <ul style="font-size:11px;color:#6b7280;padding-left:16px;line-height:1.8;">
+          <li>加入梦境蒸馏三阶段引擎</li>
+          <li>重构记忆系统向量存储层</li>
+          <li>新增 Hook 生命周期管理</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 系统信息 -->
+  <div class="card">
+    <div class="card-title">
+      💻 系统信息
+      <button class="btn btn-sm btn-outline" style="margin-left:auto;">📋 复制系统信息</button>
+    </div>
+    <table>
+      <tr><td style="color:#6b7280;width:120px;">Python 版本</td><td>3.11.8</td></tr>
+      <tr><td style="color:#6b7280;">操作系统</td><td>macOS Sequoia 15.1 (Darwin 25.1.0)</td></tr>
+      <tr><td style="color:#6b7280;">系统架构</td><td>arm64 (Apple Silicon)</td></tr>
+      <tr><td style="color:#6b7280;">可用内存</td><td>16 GB (已用 4.2 GB)</td></tr>
+      <tr><td style="color:#6b7280;">磁盘空间</td><td>1 TB (已用 234 GB)</td></tr>
+      <tr><td style="color:#6b7280;">数据目录</td><td style="font-family:monospace;font-size:11px;">~/.openagi/</td></tr>
+    </table>
+  </div>
+
+  <!-- 底部版权 -->
+  <div style="text-align:center;padding:24px 0 8px;color:#9ca3af;font-size:12px;">
+    © 2026 OpenAGI Project · Apache-2.0 · Made with ♥ and Claude
+  </div>
+</div>
+
+</body>
+</html>

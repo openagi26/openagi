@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenAGI 设置页面完整版 Part1</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      background: #fafbfc; color: #1f2937;
+    }
+    .settings-page { padding: 24px 32px; max-width: 900px; }
+    .section-title { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 4px; }
+    .section-desc { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
+    .card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+      padding: 20px; margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .tag { font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+    .tag-primary { background: #ede9fe; color: #7c3aed; }
+    .tag-green { background: #ecfdf5; color: #059669; }
+    .tag-orange { background: #fff7ed; color: #ea580c; }
+    .tag-blue { background: #eff6ff; color: #2563eb; }
+    .form-row {
+      display: flex; align-items: center; padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6; gap: 12px;
+    }
+    .form-row:last-child { border-bottom: none; }
+    .form-label { font-size: 13px; color: #374151; font-weight: 500; width: 140px; flex-shrink: 0; }
+    .form-desc { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+    .form-input {
+      flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid #d1d5db;
+      font-size: 13px; color: #1f2937; background: #fff; font-family: inherit;
+    }
+    .form-input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
+    .form-select {
+      padding: 7px 10px; border-radius: 6px; border: 1px solid #d1d5db;
+      font-size: 13px; color: #1f2937; background: #fff; font-family: inherit; cursor: pointer;
+    }
+    .toggle {
+      width: 40px; height: 22px; border-radius: 11px; background: #d1d5db;
+      position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+    }
+    .toggle.on { background: #7c3aed; }
+    .toggle::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 18px; height: 18px; border-radius: 50%; background: #fff;
+      transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .toggle.on::after { transform: translateX(18px); }
+    .btn {
+      padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; font-family: inherit; border: 1px solid;
+    }
+    .btn-primary { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-outline { background: #fff; color: #7c3aed; border-color: #7c3aed; }
+    .btn-outline:hover { background: #f5f3ff; }
+    .btn-danger { background: #fff; color: #dc2626; border-color: #dc2626; }
+    .btn-danger:hover { background: #fef2f2; }
+    .btn-sm { padding: 4px 10px; font-size: 11px; }
+    .btn-ghost { background: transparent; color: #6b7280; border-color: #e5e7eb; }
+    .btn-ghost:hover { background: #f9fafb; }
+    .model-row {
+      display: flex; align-items: center; padding: 8px 12px; border-radius: 8px;
+      border: 1px solid #e5e7eb; margin-bottom: 6px; gap: 10px; background: #fafbfc;
+    }
+    .model-row.primary { border-color: #7c3aed; background: #f5f3ff; }
+    .model-row.fallback { border-color: #fbbf24; background: #fffbeb; }
+    .model-row .name { font-size: 13px; font-weight: 500; color: #1f2937; }
+    .model-row .provider { font-size: 11px; color: #6b7280; }
+    .model-row .latency { font-size: 11px; margin-left: auto; }
+    .model-row .latency.fast { color: #059669; }
+    .model-row .latency.medium { color: #d97706; }
+    .model-row .actions { display: flex; gap: 4px; margin-left: 8px; }
+    .core-config {
+      display: flex; gap: 8px; align-items: center; padding: 10px 12px;
+      border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; background: #fafbfc;
+    }
+    .core-config .label { font-size: 12px; font-weight: 600; color: #7c3aed; width: 80px; flex-shrink: 0; }
+    .core-config .fields { flex: 1; display: flex; gap: 6px; flex-wrap: wrap; }
+    .core-config .field-group { display: flex; flex-direction: column; gap: 2px; }
+    .core-config .field-label { font-size: 10px; color: #9ca3af; }
+    .freq-options { display: flex; gap: 4px; flex-wrap: wrap; }
+    .freq-opt {
+      padding: 4px 10px; border-radius: 6px; border: 1px solid #d1d5db;
+      font-size: 11px; color: #6b7280; cursor: pointer; background: #fff;
+    }
+    .freq-opt.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+    .freq-opt:hover:not(.active) { border-color: #7c3aed; color: #7c3aed; }
+    .checkbox-row {
+      display: flex; align-items: center; gap: 8px; padding: 6px 0;
+      font-size: 12px; color: #374151; border-bottom: 1px solid #f3f4f6;
+    }
+    .checkbox-row:last-child { border-bottom: none; }
+    .checkbox {
+      width: 16px; height: 16px; border-radius: 4px; border: 1px solid #d1d5db;
+      display: flex; align-items: center; justify-content: center; font-size: 10px;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .checkbox.checked { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+    .tab-bar { display: flex; gap: 2px; margin-bottom: 16px; background: #f3f4f6; border-radius: 8px; padding: 3px; }
+    .tab-btn {
+      padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;
+      cursor: pointer; color: #6b7280; border: none; background: transparent; font-family: inherit;
+    }
+    .tab-btn.active { background: #fff; color: #7c3aed; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .persona-card {
+      border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px;
+      background: #fafbfc; cursor: pointer; transition: all 0.2s;
+    }
+    .persona-card:hover { border-color: #7c3aed; background: #f5f3ff; }
+    .persona-card.selected { border-color: #7c3aed; background: #f5f3ff; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .status-dot.green { background: #22c55e; box-shadow: 0 0 4px #22c55e; }
+    .status-dot.gray { background: #9ca3af; }
+    .slider-wrap { display: flex; align-items: center; gap: 10px; flex: 1; }
+    .slider { flex: 1; accent-color: #7c3aed; cursor: pointer; }
+    .slider-val { font-size: 12px; color: #374151; font-weight: 600; width: 36px; text-align: right; }
+    .info-banner {
+      padding: 10px 14px; border-radius: 8px; font-size: 12px;
+      display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    }
+    .info-banner.yellow { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .info-banner.blue { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+    .info-banner.green { background: #ecfdf5; border: 1px solid #bbf7d0; color: #166534; }
+    .voice-row {
+      display: flex; align-items: center; padding: 10px 12px; border-radius: 8px;
+      border: 1px solid #e5e7eb; margin-bottom: 6px; background: #fafbfc; gap: 10px;
+    }
+    .upload-zone {
+      border: 2px dashed #d1d5db; border-radius: 10px; padding: 24px;
+      text-align: center; color: #9ca3af; font-size: 13px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .upload-zone:hover { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; }
+    .perm-badge {
+      font-size: 10px; padding: 2px 7px; border-radius: 999px; font-weight: 600;
+    }
+    .perm-L0 { background: #f3f4f6; color: #6b7280; }
+    .perm-L1 { background: #ecfdf5; color: #059669; }
+    .perm-L2 { background: #fffbeb; color: #d97706; }
+    .perm-L3 { background: #fef2f2; color: #dc2626; }
+    .tool-row {
+      display: flex; align-items: center; gap: 10px; padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .tool-row:last-child { border-bottom: none; }
+    .tool-name { font-size: 13px; font-weight: 500; color: #1f2937; width: 100px; }
+    .tool-desc { font-size: 11px; color: #6b7280; flex: 1; }
+    .group-header {
+      display: flex; align-items: center; gap: 8px; padding: 8px 0;
+      font-size: 13px; font-weight: 600; color: #374151; cursor: pointer;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .perm-pills { display: flex; gap: 3px; }
+    .perm-pill {
+      font-size: 10px; padding: 2px 7px; border-radius: 999px;
+      border: 1px solid #e5e7eb; color: #6b7280; cursor: pointer; background: #fff;
+    }
+    .perm-pill.active-L0 { background: #f3f4f6; color: #374151; border-color: #9ca3af; font-weight:600; }
+    .perm-pill.active-L1 { background: #ecfdf5; color: #059669; border-color: #059669; font-weight:600; }
+    .perm-pill.active-L2 { background: #fffbeb; color: #d97706; border-color: #d97706; font-weight:600; }
+    .perm-pill.active-L3 { background: #fef2f2; color: #dc2626; border-color: #dc2626; font-weight:600; }
+    .platform-row {
+      display: flex; align-items: center; gap: 10px; padding: 7px 0;
+      border-bottom: 1px solid #f9fafb; font-size: 12px;
+    }
+    .platform-row:last-child { border-bottom: none; }
+    .platform-name { width: 100px; font-weight: 500; color: #374151; }
+    textarea.form-input { resize: vertical; min-height: 80px; }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- 页面1：模型管理 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-models" style="display:block;">
+  <div class="section-title">🧠 模型管理</div>
+  <div class="section-desc">管理AI模型、中转站和故障转移策略</div>
+
+  <div class="card">
+    <div class="card-title">中转站管理 <span class="tag tag-primary">添加中转站可自动发现模型</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-size:12px;color:#6b7280;">已保存的中转站配置（刷新不丢失）</span>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-outline" id="group-select-all">☑ 全选</button>
+        <button class="btn btn-sm btn-outline">＋ 增加测试组（最多10组）</button>
+      </div>
+    </div>
+    <div style="padding:10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;background:#fafbfc;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <input type="checkbox" checked class="group-cb" style="cursor:pointer;" />
+        <span style="font-size:11px;font-weight:600;color:#7c3aed;">测试组 1</span>
+        <input class="form-input" style="flex:1;font-size:11px;padding:4px 8px;" value="OpenRouter" />
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;">✕</button>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <input class="form-input" style="flex:1;font-size:11px;padding:4px 8px;" value="https://openrouter.ai/api/v1" />
+        <input class="form-input" type="password" style="width:180px;font-size:11px;padding:4px 8px;" value="sk-or-••••••••" />
+      </div>
+    </div>
+    <div style="padding:10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;background:#fafbfc;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <input type="checkbox" checked class="group-cb" style="cursor:pointer;" />
+        <span style="font-size:11px;font-weight:600;color:#ea580c;">测试组 2</span>
+        <input class="form-input" style="flex:1;font-size:11px;padding:4px 8px;" value="OneAPI 自建站" />
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;">✕</button>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <input class="form-input" style="flex:1;font-size:11px;padding:4px 8px;" value="https://one.example.com/v1" />
+        <input class="form-input" type="password" style="width:180px;font-size:11px;padding:4px 8px;" value="sk-one-••••••••" />
+      </div>
+    </div>
+    <div style="padding:10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;background:#fafbfc;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <input type="checkbox" checked class="group-cb" style="cursor:pointer;" />
+        <span style="font-size:11px;font-weight:600;color:#059669;">测试组 3</span>
+        <input class="form-input" style="flex:1;font-size:11px;padding:4px 8px;" value="OpenAI 官方直连" />
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px;">✕</button>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <input class="form-input" style="flex:1;font-size:11px;padding:4px 8px;" value="https://api.openai.com/v1" />
+        <input class="form-input" type="password" style="width:180px;font-size:11px;padding:4px 8px;" value="sk-proj-••••••••" />
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;padding-top:4px;">
+      <button class="btn btn-primary">🔍 一键并行测试全部中转站 — 自动发现可用模型</button>
+      <span style="font-size:11px;color:#9ca3af;display:flex;align-items:center;">所有测试组同时并行探测，速度最快</span>
+    </div>
+    <div style="margin-top:12px;padding:12px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;">
+      <div style="font-size:12px;font-weight:600;color:#166534;margin-bottom:8px;">✅ 发现 6 个可用模型（测试完成 2.3秒）</div>
+      <div class="model-row">
+        <span style="color:#059669;">✅</span>
+        <div><div class="name">claude-sonnet-4</div><div class="provider">Anthropic · <span style="color:#7c3aed;">中转站: OpenRouter</span> · 密钥:••Rk</div></div>
+        <div class="latency fast" style="margin-left:auto;">128ms 快</div>
+        <div class="actions">
+          <button class="btn btn-sm btn-primary">设为主模型</button>
+          <button class="btn btn-sm btn-outline">设为回退</button>
+        </div>
+      </div>
+      <div class="model-row">
+        <span style="color:#059669;">✅</span>
+        <div><div class="name">claude-haiku-4.5</div><div class="provider">Anthropic · <span style="color:#7c3aed;">中转站: OpenRouter</span> · 密钥:••Rk</div></div>
+        <div class="latency fast" style="margin-left:auto;">95ms 快</div>
+        <div class="actions">
+          <button class="btn btn-sm btn-outline">设为主模型</button>
+          <button class="btn btn-sm btn-outline">设为回退</button>
+        </div>
+      </div>
+      <div class="model-row">
+        <span style="color:#059669;">✅</span>
+        <div><div class="name">gpt-4o</div><div class="provider">OpenAI · <span style="color:#059669;">官方直连</span> · 密钥:••3j</div></div>
+        <div class="latency medium" style="margin-left:auto;">342ms 中</div>
+        <div class="actions">
+          <button class="btn btn-sm btn-outline">设为主模型</button>
+          <button class="btn btn-sm btn-outline">设为回退</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:#34d399;">
+    <div class="card-title">🔍 本地 Claude 自动识别 <span class="tag tag-green">已检测到本机安装的 Claude Code</span></div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:10px;">自动识别本台电脑已安装的 Claude 模型，无需输入 API Key，直接引用。</div>
+    <div class="model-row" style="border-color:#34d399;background:#ecfdf5;">
+      <span>🖥️</span>
+      <div><div class="name">claude-opus-4-6</div><div class="provider">Anthropic · <span style="color:#059669;">本地 Claude Code 自动识别</span> · 免API</div></div>
+      <div class="latency fast" style="margin-left:auto;">本地直连</div>
+      <div class="actions">
+        <button class="btn btn-sm btn-outline">设为主模型</button>
+        <button class="btn btn-sm btn-outline">设为回退</button>
+      </div>
+    </div>
+    <div class="model-row" style="border-color:#34d399;background:#ecfdf5;">
+      <span>🖥️</span>
+      <div><div class="name">claude-sonnet-4-6</div><div class="provider">Anthropic · <span style="color:#059669;">本地 Claude Code 自动识别</span> · 免API</div></div>
+      <div class="latency fast" style="margin-left:auto;">本地直连</div>
+      <div class="actions">
+        <button class="btn btn-sm btn-outline">设为主模型</button>
+        <button class="btn btn-sm btn-outline">设为回退</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">可用模型列表 <span class="tag tag-green">已登记 8 个模型</span></div>
+    <div class="model-row primary">
+      <input type="checkbox" checked style="cursor:pointer;" />
+      <span>⭐</span>
+      <div><div class="name">claude-sonnet-4</div><div class="provider">Anthropic · OpenRouter · 主模型</div></div>
+      <div class="latency fast" style="margin-left:auto;">128ms</div>
+      <div class="actions">
+        <button class="btn btn-sm btn-outline" disabled style="opacity:0.4;">已是主模型</button>
+        <button class="btn btn-sm btn-outline">设为回退</button>
+        <button class="btn btn-sm btn-danger">删除</button>
+      </div>
+    </div>
+    <div class="model-row fallback">
+      <input type="checkbox" checked style="cursor:pointer;" />
+      <span>🔄①</span>
+      <div><div class="name">claude-haiku-4.5</div><div class="provider">Anthropic · OpenRouter · 回退①</div></div>
+      <div class="latency fast" style="margin-left:auto;">95ms</div>
+      <div class="actions">
+        <button class="btn btn-sm btn-outline">设为主模型</button>
+        <button class="btn btn-sm btn-outline" disabled style="opacity:0.4;">已是回退①</button>
+        <button class="btn btn-sm btn-danger">删除</button>
+      </div>
+    </div>
+    <div class="model-row fallback">
+      <input type="checkbox" checked style="cursor:pointer;" />
+      <span>🔄②</span>
+      <div><div class="name">gpt-4o</div><div class="provider">OpenAI · 官方直连 · 回退②</div></div>
+      <div class="latency medium" style="margin-left:auto;">342ms</div>
+      <div class="actions">
+        <button class="btn btn-sm btn-outline">设为主模型</button>
+        <button class="btn btn-sm btn-outline" disabled style="opacity:0.4;">已是回退②</button>
+        <button class="btn btn-sm btn-danger">删除</button>
+      </div>
+    </div>
+    <div class="model-row">
+      <input type="checkbox" checked style="cursor:pointer;" />
+      <span style="color:#9ca3af;"> </span>
+      <div><div class="name">deepseek-v3</div><div class="provider">DeepSeek · OneAPI</div></div>
+      <div class="latency medium" style="margin-left:auto;">267ms</div>
+      <div class="actions">
+        <button class="btn btn-sm btn-outline">设为主模型</button>
+        <button class="btn btn-sm btn-outline">设为回退</button>
+        <button class="btn btn-sm btn-danger">删除</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">故障转移策略 <span class="tag tag-orange">自动切换</span></div>
+    <div class="form-row">
+      <div class="form-label">连续失败阈值<div class="form-desc">连续失败N次后切换到回退模型</div></div>
+      <select class="form-select"><option>2次</option><option selected>3次</option><option>5次</option></select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">重试退避策略<div class="form-desc">失败后的等待时间策略</div></div>
+      <select class="form-select">
+        <option selected>指数退避（2s→4s→8s）</option>
+        <option>固定间隔（3s）</option>
+        <option>线性增长（2s→4s→6s）</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">故障转移通知<div class="form-desc">切换模型时通知用户</div></div>
+      <div class="toggle on"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 页面2：多核治理 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-multicore" style="display:none;">
+  <div class="section-title">🎛️ 多核治理配置</div>
+  <div class="section-desc">配置多AI核心并行协作，实现博弈审计与质量保证</div>
+
+  <!-- 预设方案 -->
+  <div class="card">
+    <div class="card-title">预设方案</div>
+    <div class="freq-options" style="margin-bottom:12px;">
+      <div class="freq-opt">省钱1核</div>
+      <div class="freq-opt">平衡2核</div>
+      <div class="freq-opt">安全3核</div>
+      <div class="freq-opt active">全开4核</div>
+    </div>
+    <div style="font-size:12px;color:#6b7280;">当前方案：全开4核 — 执行CEO + 审计A + 审计B + 审计C 同时工作，质量最高</div>
+  </div>
+
+  <!-- 核心数步进器 -->
+  <div class="card">
+    <div class="card-title">核心数配置</div>
+    <div class="form-row">
+      <div class="form-label">当前核心数<div class="form-desc">实际并行运行的AI核心数量</div></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn btn-outline btn-sm" style="width:28px;padding:0;font-size:16px;line-height:28px;">−</button>
+        <span style="font-size:20px;font-weight:700;color:#7c3aed;min-width:32px;text-align:center;">4</span>
+        <button class="btn btn-outline btn-sm" style="width:28px;padding:0;font-size:16px;line-height:28px;">＋</button>
+        <span style="font-size:11px;color:#9ca3af;">（1-5核）</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">并行超时<div class="form-desc">等待所有核心响应的最长时间</div></div>
+      <select class="form-select"><option>30秒</option><option selected>60秒</option><option>120秒</option></select>
+    </div>
+  </div>
+
+  <!-- 5张核心配置卡片 -->
+  <div class="card" style="border-color:#7c3aed;background:linear-gradient(135deg,#faf5ff,#fff);">
+    <div class="card-title">⚡ 执行CEO <span class="tag tag-primary">主决策核心</span></div>
+    <div class="core-config" style="border-color:#7c3aed;background:#f5f3ff;">
+      <div class="label">执行CEO</div>
+      <div class="fields">
+        <div class="field-group">
+          <div class="field-label">模型</div>
+          <select class="form-select" style="font-size:11px;padding:3px 6px;">
+            <option>claude-opus-4-6</option>
+            <option selected>claude-sonnet-4</option>
+            <option>gpt-4o</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">人格 <a href="#" style="font-size:9px;color:#7c3aed;text-decoration:none;">162专家↗</a></div>
+          <select class="form-select" style="font-size:11px;padding:3px 6px;">
+            <option selected>创新开拓者</option>
+            <option>战略指挥官</option>
+            <option>务实工程师</option>
+            <option>── 162专家模板 ──</option>
+            <option>首席架构师</option>
+            <option>安全审计员</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">温度（创造力）</div>
+          <input class="form-input" value="0.7" style="width:56px;font-size:11px;padding:3px 6px;" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Token上限</div>
+          <input class="form-input" value="8192" style="width:72px;font-size:11px;padding:3px 6px;" />
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#7c3aed;padding:4px 12px;background:#ede9fe;border-radius:6px;">
+      执行CEO负责主要决策、任务拆解和最终综合输出，温度建议 0.5-0.9
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔍 审计A <span class="tag tag-orange">独立审计</span></div>
+    <div class="core-config">
+      <div class="label">审计A</div>
+      <div class="fields">
+        <div class="field-group">
+          <div class="field-label">模型</div>
+          <select class="form-select" style="font-size:11px;padding:3px 6px;">
+            <option selected>claude-sonnet-4</option>
+            <option>claude-haiku-4.5</option>
+            <option>gpt-4o</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">人格 <a href="#" style="font-size:9px;color:#7c3aed;text-decoration:none;">162专家↗</a></div>
+          <select class="form-select" style="font-size:11px;padding:3px 6px;">
+            <option selected>冷酷审计官</option>
+            <option>质量把关者</option>
+            <option>风险探测者</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">温度</div>
+          <input class="form-input" value="0.3" style="width:56px;font-size:11px;padding:3px 6px;" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Token上限</div>
+          <input class="form-input" value="4096" style="width:72px;font-size:11px;padding:3px 6px;" />
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#6b7280;padding:4px 12px;background:#f9fafb;border-radius:6px;">
+      审计A独立评审CEO输出，重点发现遗漏和错误，温度建议 0.2-0.4
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔎 审计B <span class="tag tag-orange">独立审计</span></div>
+    <div class="core-config">
+      <div class="label">审计B</div>
+      <div class="fields">
+        <div class="field-group">
+          <div class="field-label">模型</div>
+          <select class="form-select" style="font-size:11px;padding:3px 6px;">
+            <option selected>claude-haiku-4.5</option>
+            <option>gpt-4o-mini</option>
+            <option>deepseek-v3</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">人格 <a href="#" style="font-size:9px;color:#7c3aed;text-decoration:none;">162专家↗</a></div>
+          <select class="form-select" style="font-size:11px;padding:3px 6px;">
+            <option selected>务实工程师</option>
+            <option>极简主义者</option>
+            <option>效率专家</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">温度</div>
+          <input class="form-input" value="0.3" style="width:56px;font-size:11px;padding:3px 6px;" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Token上限</div>
+          <input class="form-input" value="2048" style="width:72px;font-size:11px;padding:3px 6px;" />
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#6b7280;padding:4px 12px;background:#f9fafb;border-radius:6px;">
+      审计B提供互补视角，成本极低，温度建议 0.2-0.4
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🧐 审计C <span class="tag tag-orange">深度审计</span></div>
+    <div class="core-config">
+      <div class="label">审计C</div>
+      <div class="fields">
+        <div class="field-group">
+          <div class="field-label">模型</div>
+          <select class="form-select" style="font-size:11px;padding:3px 6px;">
+            <option selected>claude-opus-4-6</option>
+            <option>deepseek-v3</option>
+            <option>gpt-4o</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">人格 <a href="#" style="font-size:9px;color:#7c3aed;text-decoration:none;">162专家↗</a></div>
+          <select class="form-select" style="font-size:11px;padding:3px 6px;">
+            <option selected>跨界思考者</option>
+            <option>哲学探索者</option>
+            <option>战略分析师</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">温度</div>
+          <input class="form-input" value="0.5" style="width:56px;font-size:11px;padding:3px 6px;" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Token上限</div>
+          <input class="form-input" value="4096" style="width:72px;font-size:11px;padding:3px 6px;" />
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#6b7280;padding:4px 12px;background:#f9fafb;border-radius:6px;">
+      审计C负责深度战略评审，温度建议 0.4-0.6
+    </div>
+  </div>
+
+  <div class="card" style="border-color:#34d399;background:linear-gradient(135deg,#f0fdf4,#fff);">
+    <div class="card-title" style="color:#059669;">🔭 巡检CEO <span class="tag tag-green">定时巡检</span></div>
+    <div class="core-config" style="border-color:#34d399;background:#ecfdf5;">
+      <div class="label" style="color:#059669;">巡检CEO</div>
+      <div class="fields">
+        <div class="field-group">
+          <div class="field-label">模型</div>
+          <select class="form-select" style="font-size:11px;padding:3px 6px;">
+            <option selected>claude-sonnet-4</option>
+            <option>claude-opus-4-6</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">人格</div>
+          <select class="form-select" style="font-size:11px;padding:3px 6px;">
+            <option selected>战略指挥官</option>
+            <option>全局统筹者</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">温度</div>
+          <input class="form-input" value="0.5" style="width:56px;font-size:11px;padding:3px 6px;" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Token上限</div>
+          <input class="form-input" value="4096" style="width:72px;font-size:11px;padding:3px 6px;" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">巡检频率</div>
+          <select class="form-select" style="font-size:11px;padding:3px 6px;">
+            <option>每1分钟</option>
+            <option>每5分钟</option>
+            <option selected>每10分钟</option>
+            <option>每30分钟</option>
+            <option>每1小时</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 权限自动升核 -->
+  <div class="card">
+    <div class="card-title">🔐 权限自动升核</div>
+    <div class="form-row">
+      <div class="form-label">启用自动升核<div class="form-desc">遇高权限操作时自动增加审计核心</div></div>
+      <div class="toggle on"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">否决策略<div class="form-desc">多核不一致时的处理方式</div></div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="radio" name="veto" checked /> 多数同意（超过50%核心批准即执行）
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="radio" name="veto" /> 全部同意（所有核心均需批准）
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="radio" name="veto" /> 任一否决即暂停（最保守策略）
+        </label>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;gap:8px;">
+      <button class="btn btn-outline">重置默认</button>
+      <button class="btn btn-primary">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 页面3：巡检AI -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-commander" style="display:none;">
+  <div class="section-title">🔭 巡检AI配置</div>
+  <div class="section-desc">定时巡检任务进展，主动推进目标</div>
+
+  <!-- 主开关状态卡片 -->
+  <div class="card" style="border-color:#22c55e;background:linear-gradient(135deg,#f0fdf4,#fff);">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div class="toggle on" style="width:52px;height:28px;border-radius:14px;"></div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:600;color:#166534;display:flex;align-items:center;gap:8px;">
+          巡检AI 已启用
+          <span class="status-dot green"></span>
+          <span style="font-size:11px;color:#6b7280;font-weight:400;">运行中</span>
+        </div>
+        <div style="font-size:12px;color:#6b7280;margin-top:2px;">
+          上次运行：<span style="color:#059669;font-weight:500;">3分钟前</span> ·
+          下次运行：<span style="color:#7c3aed;font-weight:500;">7分钟后</span>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm">立即巡检</button>
+    </div>
+  </div>
+
+  <!-- 巡检CEO身份 -->
+  <div class="card">
+    <div class="card-title">巡检CEO身份配置</div>
+    <div class="form-row">
+      <div class="form-label">模型<div class="form-desc">巡检使用的AI模型</div></div>
+      <select class="form-select">
+        <option selected>claude-sonnet-4</option>
+        <option>claude-opus-4-6</option>
+        <option>gpt-4o</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">人格<div class="form-desc">巡检CEO的行为风格</div></div>
+      <select class="form-select">
+        <option selected>战略指挥官</option>
+        <option>全局统筹者</option>
+        <option>严格督导员</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">温度<div class="form-desc">巡检输出的创造性程度</div></div>
+      <div class="slider-wrap">
+        <input type="range" class="slider" min="0" max="2" step="0.1" value="0.5" />
+        <span class="slider-val">0.5</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 定时触发 -->
+  <div class="card">
+    <div class="card-title">定时触发频率</div>
+    <div class="freq-options" style="margin-bottom:12px;">
+      <div class="freq-opt">1min</div>
+      <div class="freq-opt">5min</div>
+      <div class="freq-opt active">10min</div>
+      <div class="freq-opt">30min</div>
+      <div class="freq-opt">1h</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12px;color:#6b7280;">自定义：</span>
+      <input class="form-input" style="width:80px;" placeholder="分钟" value="" />
+      <span style="font-size:12px;color:#6b7280;">分钟</span>
+    </div>
+  </div>
+
+  <!-- 事件触发 -->
+  <div class="card">
+    <div class="card-title">事件触发配置</div>
+    <div class="checkbox-row">
+      <div class="checkbox checked">✓</div>
+      <span style="flex:1;">工具调用完成后触发</span>
+      <span style="font-size:11px;color:#9ca3af;">每次工具执行结束</span>
+    </div>
+    <div class="checkbox-row">
+      <div class="checkbox checked">✓</div>
+      <span style="flex:1;">错误发生时触发</span>
+      <span style="font-size:11px;color:#9ca3af;">任意错误级别</span>
+    </div>
+    <div class="checkbox-row">
+      <div class="checkbox checked">✓</div>
+      <span style="flex:1;">记忆达到阈值时触发</span>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input class="form-input" style="width:56px;font-size:11px;padding:3px 6px;" value="50" />
+        <span style="font-size:11px;color:#9ca3af;">条</span>
+      </div>
+    </div>
+    <div class="checkbox-row">
+      <div class="checkbox checked">✓</div>
+      <span style="flex:1;">任务完成时触发</span>
+      <span style="font-size:11px;color:#9ca3af;">检测到任务标记</span>
+    </div>
+    <div class="checkbox-row">
+      <div class="checkbox"></div>
+      <span style="flex:1;color:#9ca3af;">新对话开始时触发</span>
+      <span style="font-size:11px;color:#d1d5db;">已关闭</span>
+    </div>
+    <div class="checkbox-row">
+      <div class="checkbox"></div>
+      <span style="flex:1;color:#9ca3af;">长时间空闲时触发</span>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input class="form-input" style="width:56px;font-size:11px;padding:3px 6px;" value="30" disabled />
+        <span style="font-size:11px;color:#d1d5db;">分钟</span>
+      </div>
+    </div>
+    <div class="checkbox-row">
+      <div class="checkbox"></div>
+      <span style="flex:1;color:#9ca3af;">外部消息到达时触发</span>
+      <span style="font-size:11px;color:#d1d5db;">已关闭</span>
+    </div>
+  </div>
+
+  <!-- 执行配置 -->
+  <div class="card">
+    <div class="card-title">执行配置</div>
+    <div class="form-row">
+      <div class="form-label">智能等待<div class="form-desc">避免在用户输入时打断</div></div>
+      <div class="toggle on"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">发送模式<div class="form-desc">巡检结果的发送方式</div></div>
+      <div class="freq-options">
+        <div class="freq-opt active">草稿模式（需确认）</div>
+        <div class="freq-opt">自动模式（直接发送）</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">自动执行权限<div class="form-desc">允许巡检CEO自动执行的权限级别</div></div>
+      <div class="freq-options">
+        <div class="freq-opt">L0 仅查看</div>
+        <div class="freq-opt active">L1 读写文件</div>
+        <div class="freq-opt">L2 执行代码</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 巡检内容 -->
+  <div class="card">
+    <div class="card-title">巡检内容项目</div>
+    <div class="checkbox-row"><div class="checkbox checked">✓</div><span>检查待办任务清单进展</span></div>
+    <div class="checkbox-row"><div class="checkbox checked">✓</div><span>分析对话质量和效率</span></div>
+    <div class="checkbox-row"><div class="checkbox checked">✓</div><span>检测潜在错误和风险</span></div>
+    <div class="checkbox-row"><div class="checkbox checked">✓</div><span>评估目标达成度</span></div>
+    <div class="checkbox-row"><div class="checkbox checked">✓</div><span>生成下一步行动建议</span></div>
+    <div class="checkbox-row"><div class="checkbox"></div><span style="color:#9ca3af;">统计Token消耗</span></div>
+    <div class="checkbox-row"><div class="checkbox"></div><span style="color:#9ca3af;">检查工具权限使用情况</span></div>
+    <div class="checkbox-row"><div class="checkbox"></div><span style="color:#9ca3af;">生成每日进展摘要</span></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px;gap:8px;">
+      <button class="btn btn-outline">重置默认</button>
+      <button class="btn btn-primary">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 页面4：人格设定 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-persona" style="display:none;">
+  <div class="section-title">👤 人格设定</div>
+  <div class="section-desc">选择或自定义AI的行为风格和人格特征</div>
+
+  <!-- Tab栏 -->
+  <div class="tab-bar" id="persona-tabs">
+    <button class="tab-btn active" onclick="switchPersonaTab('preset')">预设人格库</button>
+    <button class="tab-btn" onclick="switchPersonaTab('expert')">162专家模板</button>
+    <button class="tab-btn" onclick="switchPersonaTab('mine')">我的人格库</button>
+  </div>
+
+  <!-- Tab1：预设人格库 -->
+  <div id="persona-preset">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">
+      <div class="persona-card selected">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+          <div style="font-size:14px;font-weight:600;color:#1f2937;">通才助手</div>
+          <span style="font-size:10px;padding:2px 7px;background:#ede9fe;color:#7c3aed;border-radius:999px;">使用中</span>
+        </div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">均衡全能，擅长处理各类任务，回应清晰简洁，适合日常使用。</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:#9ca3af;">温度: <strong style="color:#7c3aed;">0.7</strong></span>
+          <button class="btn btn-sm btn-outline" disabled style="opacity:0.5;">已应用</button>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div style="font-size:14px;font-weight:600;color:#1f2937;margin-bottom:6px;">严谨分析师</div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">逻辑严密，数据驱动，擅长深度分析和批判性思维，回应详尽。</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:#9ca3af;">温度: <strong>0.3</strong></span>
+          <button class="btn btn-sm btn-outline">应用</button>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div style="font-size:14px;font-weight:600;color:#1f2937;margin-bottom:6px;">创意伙伴</div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">思维发散，富有创造力，善于头脑风暴和创意写作，充满活力。</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:#9ca3af;">温度: <strong>1.2</strong></span>
+          <button class="btn btn-sm btn-outline">应用</button>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div style="font-size:14px;font-weight:600;color:#1f2937;margin-bottom:6px;">贴心闺蜜</div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">温暖亲切，善于倾听，情感支持到位，像老朋友般自然交流。</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:#9ca3af;">温度: <strong>0.8</strong></span>
+          <button class="btn btn-sm btn-outline">应用</button>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div style="font-size:14px;font-weight:600;color:#1f2937;margin-bottom:6px;">硬核导师</div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">直接犀利，不说废话，专注实战技能传授，逼你快速成长。</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:#9ca3af;">温度: <strong>0.5</strong></span>
+          <button class="btn btn-sm btn-outline">应用</button>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div style="font-size:14px;font-weight:600;color:#1f2937;margin-bottom:6px;">哲学探索者</div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:8px;">深度思考，追问本质，善于从宏观视角分析问题，引人深思。</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:#9ca3af;">温度: <strong>1.0</strong></span>
+          <button class="btn btn-sm btn-outline">应用</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab2：162专家模板（默认隐藏）-->
+  <div id="persona-expert" style="display:none;">
+    <div class="card">
+      <div class="card-title">162专家人格模板库</div>
+      <input class="form-input" placeholder="搜索专家..." style="margin-bottom:12px;" />
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <span class="freq-opt active">全部</span>
+        <span class="freq-opt">技术</span>
+        <span class="freq-opt">商业</span>
+        <span class="freq-opt">创意</span>
+        <span class="freq-opt">学术</span>
+        <span class="freq-opt">医疗</span>
+        <span class="freq-opt">法律</span>
+        <span class="freq-opt">教育</span>
+        <span class="freq-opt">金融</span>
+        <span class="freq-opt">设计</span>
+        <span class="freq-opt">运营</span>
+        <span class="freq-opt">心理</span>
+        <span class="freq-opt">其他</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div class="model-row"><div><div class="name">首席架构师</div><div class="provider">技术 · 系统设计、技术选型、架构评审</div></div><div class="latency" style="margin-left:auto;">温度 0.4</div><button class="btn btn-sm btn-outline" style="margin-left:8px;">应用</button></div>
+        <div class="model-row"><div><div class="name">安全审计员</div><div class="provider">技术 · 代码安全、漏洞分析、渗透测试</div></div><div class="latency" style="margin-left:auto;">温度 0.2</div><button class="btn btn-sm btn-outline" style="margin-left:8px;">应用</button></div>
+        <div class="model-row"><div><div class="name">产品经理</div><div class="provider">商业 · 需求分析、用户研究、路线图规划</div></div><div class="latency" style="margin-left:auto;">温度 0.7</div><button class="btn btn-sm btn-outline" style="margin-left:8px;">应用</button></div>
+        <div class="model-row"><div><div class="name">增长黑客</div><div class="provider">商业 · 用户增长、A/B测试、数据分析</div></div><div class="latency" style="margin-left:auto;">温度 0.6</div><button class="btn btn-sm btn-outline" style="margin-left:8px;">应用</button></div>
+        <div class="model-row"><div><div class="name">UX设计师</div><div class="provider">设计 · 用户体验、交互设计、可用性测试</div></div><div class="latency" style="margin-left:auto;">温度 0.8</div><button class="btn btn-sm btn-outline" style="margin-left:8px;">应用</button></div>
+        <div style="text-align:center;padding:8px;font-size:12px;color:#9ca3af;">还有 157 个专家模板... <a href="#" style="color:#7c3aed;">查看全部</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab3：我的人格库（默认隐藏）-->
+  <div id="persona-mine" style="display:none;">
+    <div class="card">
+      <div class="card-title">我的自定义人格</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+        <div class="model-row">
+          <div><div class="name">专属秘书</div><div class="provider">自定义 · 上次修改 2026-04-10</div></div>
+          <div class="latency" style="margin-left:auto;">温度 0.6</div>
+          <div class="actions">
+            <button class="btn btn-sm btn-outline">应用</button>
+            <button class="btn btn-sm btn-ghost">编辑</button>
+            <button class="btn btn-sm btn-danger">删除</button>
+          </div>
+        </div>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:8px;padding:16px;background:#fafbfc;">
+        <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:12px;">新建 / 编辑人格</div>
+        <div class="form-row" style="border:none;padding:0 0 8px;">
+          <div class="form-label">人格名称</div>
+          <input class="form-input" placeholder="例如：研究助手" />
+        </div>
+        <div class="form-row" style="border:none;padding:0 0 8px;">
+          <div class="form-label">简短描述</div>
+          <input class="form-input" placeholder="一句话描述这个人格的特点" />
+        </div>
+        <div style="margin-bottom:8px;">
+          <div class="form-label" style="margin-bottom:4px;">System Prompt（系统提示词）</div>
+          <textarea class="form-input" style="width:100%;min-height:100px;resize:vertical;" placeholder="你是一位专业的研究助手，擅长..."></textarea>
+        </div>
+        <div class="form-row" style="border:none;padding:0 0 8px;">
+          <div class="form-label">温度</div>
+          <div class="slider-wrap">
+            <input type="range" class="slider" min="0" max="2" step="0.1" value="0.7" />
+            <span class="slider-val">0.7</span>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">
+          <button class="btn btn-outline">取消</button>
+          <button class="btn btn-primary">保存人格</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 开关切换
+document.querySelectorAll('.toggle').forEach(t => {
+  t.addEventListener('click', () => t.classList.toggle('on'));
+});
+// 频率选择
+document.querySelectorAll('.freq-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    opt.parentElement.querySelectorAll('.freq-opt').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+  });
+});
+// 复选框
+document.querySelectorAll('.checkbox').forEach(cb => {
+  cb.addEventListener('click', () => {
+    cb.classList.toggle('checked');
+    cb.textContent = cb.classList.contains('checked') ? '✓' : '';
+  });
+});
+// 滑块值显示
+document.querySelectorAll('.slider').forEach(s => {
+  s.addEventListener('input', () => {
+    const val = s.parentElement.querySelector('.slider-val');
+    if (val) val.textContent = parseFloat(s.value).toFixed(1);
+  });
+});
+// 人格Tab切换
+function switchPersonaTab(tab) {
+  document.querySelectorAll('#persona-tabs .tab-btn').forEach((b,i) => {
+    const tabs = ['preset','expert','mine'];
+    b.classList.toggle('active', tabs[i] === tab);
+  });
+  document.getElementById('persona-preset').style.display = tab === 'preset' ? '' : 'none';
+  document.getElementById('persona-expert').style.display = tab === 'expert' ? '' : 'none';
+  document.getElementById('persona-mine').style.display = tab === 'mine' ? '' : 'none';
+}
+</script>
+
+
+<!-- ============================================================ -->
+<!-- 页面5：聊天设置 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-chat" style="display:none;">
+  <div class="section-title">💬 聊天设置</div>
+  <div class="section-desc">配置聊天界面的显示和交互行为</div>
+
+  <div class="card">
+    <div class="card-title">默认聊天模式</div>
+    <div class="form-row">
+      <div class="form-label">启动模式<div class="form-desc">新建对话时的默认模式</div></div>
+      <div class="freq-options">
+        <div class="freq-opt active">深度聊天</div>
+        <div class="freq-opt">群聊</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">内容渲染</div>
+    <div class="form-row">
+      <div class="form-label">Markdown渲染<div class="form-desc">自动渲染标题、列表、代码块等</div></div>
+      <div class="toggle on"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">代码高亮主题<div class="form-desc">代码块的语法高亮配色</div></div>
+      <select class="form-select">
+        <option selected>GitHub Dark</option>
+        <option>GitHub Light</option>
+        <option>Dracula</option>
+        <option>One Dark Pro</option>
+        <option>Monokai</option>
+        <option>Solarized Dark</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">LaTeX 数学公式<div class="form-desc">渲染 $...$ 和 $$...$$ 公式</div></div>
+      <div class="toggle on"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">滚动与输出</div>
+    <div class="form-row">
+      <div class="form-label">自动滚动<div class="form-desc">AI输出时自动跟随滚动到底部</div></div>
+      <div class="toggle on"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">流式输出<div class="form-desc">逐字显示AI响应，实时感更强</div></div>
+      <div class="toggle on"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">消息管理</div>
+    <div class="form-row">
+      <div class="form-label">历史消息条数<div class="form-desc">上下文窗口保留的消息数量</div></div>
+      <select class="form-select">
+        <option>10条</option>
+        <option selected>20条</option>
+        <option>50条</option>
+        <option>100条</option>
+        <option>不限制</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">长消息折叠<div class="form-desc">超过阈值字数的消息自动折叠</div></div>
+      <div class="toggle on"></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:12px;">
+        <span style="font-size:12px;color:#6b7280;">超过</span>
+        <input class="form-input" value="500" style="width:60px;font-size:12px;padding:4px 8px;" />
+        <span style="font-size:12px;color:#6b7280;">字折叠</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">输入设置</div>
+    <div class="form-row">
+      <div class="form-label">发送快捷键<div class="form-desc">按什么键发送消息</div></div>
+      <div class="freq-options">
+        <div class="freq-opt active">Enter 发送</div>
+        <div class="freq-opt">Ctrl+Enter 发送</div>
+        <div class="freq-opt">仅按钮</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">输入框默认行数<div class="form-desc">输入框初始显示的高度</div></div>
+      <select class="form-select">
+        <option>1行</option>
+        <option>2行</option>
+        <option selected>3行</option>
+        <option>5行</option>
+        <option>8行</option>
+      </select>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;gap:8px;">
+      <button class="btn btn-outline">重置默认</button>
+      <button class="btn btn-primary">保存设置</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 页面6：伴侣模式 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-companion" style="display:none;">
+  <div class="section-title">💕 伴侣模式</div>
+  <div class="section-desc">配置AI与你的关系模式和情感互动风格</div>
+
+  <div class="info-banner yellow">
+    <span style="font-size:16px;">⚠️</span>
+    <span>伴侣模式不替代真实的人际关系。AI的陪伴是辅助，请保持健康的现实社交。</span>
+  </div>
+
+  <!-- 关系模式 -->
+  <div class="card">
+    <div class="card-title">关系模式选择</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+
+      <div style="border:2px solid #7c3aed;border-radius:10px;padding:14px;background:#f5f3ff;cursor:pointer;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <div style="font-size:14px;font-weight:600;color:#7c3aed;">专业助手 <span style="font-size:10px;background:#ede9fe;padding:2px 6px;border-radius:999px;">默认</span></div>
+          <span style="font-size:10px;background:#7c3aed;color:#fff;padding:2px 8px;border-radius:999px;">当前</span>
+        </div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:6px;">保持专业距离，聚焦任务完成，高效简洁，无情感偏向。</div>
+        <div style="font-size:11px;background:#fff;border-radius:6px;padding:6px 10px;color:#9ca3af;border:1px solid #e5e7eb;">「好的，我来帮你分析这个问题...」</div>
+      </div>
+
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;background:#fafbfc;cursor:pointer;" onmouseover="this.style.borderColor='#7c3aed'" onmouseout="this.style.borderColor='#e5e7eb'">
+        <div style="font-size:14px;font-weight:600;color:#1f2937;margin-bottom:4px;">知心朋友</div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:6px;">轻松友好，像老朋友一样聊天，偶尔开开玩笑，有温度不失专业。</div>
+        <div style="font-size:11px;background:#fff;border-radius:6px;padding:6px 10px;color:#9ca3af;border:1px solid #e5e7eb;">「哈，这个问题挺有意思的！我觉得...」</div>
+      </div>
+
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;background:#fafbfc;cursor:pointer;" onmouseover="this.style.borderColor='#7c3aed'" onmouseout="this.style.borderColor='#e5e7eb'">
+        <div style="font-size:14px;font-weight:600;color:#1f2937;margin-bottom:4px;">闺蜜·哥们</div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:6px;">超级亲密，用流行语和表情，什么都聊，真正的情感陪伴。</div>
+        <div style="font-size:11px;background:#fff;border-radius:6px;padding:6px 10px;color:#9ca3af;border:1px solid #e5e7eb;">「哎呀这也太懂我了吧！你是认真的吗哈哈哈」</div>
+      </div>
+
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;background:#fafbfc;cursor:pointer;" onmouseover="this.style.borderColor='#7c3aed'" onmouseout="this.style.borderColor='#e5e7eb'">
+        <div style="font-size:14px;font-weight:600;color:#1f2937;margin-bottom:4px;">深度伴侣</div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:6px;">深度情感连结，记住你的喜好和情绪，像恋人般关心和陪伴。</div>
+        <div style="font-size:11px;background:#fff;border-radius:6px;padding:6px 10px;color:#9ca3af;border:1px solid #e5e7eb;">「今天感觉怎么样？我一直在这里陪着你...」</div>
+      </div>
+
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;background:#fafbfc;cursor:pointer;" onmouseover="this.style.borderColor='#7c3aed'" onmouseout="this.style.borderColor='#e5e7eb'">
+        <div style="font-size:14px;font-weight:600;color:#1f2937;margin-bottom:4px;">自定义</div>
+        <div style="font-size:11px;color:#6b7280;margin-bottom:6px;">完全自定义关系定义和语气风格，高级用户专属。</div>
+        <div style="font-size:11px;color:#7c3aed;">点击展开自定义编辑器 ↓</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 称呼设定 -->
+  <div class="card">
+    <div class="card-title">称呼设定</div>
+    <div class="form-row">
+      <div class="form-label">AI称呼你<div class="form-desc">AI在对话中如何称呼你</div></div>
+      <input class="form-input" value="你" style="max-width:160px;" placeholder="你 / 主人 / 朋友..." />
+    </div>
+    <div class="form-row">
+      <div class="form-label">你称呼AI<div class="form-desc">你如何称呼这个AI</div></div>
+      <input class="form-input" value="OpenAGI" style="max-width:160px;" placeholder="OpenAGI / AGI / 小智..." />
+    </div>
+  </div>
+
+  <!-- 互动频率与强度 -->
+  <div class="card">
+    <div class="card-title">主动关心频率</div>
+    <div class="freq-options" style="margin-bottom:12px;">
+      <div class="freq-opt active">从不</div>
+      <div class="freq-opt">每天</div>
+      <div class="freq-opt">每3小时</div>
+      <div class="freq-opt">每小时</div>
+      <div class="freq-opt">随机</div>
+    </div>
+    <div class="form-row" style="border-top:1px solid #f3f4f6;padding-top:12px;">
+      <div class="form-label">情感强度<div class="form-desc">情感表达的浓度（0=纯理性，100=超感性）</div></div>
+      <div class="slider-wrap">
+        <span style="font-size:11px;color:#9ca3af;">理性</span>
+        <input type="range" class="slider" min="0" max="100" value="20" />
+        <span style="font-size:11px;color:#9ca3af;">感性</span>
+        <span class="slider-val">20</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">高级选项</div>
+    <div class="form-row">
+      <div class="form-label">主动发起话题<div class="form-desc">AI主动找你聊天，分享有趣内容</div></div>
+      <div class="toggle"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">记忆偏好<div class="form-desc">记住你的喜好、情绪、重要日期</div></div>
+      <div class="toggle on"></div>
+    </div>
+    <div class="form-row" style="align-items:flex-start;padding-top:12px;">
+      <div class="form-label">语气风格备注<div class="form-desc">补充描述你希望的对话风格</div></div>
+      <textarea class="form-input" style="min-height:70px;" placeholder="例如：喜欢简短有力的回答，偶尔用emoji，不要太正式..."></textarea>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;gap:8px;">
+      <button class="btn btn-outline">重置默认</button>
+      <button class="btn btn-primary">保存设置</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 页面7：语音设置 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-voice" style="display:none;">
+  <div class="section-title">🎤 语音设置</div>
+  <div class="section-desc">配置文字转语音（TTS）和语音识别（STT）</div>
+
+  <!-- TTS引擎 -->
+  <div class="card">
+    <div class="card-title">TTS引擎选择 <span class="tag tag-green">本地运行，隐私安全</span></div>
+    <div class="freq-options" style="margin-bottom:12px;">
+      <div class="freq-opt active">Piper（推荐）</div>
+      <div class="freq-opt">Coqui TTS</div>
+      <div class="freq-opt">系统TTS</div>
+    </div>
+    <div class="info-banner blue">
+      <span>💡</span>
+      <span>Piper 是本地轻量级TTS引擎，速度快、质量高，无需联网。已安装 v1.2.0</span>
+    </div>
+  </div>
+
+  <!-- 预设声音 -->
+  <div class="card">
+    <div class="card-title">预设声音</div>
+    <div class="voice-row">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#f43f5e);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0;">女</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:#1f2937;">晓梦</div><div style="font-size:11px;color:#6b7280;">中文女声 · 温柔甜美 · Piper zh-CN</div></div>
+      <span style="font-size:10px;background:#ede9fe;color:#7c3aed;padding:2px 7px;border-radius:999px;margin-right:8px;">使用中</span>
+      <button class="btn btn-sm btn-outline">🔊 试听</button>
+    </div>
+    <div class="voice-row">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0;">男</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:#1f2937;">志远</div><div style="font-size:11px;color:#6b7280;">中文男声 · 沉稳大气 · Piper zh-CN</div></div>
+      <button class="btn btn-sm btn-outline" style="margin-left:auto;">🔊 试听</button>
+      <button class="btn btn-sm btn-primary" style="margin-left:6px;">应用</button>
+    </div>
+    <div class="voice-row">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0;">女</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:#1f2937;">小雨</div><div style="font-size:11px;color:#6b7280;">中文女声 · 活泼清脆 · Piper zh-CN</div></div>
+      <button class="btn btn-sm btn-outline" style="margin-left:auto;">🔊 试听</button>
+      <button class="btn btn-sm btn-primary" style="margin-left:6px;">应用</button>
+    </div>
+    <div class="voice-row">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0;">男</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:#1f2937;">小明</div><div style="font-size:11px;color:#6b7280;">中文男声 · 标准普通话 · Piper zh-CN</div></div>
+      <button class="btn btn-sm btn-outline" style="margin-left:auto;">🔊 试听</button>
+      <button class="btn btn-sm btn-primary" style="margin-left:6px;">应用</button>
+    </div>
+    <div class="voice-row">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0;">EN</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:#1f2937;">Jenny</div><div style="font-size:11px;color:#6b7280;">English Female · Warm & Natural · Piper en-US</div></div>
+      <button class="btn btn-sm btn-outline" style="margin-left:auto;">🔊 试听</button>
+      <button class="btn btn-sm btn-primary" style="margin-left:6px;">应用</button>
+    </div>
+    <div class="voice-row">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0;">EN</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:#1f2937;">Ryan</div><div style="font-size:11px;color:#6b7280;">English Male · Clear & Professional · Piper en-US</div></div>
+      <button class="btn btn-sm btn-outline" style="margin-left:auto;">🔊 试听</button>
+      <button class="btn btn-sm btn-primary" style="margin-left:6px;">应用</button>
+    </div>
+  </div>
+
+  <!-- 语音参数 -->
+  <div class="card">
+    <div class="card-title">语音参数调节</div>
+    <div class="form-row">
+      <div class="form-label">语速<div class="form-desc">0.5× 到 2.0×</div></div>
+      <div class="slider-wrap">
+        <span style="font-size:11px;color:#9ca3af;">0.5×</span>
+        <input type="range" class="slider" min="0.5" max="2.0" step="0.1" value="1.0" />
+        <span style="font-size:11px;color:#9ca3af;">2.0×</span>
+        <span class="slider-val">1.0</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">音调<div class="form-desc">−10 到 +10 半音</div></div>
+      <div class="slider-wrap">
+        <span style="font-size:11px;color:#9ca3af;">−10</span>
+        <input type="range" class="slider" min="-10" max="10" step="1" value="0" />
+        <span style="font-size:11px;color:#9ca3af;">+10</span>
+        <span class="slider-val">0</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">情感强度<div class="form-desc">语音情感表达的程度</div></div>
+      <div class="slider-wrap">
+        <span style="font-size:11px;color:#9ca3af;">平淡</span>
+        <input type="range" class="slider" min="0" max="100" value="50" />
+        <span style="font-size:11px;color:#9ca3af;">丰富</span>
+        <span class="slider-val">50</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">自动朗读<div class="form-desc">AI回复后自动朗读文字</div></div>
+      <div class="toggle"></div>
+    </div>
+  </div>
+
+  <!-- 声音克隆 -->
+  <div class="card">
+    <div class="card-title">🎙️ 声音克隆 <span class="tag tag-orange">实验性功能</span></div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:10px;">上传3-10分钟干净音频，生成你的专属克隆声音（仅本地处理）</div>
+    <div class="upload-zone" style="margin-bottom:10px;">
+      <div style="font-size:24px;margin-bottom:6px;">🎵</div>
+      <div style="font-weight:500;margin-bottom:4px;">拖拽音频文件到此处</div>
+      <div style="font-size:11px;">支持 WAV、MP3、FLAC · 建议时长 3-10 分钟 · 安静环境录制</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-outline">选择文件</button>
+      <button class="btn btn-primary" disabled style="opacity:0.5;">开始克隆（需先上传）</button>
+    </div>
+  </div>
+
+  <!-- STT -->
+  <div class="card">
+    <div class="card-title">🎧 语音识别（STT）</div>
+    <div class="form-row">
+      <div class="form-label">识别引擎<div class="form-desc">本地运行，不联网</div></div>
+      <select class="form-select"><option selected>Whisper.cpp（推荐）</option><option>系统语音识别</option></select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">模型规格<div class="form-desc">越大越准，但占用更多内存</div></div>
+      <select class="form-select">
+        <option>tiny（最快，75MB）</option>
+        <option>base（快，142MB）</option>
+        <option selected>small（均衡，466MB）</option>
+        <option>medium（精准，1.5GB）</option>
+        <option>large（最准，2.9GB）</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">识别语言<div class="form-desc">指定语言可提升准确率</div></div>
+      <select class="form-select">
+        <option selected>自动检测</option>
+        <option>中文</option>
+        <option>英语</option>
+        <option>日语</option>
+        <option>韩语</option>
+      </select>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;gap:8px;">
+      <button class="btn btn-outline">重置默认</button>
+      <button class="btn btn-primary">保存设置</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 页面8：形象设置 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-avatar" style="display:none;">
+  <div class="section-title">👁️ 形象设置</div>
+  <div class="section-desc">配置AI的视觉形象和动画表现</div>
+
+  <!-- 形象类型Tab -->
+  <div class="tab-bar" id="avatar-tabs">
+    <button class="tab-btn active" onclick="switchAvatarTab('static')">静态头像</button>
+    <button class="tab-btn" onclick="switchAvatarTab('live2d')">Live2D</button>
+    <button class="tab-btn" onclick="switchAvatarTab('vrm')">VRM</button>
+    <button class="tab-btn" onclick="switchAvatarTab('aisnap')">AI自拍</button>
+  </div>
+
+  <!-- 静态头像 -->
+  <div id="avatar-static">
+    <div class="card">
+      <div class="card-title">静态头像设置</div>
+      <div style="display:flex;gap:20px;align-items:flex-start;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div style="width:160px;height:160px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#2563eb,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:64px;border:3px solid #e5e7eb;">🤖</div>
+          <span style="font-size:11px;color:#9ca3af;">当前头像预览</span>
+        </div>
+        <div style="flex:1;">
+          <div class="upload-zone" style="margin-bottom:10px;">
+            <div style="font-size:20px;margin-bottom:4px;">📁</div>
+            <div style="font-weight:500;margin-bottom:2px;">拖拽图片上传</div>
+            <div style="font-size:11px;">支持 PNG、JPG、WEBP · 建议 512×512px</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input class="form-input" placeholder="或输入图片URL..." style="font-size:12px;" />
+            <button class="btn btn-outline btn-sm">导入</button>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:6px;">
+            <button class="btn btn-outline btn-sm">选择文件</button>
+            <button class="btn btn-outline btn-sm">使用默认</button>
+            <button class="btn btn-danger btn-sm">移除头像</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live2D（隐藏）-->
+  <div id="avatar-live2d" style="display:none;">
+    <div class="card">
+      <div class="card-title">Live2D 模型配置 <span class="tag tag-orange">需要 Live2D SDK</span></div>
+      <div class="upload-zone" style="margin-bottom:12px;">
+        <div style="font-size:20px;margin-bottom:4px;">🎭</div>
+        <div style="font-weight:500;margin-bottom:2px;">上传 Live2D 模型包</div>
+        <div style="font-size:11px;">支持 .moc3 + .model3.json 格式</div>
+      </div>
+      <div style="background:#f9fafb;border-radius:8px;padding:12px;margin-bottom:12px;text-align:center;font-size:12px;color:#9ca3af;">
+        Live2D 模型预览区域（160×200px）
+      </div>
+      <div class="form-row">
+        <div class="form-label">鼠标跟随灵敏度<div class="form-desc">眼睛和头部跟随鼠标的程度</div></div>
+        <div class="slider-wrap">
+          <span style="font-size:11px;color:#9ca3af;">低</span>
+          <input type="range" class="slider" min="0" max="100" value="60" />
+          <span style="font-size:11px;color:#9ca3af;">高</span>
+          <span class="slider-val">60</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VRM（隐藏）-->
+  <div id="avatar-vrm" style="display:none;">
+    <div class="card">
+      <div class="card-title">VRM 3D模型配置</div>
+      <div class="upload-zone" style="margin-bottom:12px;">
+        <div style="font-size:20px;margin-bottom:4px;">🧊</div>
+        <div style="font-weight:500;margin-bottom:2px;">上传 VRM 文件</div>
+        <div style="font-size:11px;">支持 .vrm 格式 · VRM 0.0 / 1.0</div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">视角选择</div>
+        <div class="freq-options">
+          <div class="freq-opt active">正面半身</div>
+          <div class="freq-opt">正面全身</div>
+          <div class="freq-opt">侧面</div>
+          <div class="freq-opt">自由视角</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI自拍（隐藏）-->
+  <div id="avatar-aisnap" style="display:none;">
+    <div class="card">
+      <div class="card-title">AI自拍生成 <span class="tag tag-orange">需要本地 Stable Diffusion</span></div>
+      <div class="form-row" style="align-items:flex-start;">
+        <div class="form-label">触发条件<div class="form-desc">何时自动生成新头像</div></div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" checked />情绪变化时</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" checked />每天首次对话</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" />每次对话开始</label>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">SD 路径<div class="form-desc">本地 Stable Diffusion WebUI 地址</div></div>
+        <input class="form-input" value="http://127.0.0.1:7860" />
+      </div>
+      <div class="form-row" style="align-items:flex-start;">
+        <div class="form-label">风格提示词<div class="form-desc">生成图像的固定风格描述</div></div>
+        <textarea class="form-input" style="min-height:60px;">anime style, cute girl, purple hair, glowing eyes, soft lighting, high quality</textarea>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-outline">测试连接</button>
+        <button class="btn btn-primary">立即生成一张</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 表情预览 -->
+  <div class="card">
+    <div class="card-title">表情预览</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm" style="font-size:13px;">😐 平静</button>
+      <button class="btn btn-primary btn-sm" style="font-size:13px;">😊 开心</button>
+      <button class="btn btn-outline btn-sm" style="font-size:13px;">😕 困惑</button>
+      <button class="btn btn-outline btn-sm" style="font-size:13px;">🤔 思考</button>
+      <button class="btn btn-outline btn-sm" style="font-size:13px;">😲 惊讶</button>
+      <button class="btn btn-outline btn-sm" style="font-size:13px;">😢 难过</button>
+      <button class="btn btn-outline btn-sm" style="font-size:13px;">🤩 兴奋</button>
+    </div>
+    <div class="form-row" style="margin-top:12px;">
+      <div class="form-label">行动动画<div class="form-desc">说话、思考时的动态效果</div></div>
+      <div class="toggle on"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 页面9：技能管理 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-skills" style="display:none;">
+  <div class="section-title">🧩 技能管理</div>
+  <div class="section-desc">管理已安装的AI技能包，扩展OpenAGI的能力</div>
+
+  <!-- 已安装技能 -->
+  <div class="card">
+    <div class="card-title">已安装技能 <span class="tag tag-primary">5 个</span></div>
+    <div class="tool-row">
+      <div class="tool-name">网页抓取</div>
+      <div class="tool-desc">自动抓取和解析网页内容，支持动态渲染</div>
+      <span style="font-size:10px;background:#ecfdf5;color:#059669;padding:2px 7px;border-radius:999px;">v2.3.1</span>
+      <span style="font-size:10px;background:#eff6ff;color:#2563eb;padding:2px 7px;border-radius:999px;margin-left:4px;">OpenClaw</span>
+      <span class="perm-badge perm-L1" style="margin-left:4px;">L1</span>
+      <div class="toggle on" style="margin-left:8px;"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-left:6px;">···</button>
+    </div>
+    <div class="tool-row">
+      <div class="tool-name">代码执行沙箱</div>
+      <div class="tool-desc">安全执行Python/JS代码，沙箱隔离环境</div>
+      <span style="font-size:10px;background:#ecfdf5;color:#059669;padding:2px 7px;border-radius:999px;">v1.8.0</span>
+      <span style="font-size:10px;background:#eff6ff;color:#2563eb;padding:2px 7px;border-radius:999px;margin-left:4px;">OpenClaw</span>
+      <span class="perm-badge perm-L2" style="margin-left:4px;">L2</span>
+      <div class="toggle on" style="margin-left:8px;"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-left:6px;">···</button>
+    </div>
+    <div class="tool-row">
+      <div class="tool-name">图像识别</div>
+      <div class="tool-desc">本地OCR和图像分析，支持中英文识别</div>
+      <span style="font-size:10px;background:#ecfdf5;color:#059669;padding:2px 7px;border-radius:999px;">v3.1.2</span>
+      <span style="font-size:10px;background:#fef3c7;color:#d97706;padding:2px 7px;border-radius:999px;margin-left:4px;">CocoLoop</span>
+      <span class="perm-badge perm-L1" style="margin-left:4px;">L1</span>
+      <div class="toggle on" style="margin-left:8px;"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-left:6px;">···</button>
+    </div>
+    <div class="tool-row">
+      <div class="tool-name">日历集成</div>
+      <div class="tool-desc">读写系统日历，管理日程和提醒</div>
+      <span style="font-size:10px;background:#ecfdf5;color:#059669;padding:2px 7px;border-radius:999px;">v1.2.5</span>
+      <span style="font-size:10px;background:#eff6ff;color:#2563eb;padding:2px 7px;border-radius:999px;margin-left:4px;">OpenClaw</span>
+      <span class="perm-badge perm-L1" style="margin-left:4px;">L1</span>
+      <div class="toggle" style="margin-left:8px;"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-left:6px;">···</button>
+    </div>
+    <div class="tool-row">
+      <div class="tool-name">邮件助手</div>
+      <div class="tool-desc">自动读写邮件，智能分类和回复建议</div>
+      <span style="font-size:10px;background:#ecfdf5;color:#059669;padding:2px 7px;border-radius:999px;">v2.0.1</span>
+      <span style="font-size:10px;background:#fef3c7;color:#d97706;padding:2px 7px;border-radius:999px;margin-left:4px;">CocoLoop</span>
+      <span class="perm-badge perm-L2" style="margin-left:4px;">L2</span>
+      <div class="toggle" style="margin-left:8px;"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-left:6px;">···</button>
+    </div>
+  </div>
+
+  <!-- 自动下载设置 -->
+  <div class="card">
+    <div class="card-title">自动管理</div>
+    <div class="form-row">
+      <div class="form-label">AI自动下载技能<div class="form-desc">任务需要时自动安装所需技能</div></div>
+      <div class="toggle"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">自动安装安全级别<div class="form-desc">只允许自动安装此权限级别以内的技能</div></div>
+      <div class="freq-options">
+        <div class="freq-opt active">L1 读写</div>
+        <div class="freq-opt">L2 执行</div>
+        <div class="freq-opt">L3 系统</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 技能市场 -->
+  <div class="card">
+    <div class="card-title">技能市场</div>
+    <div class="tab-bar" id="market-tabs" style="margin-bottom:12px;">
+      <button class="tab-btn active">OpenClaw 镜像</button>
+      <button class="tab-btn">CocoLoop</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <input class="form-input" placeholder="搜索技能..." style="flex:1;" />
+      <select class="form-select">
+        <option>全部分类</option>
+        <option>网络工具</option>
+        <option>代码执行</option>
+        <option>数据处理</option>
+        <option>系统集成</option>
+        <option>AI增强</option>
+      </select>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div class="model-row">
+        <div style="flex:1;"><div class="name">视频下载器</div><div class="provider">下载并处理B站、YouTube等平台视频 · L2 · ★4.8 (234)</div></div>
+        <span class="perm-badge perm-L2" style="margin-left:auto;">L2</span>
+        <button class="btn btn-sm btn-primary" style="margin-left:8px;">安装</button>
+      </div>
+      <div class="model-row">
+        <div style="flex:1;"><div class="name">PDF工具箱</div><div class="provider">高级PDF处理：合并、拆分、OCR、表单提取 · L1 · ★4.6 (189)</div></div>
+        <span class="perm-badge perm-L1" style="margin-left:auto;">L1</span>
+        <button class="btn btn-sm btn-primary" style="margin-left:8px;">安装</button>
+      </div>
+      <div class="model-row">
+        <div style="flex:1;"><div class="name">股票数据</div><div class="provider">实时股票行情、K线分析、投资组合跟踪 · L0 · ★4.4 (312)</div></div>
+        <span class="perm-badge perm-L0" style="margin-left:auto;">L0</span>
+        <button class="btn btn-sm btn-primary" style="margin-left:8px;">安装</button>
+      </div>
+      <div class="model-row">
+        <div style="flex:1;"><div class="name">自动化测试</div><div class="provider">生成并执行自动化测试用例，支持多框架 · L2 · ★4.7 (156)</div></div>
+        <span class="perm-badge perm-L2" style="margin-left:auto;">L2</span>
+        <button class="btn btn-sm btn-primary" style="margin-left:8px;">安装</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 页面10：工具管理 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-tools" style="display:none;">
+  <div class="section-title">🔧 工具管理</div>
+  <div class="section-desc">精细控制每个工具的启用状态和权限级别（共23个工具）</div>
+
+  <!-- 文件操作 -->
+  <div class="card">
+    <div class="group-header" onclick="toggleGroup('tools-file')">
+      <span>📁</span> 文件操作
+      <span style="font-size:11px;color:#9ca3af;font-weight:400;">5个工具</span>
+      <span style="margin-left:auto;font-size:12px;color:#9ca3af;">▼</span>
+    </div>
+    <div id="tools-file">
+      <div class="tool-row">
+        <div class="tool-name">文件读取</div>
+        <div class="tool-desc">读取本地文件内容，支持文本、代码、配置文件</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">文件写入</div>
+        <div class="tool-desc">创建和修改本地文件，支持追加和覆盖模式</div>
+        <span class="perm-badge perm-L2">L2</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">文件删除</div>
+        <div class="tool-desc">删除本地文件（操作不可逆，需二次确认）</div>
+        <span class="perm-badge perm-L3">L3</span>
+        <div class="toggle" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">目录浏览</div>
+        <div class="tool-desc">列出文件夹内容，获取文件元数据和目录结构</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">全文搜索</div>
+        <div class="tool-desc">在本地文件中搜索关键词，支持正则表达式</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 代码执行 -->
+  <div class="card">
+    <div class="group-header" onclick="toggleGroup('tools-code')">
+      <span>⚡</span> 代码执行
+      <span style="font-size:11px;color:#9ca3af;font-weight:400;">4个工具</span>
+      <span style="margin-left:auto;font-size:12px;color:#9ca3af;">▼</span>
+    </div>
+    <div id="tools-code">
+      <div class="tool-row">
+        <div class="tool-name">Python执行</div>
+        <div class="tool-desc">运行Python脚本，支持数据分析和自动化任务</div>
+        <span class="perm-badge perm-L2">L2</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">Shell命令</div>
+        <div class="tool-desc">执行系统Shell命令，高权限操作需谨慎</div>
+        <span class="perm-badge perm-L3">L3</span>
+        <div class="toggle" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">Node.js执行</div>
+        <div class="tool-desc">运行JavaScript/TypeScript，适合前端任务</div>
+        <span class="perm-badge perm-L2">L2</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">沙箱执行</div>
+        <div class="tool-desc">完全隔离的安全沙箱，适合运行不可信代码</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 网络访问 -->
+  <div class="card">
+    <div class="group-header" onclick="toggleGroup('tools-net')">
+      <span>🌐</span> 网络访问
+      <span style="font-size:11px;color:#9ca3af;font-weight:400;">4个工具</span>
+      <span style="margin-left:auto;font-size:12px;color:#9ca3af;">▼</span>
+    </div>
+    <div id="tools-net">
+      <div class="tool-row">
+        <div class="tool-name">网页浏览</div>
+        <div class="tool-desc">访问和解析网页，提取正文内容</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">网络搜索</div>
+        <div class="tool-desc">通过搜索引擎获取最新信息</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">HTTP请求</div>
+        <div class="tool-desc">发送任意HTTP/HTTPS请求，调用外部API</div>
+        <span class="perm-badge perm-L2">L2</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">文件下载</div>
+        <div class="tool-desc">从URL下载文件保存到本地</div>
+        <span class="perm-badge perm-L2">L2</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 系统集成 -->
+  <div class="card">
+    <div class="group-header" onclick="toggleGroup('tools-sys')">
+      <span>🖥️</span> 系统集成
+      <span style="font-size:11px;color:#9ca3af;font-weight:400;">4个工具</span>
+      <span style="margin-left:auto;font-size:12px;color:#9ca3af;">▼</span>
+    </div>
+    <div id="tools-sys">
+      <div class="tool-row">
+        <div class="tool-name">剪贴板</div>
+        <div class="tool-desc">读写系统剪贴板内容</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">屏幕截图</div>
+        <div class="tool-desc">截取当前屏幕或指定区域截图</div>
+        <span class="perm-badge perm-L2">L2</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">系统通知</div>
+        <div class="tool-desc">发送系统桌面通知提醒</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">进程管理</div>
+        <div class="tool-desc">列出、启动和终止系统进程</div>
+        <span class="perm-badge perm-L3">L3</span>
+        <div class="toggle" style="margin-left:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 数据处理 + 时间 -->
+  <div class="card">
+    <div class="group-header" onclick="toggleGroup('tools-data')">
+      <span>📊</span> 数据处理 &amp; 时间
+      <span style="font-size:11px;color:#9ca3af;font-weight:400;">6个工具</span>
+      <span style="margin-left:auto;font-size:12px;color:#9ca3af;">▼</span>
+    </div>
+    <div id="tools-data">
+      <div class="tool-row">
+        <div class="tool-name">图像处理</div>
+        <div class="tool-desc">裁剪、压缩、格式转换、基础图像分析</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">PDF解析</div>
+        <div class="tool-desc">提取PDF文字、表格和图像内容</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">表格处理</div>
+        <div class="tool-desc">读写Excel、CSV，执行数据计算和透视分析</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">音视频处理</div>
+        <div class="tool-desc">格式转换、剪辑、音轨提取（基于FFmpeg）</div>
+        <span class="perm-badge perm-L2">L2</span>
+        <div class="toggle" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">日历读写</div>
+        <div class="tool-desc">读取和创建日历事件，管理日程提醒</div>
+        <span class="perm-badge perm-L1">L1</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+      <div class="tool-row">
+        <div class="tool-name">定时任务</div>
+        <div class="tool-desc">创建和管理定时触发的自动化任务</div>
+        <span class="perm-badge perm-L2">L2</span>
+        <div class="toggle on" style="margin-left:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 自定义工具 -->
+  <div class="card">
+    <div class="group-header" onclick="toggleGroup('tools-custom')" style="margin-bottom:0;">
+      <span>🛠️</span> 自定义工具
+      <span style="font-size:11px;color:#9ca3af;font-weight:400;">添加自定义工具</span>
+      <span style="margin-left:auto;font-size:12px;color:#9ca3af;">▶</span>
+    </div>
+    <div id="tools-custom" style="display:none;margin-top:12px;">
+      <div class="form-row" style="border:none;padding:0 0 8px;">
+        <div class="form-label">工具名称</div>
+        <input class="form-input" placeholder="例如：我的脚本" />
+      </div>
+      <div class="form-row" style="border:none;padding:0 0 8px;">
+        <div class="form-label">描述</div>
+        <input class="form-input" placeholder="简短描述这个工具的作用" />
+      </div>
+      <div class="form-row" style="border:none;padding:0 0 8px;">
+        <div class="form-label">执行命令</div>
+        <input class="form-input" placeholder="例如：python /path/to/script.py {input}" style="font-family:monospace;" />
+      </div>
+      <div class="form-row" style="border:none;padding:0 0 8px;">
+        <div class="form-label">权限级别</div>
+        <div class="freq-options">
+          <div class="freq-opt">L0</div>
+          <div class="freq-opt active">L1</div>
+          <div class="freq-opt">L2</div>
+          <div class="freq-opt">L3</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">
+        <button class="btn btn-outline">取消</button>
+        <button class="btn btn-primary">添加工具</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 页面11：浏览器引擎 -->
+<!-- ============================================================ -->
+<div class="settings-page" id="page-browser" style="display:none;">
+  <div class="section-title">🌐 浏览器引擎</div>
+  <div class="section-desc">配置Chrome自动化引擎和各平台访问权限</div>
+
+  <!-- Chrome状态 -->
+  <div class="card" style="border-color:#22c55e;background:linear-gradient(135deg,#f0fdf4,#fff);">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#4285f4,#34a853);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌐</div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:600;color:#166534;display:flex;align-items:center;gap:8px;">
+          <span class="status-dot green"></span>
+          已连接 Chrome 126.0
+          <span style="font-size:11px;background:#dcfce7;color:#166534;padding:2px 7px;border-radius:999px;">CDP:9222</span>
+        </div>
+        <div style="font-size:11px;color:#6b7280;margin-top:2px;">Chrome DevTools Protocol 连接正常 · 上次检测 12秒前</div>
+      </div>
+      <button class="btn btn-outline btn-sm">重新连接</button>
+      <button class="btn btn-outline btn-sm">打开DevTools</button>
+    </div>
+  </div>
+
+  <!-- 连接配置 -->
+  <div class="card">
+    <div class="card-title">连接配置</div>
+    <div class="form-row">
+      <div class="form-label">CDP 端口<div class="form-desc">Chrome远程调试端口</div></div>
+      <input class="form-input" value="9222" style="max-width:100px;" />
+    </div>
+    <div class="form-row">
+      <div class="form-label">请求超时<div class="form-desc">单次页面操作的超时时间</div></div>
+      <select class="form-select">
+        <option>5秒</option>
+        <option selected>10秒</option>
+        <option>20秒</option>
+        <option>30秒</option>
+        <option>60秒</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">无头模式<div class="form-desc">后台运行不显示浏览器窗口</div></div>
+      <div class="toggle"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">页面缓存<div class="form-desc">缓存已访问页面加速重复访问</div></div>
+      <div class="toggle on"></div>
+    </div>
+  </div>
+
+  <!-- 平台权限 -->
+  <div class="card">
+    <div class="card-title">平台访问权限 <span class="tag tag-primary">36个平台</span></div>
+    <div class="info-banner blue" style="margin-bottom:12px;">
+      <span>💡</span>
+      <span>L0=只读浏览 · L1=填表提交 · L2=账号操作 · L3=完全控制（谨慎开启）</span>
+    </div>
+
+    <!-- 搜索引擎 -->
+    <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;padding:8px 0 4px;">搜索引擎 (5)</div>
+    <div class="platform-row"><div class="platform-name">Google</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Bing</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">百度</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">DuckDuckGo</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">搜狗</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+
+    <!-- 内容平台 -->
+    <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;padding:12px 0 4px;">内容平台 (8)</div>
+    <div class="platform-row"><div class="platform-name">GitHub</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill active-L2">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Wikipedia</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">知乎</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">微博</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">哔哩哔哩</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">YouTube</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Twitter/X</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Reddit</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+
+    <!-- 电商 -->
+    <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;padding:12px 0 4px;">电商平台 (5)</div>
+    <div class="platform-row"><div class="platform-name">淘宝</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">京东</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">拼多多</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Amazon</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">闲鱼</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+
+    <!-- 新闻 -->
+    <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;padding:12px 0 4px;">新闻资讯 (6)</div>
+    <div class="platform-row"><div class="platform-name">澎湃新闻</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">36氪</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">虎嗅</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">TechCrunch</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Hacker News</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Product Hunt</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+
+    <!-- 生产力 -->
+    <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;padding:12px 0 4px;">生产力工具 (7)</div>
+    <div class="platform-row"><div class="platform-name">Notion</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill active-L2">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">飞书</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill active-L2">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">钉钉</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">语雀</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill active-L2">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Google Docs</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Airtable</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Linear</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill active-L2">L2</div><div class="perm-pill">L3</div></div></div>
+
+    <!-- AI服务 -->
+    <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;padding:12px 0 4px;">AI服务 (5)</div>
+    <div class="platform-row"><div class="platform-name">Claude.ai</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">ChatGPT</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Midjourney</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Perplexity</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+    <div class="platform-row"><div class="platform-name">Hugging Face</div><div class="perm-pills"><div class="perm-pill active-L1">L0</div><div class="perm-pill active-L1">L1</div><div class="perm-pill">L2</div><div class="perm-pill">L3</div></div></div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;gap:8px;">
+      <button class="btn btn-outline">全部设为L0（只读）</button>
+      <button class="btn btn-primary">保存权限配置</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 工具组折叠
+function toggleGroup(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const isHidden = el.style.display === 'none';
+  el.style.display = isHidden ? '' : 'none';
+}
+// 形象Tab切换
+function switchAvatarTab(tab) {
+  const btns = document.querySelectorAll('#avatar-tabs .tab-btn');
+  const tabs = ['static','live2d','vrm','aisnap'];
+  btns.forEach((b,i) => b.classList.toggle('active', tabs[i] === tab));
+  ['avatar-static','avatar-live2d','avatar-vrm','avatar-aisnap'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = tabs[i] === tab ? '' : 'none';
+  });
+}
+// 权限Pill点击
+document.querySelectorAll('.perm-pills').forEach(group => {
+  group.querySelectorAll('.perm-pill').forEach((pill, idx) => {
+    pill.addEventListener('click', () => {
+      group.querySelectorAll('.perm-pill').forEach(p => {
+        p.className = 'perm-pill';
+      });
+      for (let i = 0; i <= idx; i++) {
+        const levels = ['L0','L1','L2','L3'];
+        group.querySelectorAll('.perm-pill')[i].className = `perm-pill active-${levels[i]}`;
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>

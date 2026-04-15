@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenAGI 首页示意图</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ========== 顶部导航栏 ========== */
+    .topbar {
+      height: 52px;
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .topbar .logo {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .topbar .divider {
+      width: 1px;
+      height: 24px;
+      background: rgba(255,255,255,0.15);
+    }
+    .topbar .tabs {
+      display: flex;
+      gap: 4px;
+    }
+    .topbar .tab {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .topbar .tab:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .topbar .tab.active {
+      color: #fff;
+      background: rgba(124,58,237,0.35);
+      border-color: rgba(124,58,237,0.5);
+    }
+    .topbar .right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .topbar .model-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(96,165,250,0.15);
+      color: #93c5fd;
+      border: 1px solid rgba(96,165,250,0.3);
+      cursor: pointer;
+    }
+    .topbar .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .topbar .status-dot.green { background: #34d399; box-shadow: 0 0 6px #34d399; }
+    .topbar .status-label { font-size: 11px; color: rgba(255,255,255,0.5); }
+    .topbar .avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #2563eb);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: #fff; font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ========== 主体三栏布局 ========== */
+    .main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ========== 左侧边栏 ========== */
+    .sidebar {
+      width: 260px;
+      background: #fff;
+      border-right: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: width 0.3s, opacity 0.3s;
+      position: relative;
+    }
+    .sidebar.collapsed {
+      width: 0;
+      overflow: hidden;
+      opacity: 0;
+      border: none;
+    }
+    .sidebar-toggle {
+      position: fixed;
+      top: 60px;
+      left: 6px;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(124,58,237,0.12);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(124,58,237,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      z-index: 100;
+      transition: all 0.2s;
+      color: #7c3aed;
+    }
+    .sidebar-toggle:hover {
+      background: rgba(124,58,237,0.25);
+    }
+    .sidebar-toggle.hidden { display: none; }
+    .sidebar .section-title {
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: 600;
+      padding: 14px 16px 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .sidebar .new-chat-btn {
+      margin: 12px 12px 8px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px dashed #d1d5db;
+      background: #fafafa;
+      text-align: center;
+      font-size: 13px;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sidebar .new-chat-btn:hover { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; }
+    .sidebar .search-box {
+      margin: 0 12px 8px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .sidebar .group-label {
+      font-size: 11px;
+      color: #9ca3af;
+      padding: 8px 16px 4px;
+      font-weight: 500;
+    }
+    .sidebar .session-item {
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .sidebar .session-item:hover { background: #f5f3ff; }
+    .sidebar .session-item.active { background: #ede9fe; border-left-color: #7c3aed; }
+    .sidebar .session-item .title {
+      font-size: 13px;
+      color: #1f2937;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sidebar .session-item .meta {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 2px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .sidebar .shortcuts {
+      border-top: 1px solid #e5e7eb;
+      padding: 8px 12px;
+      display: flex;
+      gap: 6px;
+    }
+    .sidebar .shortcut-btn {
+      flex: 1;
+      padding: 6px 0;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      text-align: center;
+      font-size: 11px;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sidebar .shortcut-btn:hover { border-color: #7c3aed; color: #7c3aed; }
+    .sidebar .footer {
+      border-top: 1px solid #e5e7eb;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .sidebar .footer .gear { cursor: pointer; font-size: 16px; }
+
+    /* ========== 中间主区域 ========== */
+    .center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #fafbfc;
+      position: relative;
+    }
+
+    /* 欢迎屏 */
+    .welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 40px;
+    }
+    .welcome .ai-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #2563eb, #06b6d4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 0 30px rgba(124,58,237,0.25);
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.2); }
+      50% { box-shadow: 0 0 40px rgba(124,58,237,0.4); }
+    }
+    .welcome .greeting {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .welcome .sub {
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    /* 快捷卡片 */
+    .quick-cards {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 600px;
+    }
+    .quick-card {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      font-size: 13px;
+      color: #4b5563;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .quick-card:hover { border-color: #7c3aed; color: #7c3aed; box-shadow: 0 2px 8px rgba(124,58,237,0.1); transform: translateY(-1px); }
+    .quick-card .icon { font-size: 16px; }
+
+    /* 状态迷你面板 */
+    .status-bar-mini {
+      display: flex;
+      gap: 16px;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .status-item .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .status-item .dot.green { background: #34d399; }
+    .status-item .dot.yellow { background: #fbbf24; }
+    .status-item .val { font-weight: 600; color: #374151; }
+
+    /* ========== 发送框 ========== */
+    .input-area {
+      border-top: 1px solid #e5e7eb;
+      background: #fff;
+      padding: 12px 16px;
+    }
+    .input-wrapper {
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .input-wrapper:focus-within { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
+    .input-textarea {
+      width: 100%;
+      min-height: 44px;
+      max-height: 200px;
+      padding: 10px 14px;
+      border: none;
+      outline: none;
+      resize: none;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1f2937;
+      background: transparent;
+      line-height: 1.5;
+    }
+    .input-textarea::placeholder { color: #9ca3af; }
+    .input-toolbar {
+      display: flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-top: 1px solid #f3f4f6;
+      gap: 2px;
+    }
+    .toolbar-btn {
+      width: 32px; height: 32px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      color: #6b7280;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .toolbar-btn:hover { background: #f3f4f6; color: #7c3aed; }
+    .toolbar-btn .tooltip {
+      display: none;
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: #1f2937;
+      color: #fff;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+    .toolbar-btn:hover .tooltip { display: block; }
+    .toolbar-spacer { flex: 1; }
+    .send-btn {
+      padding: 6px 16px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(135deg, #7c3aed, #6366f1);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .send-btn:hover { background: linear-gradient(135deg, #6d28d9, #4f46e5); box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
+    .input-hint {
+      font-size: 10px;
+      color: #9ca3af;
+      text-align: right;
+      padding: 4px 4px 0;
+    }
+
+    /* ========== 右侧面板 ========== */
+    .right-panel {
+      width: 280px;
+      background: #fff;
+      border-left: 1px solid #e5e7eb;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      transition: width 0.3s, opacity 0.3s;
+    }
+    .right-panel.collapsed {
+      width: 0;
+      overflow: hidden;
+      opacity: 0;
+      border: none;
+    }
+    .rpanel-toggle {
+      position: fixed;
+      top: 60px;
+      right: 6px;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(124,58,237,0.12);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(124,58,237,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      z-index: 100;
+      transition: all 0.2s;
+      color: #7c3aed;
+    }
+    .rpanel-toggle:hover {
+      background: rgba(124,58,237,0.25);
+    }
+    .rpanel-toggle.hidden { display: none; }
+
+    /* ========== 全屏模式 ========== */
+    body.fullscreen .topbar,
+    body.fullscreen .sidebar,
+    body.fullscreen .right-panel,
+    body.fullscreen .bottombar,
+    body.fullscreen .sidebar-toggle,
+    body.fullscreen .rpanel-toggle,
+    body.fullscreen .fullscreen-btn { display: none !important; }
+    body.fullscreen .center { border-radius: 0; }
+
+    .fullscreen-btn {
+      position: fixed;
+      top: 60px;
+      left: 40px;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(124,58,237,0.12);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(124,58,237,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+      z-index: 100;
+      transition: all 0.2s;
+      color: #7c3aed;
+    }
+    .fullscreen-btn:hover { background: rgba(124,58,237,0.25); }
+
+    /* ========== 主题模式 ========== */
+    body.dark { background: #1a1a2e; }
+    body.dark .sidebar { background: #1e1b4b; border-color: #312e81; }
+    body.dark .sidebar .new-chat-btn { background: #272465; border-color: #3730a3; color: #a5b4fc; }
+    body.dark .sidebar .search-box { background: #272465; border-color: #3730a3; color: #818cf8; }
+    body.dark .sidebar .session-item .title { color: #e0e7ff; }
+    body.dark .sidebar .session-item:hover { background: #312e81; }
+    body.dark .sidebar .session-item.active { background: #3730a3; border-left-color: #a78bfa; }
+    body.dark .sidebar .group-label, body.dark .sidebar .section-title { color: #6366f1; }
+    body.dark .sidebar .footer { border-color: #312e81; color: #6366f1; }
+    body.dark .sidebar .shortcuts { border-color: #312e81; }
+    body.dark .sidebar .shortcut-btn { background: #272465; border-color: #3730a3; color: #a5b4fc; }
+    body.dark .center { background: #0f0e1a; }
+    body.dark .welcome .greeting { color: #e0e7ff; }
+    body.dark .welcome .sub { color: #818cf8; }
+    body.dark .quick-card { background: #1e1b4b; border-color: #312e81; color: #c7d2fe; }
+    body.dark .quick-card:hover { border-color: #7c3aed; color: #a78bfa; }
+    body.dark .status-bar-mini { background: #1e1b4b; border-color: #312e81; }
+    body.dark .status-item { color: #818cf8; }
+    body.dark .status-item .val { color: #c7d2fe; }
+    body.dark .input-area { background: #1e1b4b; border-color: #312e81; }
+    body.dark .input-wrapper { border-color: #3730a3; background: #272465; }
+    body.dark .input-textarea { color: #e0e7ff; }
+    body.dark .input-textarea::placeholder { color: #6366f1; }
+    body.dark .input-toolbar { border-color: #312e81; }
+    body.dark .toolbar-btn { color: #818cf8; }
+    body.dark .toolbar-btn:hover { background: #312e81; color: #a78bfa; }
+    body.dark .input-hint { color: #4c1d95; }
+    body.dark .right-panel { background: #1e1b4b; border-color: #312e81; }
+    body.dark .panel-header { color: #c7d2fe; border-color: #312e81; }
+    body.dark .core-card { background: #272465; border-color: #3730a3; }
+    body.dark .core-card.active { background: #312e81; border-color: #7c3aed; }
+    body.dark .core-card .name { color: #e0e7ff; }
+    body.dark .core-card .detail { color: #818cf8; }
+    body.dark .core-sel-btn { background: #272465; border-color: #3730a3; color: #818cf8; }
+    body.dark .audit-summary { background: #064e3b; border-color: #059669; color: #6ee7b7; }
+    body.dark .bottombar { background: #0f0e1a; border-color: #312e81; color: #6366f1; }
+
+    body.custom-bg .center { background-size: cover; background-position: center; }
+
+    .theme-switcher {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .theme-btn {
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .theme-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    .theme-btn.active { background: rgba(124,58,237,0.35); color: #fff; border-color: rgba(124,58,237,0.5); }
+    .panel-header {
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-header .close-btn { cursor: pointer; color: #9ca3af; font-size: 16px; }
+    .core-card {
+      margin: 8px 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: #fafbfc;
+    }
+    .core-card.active { border-color: #7c3aed; background: #f5f3ff; }
+    .core-card .name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .core-card .name .badge {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: #7c3aed;
+      color: #fff;
+      font-weight: 500;
+    }
+    .core-card .detail {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    .core-selector {
+      display: flex;
+      gap: 4px;
+      padding: 12px;
+    }
+    .core-sel-btn {
+      flex: 1;
+      padding: 5px 0;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      text-align: center;
+      font-size: 12px;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .core-sel-btn.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+    .core-sel-btn:hover:not(.active) { border-color: #7c3aed; color: #7c3aed; }
+
+    .audit-summary {
+      margin: 0 12px 12px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      font-size: 11px;
+      color: #166534;
+    }
+    .audit-summary .label { font-weight: 600; margin-bottom: 4px; }
+
+    /* ========== 底部状态栏 ========== */
+    .bottombar {
+      height: 28px;
+      background: #f9fafb;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 10px;
+      color: #9ca3af;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .bottombar .spacer { flex: 1; }
+  </style>
+</head>
+<body>
+
+<!-- ==================== 顶部导航栏 ==================== -->
+<div class="topbar">
+  <div class="logo">OpenAGI</div>
+  <div class="divider"></div>
+  <div class="tabs">
+    <div class="tab active">💬 深度聊天</div>
+    <div class="tab">👥 AI团队群聊</div>
+    <div class="tab">🧠 记忆宫殿</div>
+    <div class="tab">⚙️ 设置</div>
+  </div>
+  <div class="right">
+    <div class="theme-switcher">
+      <button class="theme-btn active" id="theme-light" title="白天模式">☀️</button>
+      <button class="theme-btn" id="theme-dark" title="夜晚模式">🌙</button>
+      <button class="theme-btn" id="theme-custom" title="自定义背景图片">🎨</button>
+      <input type="file" id="bg-upload" accept="image/*" style="display:none;" />
+    </div>
+    <span class="model-badge">⭐ Claude Sonnet 4</span>
+    <span style="display:flex;align-items:center;gap:4px;">
+      <span class="status-dot green"></span>
+      <span class="status-label">calm</span>
+    </span>
+    <span style="display:flex;align-items:center;gap:4px;">
+      <span class="status-label">巡检</span>
+      <span class="status-dot green"></span>
+    </span>
+    <div class="avatar">王</div>
+  </div>
+</div>
+
+<!-- 左侧边栏收缩按钮 -->
+<div class="sidebar-toggle" id="sidebar-toggle" title="收起/展开左侧边栏">☰</div>
+<!-- 全屏按钮 -->
+<div class="fullscreen-btn" id="fullscreen-btn" title="全屏模式（ESC退出）">⛶</div>
+<!-- 右侧面板收缩按钮 -->
+<div class="rpanel-toggle" id="rpanel-toggle" title="收起/展开右侧面板">⚙</div>
+
+<!-- ==================== 主体三栏 ==================== -->
+<div class="main">
+
+  <!-- ===== 左侧边栏 ===== -->
+  <div class="sidebar">
+    <div class="new-chat-btn">＋ 新建会话</div>
+    <div class="search-box">🔍 搜索历史会话...</div>
+
+    <div class="group-label">今天</div>
+    <div class="session-item active">
+      <div class="title">OpenAGI MVP架构设计</div>
+      <div class="meta"><span>进行中</span><span>14:30</span></div>
+    </div>
+    <div class="session-item">
+      <div class="title">AGI核心能力定义讨论</div>
+      <div class="meta"><span>23条消息</span><span>10:24</span></div>
+    </div>
+
+    <div class="group-label">昨天</div>
+    <div class="session-item">
+      <div class="title">NewClaw代码资产盘点</div>
+      <div class="meta"><span>已完成</span><span>昨天</span></div>
+    </div>
+    <div class="session-item">
+      <div class="title">Hermes Agent分析报告</div>
+      <div class="meta"><span>已完成</span><span>昨天</span></div>
+    </div>
+
+    <div class="group-label">近7天</div>
+    <div class="session-item">
+      <div class="title">产品定位与用户调研</div>
+      <div class="meta"><span>12条消息</span><span>4月10日</span></div>
+    </div>
+
+    <div style="flex:1;"></div>
+
+    <div class="shortcuts">
+      <div class="shortcut-btn">👥 AI团队</div>
+      <div class="shortcut-btn">🧩 技能市场</div>
+      <div class="shortcut-btn">🧠 记忆</div>
+    </div>
+
+    <div class="footer">
+      <span>OpenAGI v0.1 MVP</span>
+      <span class="gear">⚙️</span>
+    </div>
+  </div>
+
+  <!-- ===== 中间主区域 ===== -->
+  <div class="center">
+    <div class="welcome">
+      <div class="ai-avatar">🤖</div>
+      <div class="greeting">下午好，陛下 ☀️</div>
+      <div class="sub">我是 OpenAGI，有什么我可以帮你的？</div>
+
+      <div class="quick-cards">
+        <div class="quick-card"><span class="icon">🔧</span> 帮我写代码</div>
+        <div class="quick-card"><span class="icon">📝</span> 帮我写文档</div>
+        <div class="quick-card"><span class="icon">🔍</span> 帮我搜索资料</div>
+        <div class="quick-card"><span class="icon">💡</span> 头脑风暴</div>
+      </div>
+
+      <div class="status-bar-mini">
+        <div class="status-item">
+          <span class="dot green"></span>
+          心绪: <span class="val">calm (0.12)</span>
+        </div>
+        <div class="status-item">
+          今日对话: <span class="val">7次</span>
+        </div>
+        <div class="status-item">
+          记忆: <span class="val">热23 · 温1,204 · DNA 16</span>
+        </div>
+        <div class="status-item">
+          <span class="dot yellow"></span>
+          蒸馏: <span class="val">2小时前</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 发送框 -->
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea class="input-textarea" placeholder="输入消息，使用 @ 给AI成员发送消息..." rows="2"></textarea>
+        <div class="input-toolbar">
+          <button class="toolbar-btn" title="发送文件">
+            📎 <span class="tooltip">附件</span>
+          </button>
+          <button class="toolbar-btn" title="发送图片">
+            🖼️ <span class="tooltip">图片</span>
+          </button>
+          <button class="toolbar-btn" title="提示词润色">
+            ✨ <span class="tooltip">润色</span>
+          </button>
+          <button class="toolbar-btn" title="切换模型">
+            🧠 <span class="tooltip">模型</span>
+          </button>
+          <button class="toolbar-btn" title="语音输入">
+            🎤 <span class="tooltip">语音</span>
+          </button>
+          <button class="toolbar-btn" title="实时语音聊天">
+            📞 <span class="tooltip">实时对话</span>
+          </button>
+          <button class="toolbar-btn" title="巡检AI开关">
+            🔭 <span class="tooltip">巡检AI</span>
+          </button>
+          <div class="toolbar-spacer"></div>
+          <button class="send-btn">发送 ↑</button>
+        </div>
+      </div>
+      <div class="input-hint">按 Enter 发送，Shift + Enter 换行</div>
+    </div>
+  </div>
+
+  <!-- ===== 右侧面板 ===== -->
+  <div class="right-panel">
+    <div class="panel-header">
+      多核治理面板
+      <span class="close-btn">✕</span>
+    </div>
+
+    <div class="core-selector">
+      <div class="core-sel-btn">1核</div>
+      <div class="core-sel-btn">2核</div>
+      <div class="core-sel-btn">3核</div>
+      <div class="core-sel-btn active">4核</div>
+    </div>
+
+    <div class="core-card active">
+      <div class="name">
+        Core-0 执行者
+        <span class="badge">主</span>
+      </div>
+      <div class="detail">Claude Opus 4 · 创新开拓者 · temp 0.7</div>
+    </div>
+    <div class="core-card">
+      <div class="name">Core-1 审计者A</div>
+      <div class="detail">Claude Sonnet 4 · 冷酷审计官 · temp 0.3</div>
+    </div>
+    <div class="core-card">
+      <div class="name">Core-2 审计者B</div>
+      <div class="detail">Claude Haiku 4.5 · 务实工程师 · temp 0.3</div>
+    </div>
+    <div class="core-card">
+      <div class="name">Core-3 审计者C</div>
+      <div class="detail">GPT-4o · 跨界思考者 · temp 0.5</div>
+    </div>
+
+    <div class="audit-summary">
+      <div class="label">✅ 最近一次审计</div>
+      三方一致通过 · 风险等级: LOW · 权限: L0<br/>
+      "架构文档更新，无安全风险"
+    </div>
+
+    <div class="panel-header" style="margin-top:8px;">
+      巡检AI (Commander)
+    </div>
+    <div class="core-card">
+      <div class="name">
+        🔭 战略指挥官
+        <span class="badge" style="background:#34d399;">运行中</span>
+      </div>
+      <div class="detail">Claude Sonnet 4 · temp 0.5 · 每10分钟</div>
+      <div class="detail" style="margin-top:4px;color:#7c3aed;">下次巡检: 3分12秒后</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 底部状态栏 ==================== -->
+<div class="bottombar">
+  <span>🟢 已连接</span>
+  <span>⭐ Claude Sonnet 4</span>
+  <span>今日Token: 12,847 (入) / 8,231 (出)</span>
+  <span class="spacer"></span>
+  <span>🔭 巡检AI: 3分12秒后执行</span>
+  <span>Ctrl+N 新建 · Ctrl+/ 命令</span>
+</div>
+
+<script>
+// ===== 左侧边栏收缩/展开 =====
+const sidebar = document.querySelector('.sidebar');
+const sidebarToggle = document.getElementById('sidebar-toggle');
+sidebarToggle.addEventListener('click', () => {
+  sidebar.classList.toggle('collapsed');
+  sidebarToggle.textContent = sidebar.classList.contains('collapsed') ? '→' : '☰';
+});
+
+// ===== 右侧面板收缩/展开 =====
+const rpanel = document.querySelector('.right-panel');
+const rpanelToggle = document.getElementById('rpanel-toggle');
+rpanelToggle.addEventListener('click', () => {
+  rpanel.classList.toggle('collapsed');
+  rpanelToggle.textContent = rpanel.classList.contains('collapsed') ? '←' : '⚙';
+});
+
+// ===== 全屏模式 =====
+const fullscreenBtn = document.getElementById('fullscreen-btn');
+fullscreenBtn.addEventListener('click', () => {
+  document.body.classList.add('fullscreen');
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.body.classList.remove('fullscreen');
+  }
+});
+
+// ===== 主题切换 =====
+const themeBtns = document.querySelectorAll('.theme-btn');
+const bgUpload = document.getElementById('bg-upload');
+const center = document.querySelector('.center');
+
+function setActiveTheme(id) {
+  themeBtns.forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+document.getElementById('theme-light').addEventListener('click', () => {
+  document.body.classList.remove('dark', 'custom-bg');
+  center.style.backgroundImage = '';
+  document.body.style.background = '#f0f2f5';
+  setActiveTheme('theme-light');
+});
+
+document.getElementById('theme-dark').addEventListener('click', () => {
+  document.body.classList.add('dark');
+  document.body.classList.remove('custom-bg');
+  center.style.backgroundImage = '';
+  document.body.style.background = '#1a1a2e';
+  setActiveTheme('theme-dark');
+});
+
+document.getElementById('theme-custom').addEventListener('click', () => {
+  // 先尝试文件选择器
+  bgUpload.click();
+  // 备选：如果文件选择器被阻止，3秒后弹出URL输入
+  setTimeout(() => {
+    if (!bgUpload.files || bgUpload.files.length === 0) {
+      const url = prompt('请输入背景图片URL（或粘贴图片地址）：', 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1920');
+      if (url) {
+        document.body.classList.remove('dark');
+        document.body.classList.add('custom-bg');
+        center.style.backgroundImage = `url(${url})`;
+        center.style.backgroundSize = 'cover';
+        center.style.backgroundPosition = 'center';
+        setActiveTheme('theme-custom');
+      }
+    }
+  }, 500);
+});
+
+bgUpload.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.body.classList.remove('dark');
+    document.body.classList.add('custom-bg');
+    center.style.backgroundImage = `url(${ev.target.result})`;
+    center.style.backgroundSize = 'cover';
+    center.style.backgroundPosition = 'center';
+    setActiveTheme('theme-custom');
+  };
+  reader.readAsDataURL(file);
+});
+</script>
+</body>
+</html>

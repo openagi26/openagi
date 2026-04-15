@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/* CSS变量：浅色模式 */
+:root {
+  --bg: #f0f2f5;
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --center-bg: #fafbfc;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --panel-bg: #ffffff;
+  --panel-border: #e5e7eb;
+  --session-hover: #f5f3ff;
+  --session-active: #ede9fe;
+  --toolbar-hover: #f3f4f6;
+}
+
+/* 深色模式 */
+.dark {
+  --bg: #1a1a2e;
+  --sidebar-bg: #1e1b4b;
+  --sidebar-border: #312e81;
+  --center-bg: #0f0e1a;
+  --input-bg: #272465;
+  --input-border: #3730a3;
+  --card-bg: #1e1b4b;
+  --card-border: #312e81;
+  --text-primary: #e0e7ff;
+  --text-secondary: #818cf8;
+  --text-muted: #6366f1;
+  --panel-bg: #1e1b4b;
+  --panel-border: #312e81;
+  --session-hover: #312e81;
+  --session-active: #3730a3;
+  --toolbar-hover: #312e81;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.25); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.45); }
+
+/* 动画 */
+@keyframes radar-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes radar-ping { 0% { transform: scale(1); opacity: 0.7; } 100% { transform: scale(2.5); opacity: 0; } }
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.2); }
+  50% { box-shadow: 0 0 45px rgba(124,58,237,0.5); }
+}
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes heart-beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.5); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.animate-radar-spin { animation: radar-spin 2s linear infinite; }
+.animate-radar-ping { animation: radar-ping 1.6s ease-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-fade-in-up { animation: fade-in-up 0.3s ease-out; }
+.animate-heart-beat { animation: heart-beat 2s ease-in-out infinite; }
+
+/* Logo渐变文字 */
+.logo-gradient {
+  background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 发送框聚焦高亮 */
+.input-focus-ring:focus-within {
+  border-color: #7c3aed !important;
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+}
+
+/* 侧边栏过渡 */
+.sidebar-transition { transition: width 0.3s ease, opacity 0.3s ease; }

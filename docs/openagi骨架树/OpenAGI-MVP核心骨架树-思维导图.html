@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenAGI MVP 核心骨架树 — 思维导图</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #dc2626;
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #header {
+      background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+      border-bottom: 1px solid #533483;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 16px rgba(83, 52, 131, 0.4);
+    }
+
+    #header .logo {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 1px;
+    }
+
+    #header .divider {
+      width: 1px;
+      height: 28px;
+      background: #533483;
+    }
+
+    #header .subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    #header .subtitle strong {
+      color: #c4b5fd;
+    }
+
+    #header .badge-row {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    #header .badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid;
+      font-weight: 500;
+    }
+
+    .ctrl-btn {
+      font-size: 12px;
+      padding: 5px 14px;
+      border-radius: 8px;
+      border: 1px solid #533483;
+      background: linear-gradient(135deg, #1e1e3f, #2d2b55);
+      color: #c4b5fd;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .ctrl-btn:hover {
+      background: linear-gradient(135deg, #2d2b55, #3d3b75);
+      color: #e0e0f0;
+      border-color: #7c3aed;
+      box-shadow: 0 0 8px rgba(124,58,237,0.3);
+    }
+    .ctrl-btn:active {
+      transform: scale(0.96);
+    }
+
+    .badge-modules { color: #60a5fa; border-color: #60a5fa44; background: #60a5fa11; }
+    .badge-core    { color: #f472b6; border-color: #f472b644; background: #f472b611; }
+    .badge-version { color: #34d399; border-color: #34d39944; background: #34d39911; }
+    .badge-ref     { color: #fbbf24; border-color: #fbbf2444; background: #fbbf2411; }
+
+    #markmap-container {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #markmap-container svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .markmap-node circle {
+      stroke-width: 1.5;
+    }
+
+    .markmap-link {
+      fill: none;
+    }
+
+    #hint {
+      position: absolute;
+      bottom: 16px;
+      right: 20px;
+      font-size: 11px;
+      color: #475569;
+      pointer-events: none;
+      text-align: right;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo">OpenAGI</div>
+  <div class="divider"></div>
+  <div class="subtitle">
+    <strong>MVP 核心骨架树 — 思维导图</strong><br/>
+    20 个功能模块 · 12 个参考应用 · 6级深度
+  </div>
+  <div class="badge-row">
+    <button class="ctrl-btn" id="btn-expand" title="展开全部节点">展开全部</button>
+    <button class="ctrl-btn" id="btn-collapse" title="收缩全部节点">收缩全部</button>
+    <span class="badge badge-modules">20 模块</span>
+    <span class="badge badge-core">AGI ★★★★</span>
+    <span class="badge badge-ref">12 参考应用</span>
+    <span class="badge badge-version">MVP v0.1</span>
+  </div>
+</div>
+
+<div id="markmap-container">
+  <svg id="markmap"></svg>
+</div>
+
+<div id="hint">
+  滚轮缩放 · 拖拽平移 · 单击节点折叠/展开
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-view@0.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.17"></script>
+<script>
+(async () => {
+  const { Markmap, loadCSS, loadJS } = window.markmap;
+  const { Transformer } = window.markmap;
+
+  const markdown = `
+# OpenAGI MVP 核心骨架树
+
+## Layer 1: LLM 大脑层 ★★★
+### 多模型路由器 (LLM Router)
+- Claude 4 / Opus / Sonnet / Haiku
+- GPT-4o / GPT-4o-mini
+- Grok 3
+- 本地 Ollama (llama/qwen)
+- DeepSeek
+### 中转模型管理
+#### 添加中转站
+- [输入框] API Base URL
+- [输入框] API Key（密码遮罩）
+- [按钮] 一键测试 → 自动发现所有可用模型
+#### 测试结果列表
+- 模型名称 + 状态（✅可用/❌不可用）
+- 连接速率（ms）+ 延迟评级（快/中/慢）
+- [按钮] 设为主模型
+- [按钮] 设为回退模型
+- 测试中状态：旋转图标+"正在探测..."
+### 可用模型列表
+#### 排列方式
+- ⭐ 主模型（置顶高亮）
+- 🔄 回退模型1（第二位）
+- 🔄 回退模型2（第三位）
+- 其他已登记模型（按添加时间）
+#### 每个模型的操作
+- 模型名称 + 提供商 + 延迟(ms)
+- [按钮] 设为主模型
+- [按钮] 设为回退模型（可设优先级1/2/3...）
+- [按钮] 删除
+- [复选框] 批量选择
+#### 批量操作
+- [按钮] 一键测试选中模型的可用性和连接速率
+- 测试结果实时更新到列表
+- 不可用模型标红提示
+### API池故障转移
+- 主模型不可用→自动切到回退1→回退2→...
+- 连续3次失败→移至末尾
+- 指数退避重试（2s起步）
+- 故障转移时Toast通知用户
+### 情绪感知Prompt
+- calm → 探索性、创意开放
+- focused → 高效、直接
+- anxious → 保守、简洁
+- crisis → 极简、必要
+### Token预算管理
+- 危机模式自动压缩
+- 按核心分配预算
+
+## Layer 2: Agent核心引擎 ★★★★
+### 可配置多核治理引擎（1-4核）
+#### 模式切换
+- 1核：直接问答（无审计）
+- 2核：执行者→1位审计
+- 3核：执行者→2位审计并行
+- 4核：执行者→3位审计并行→综合定稿
+#### Core-0 执行者
+- 模型：[用户可选]
+- 人格：[162专家选/自定义]
+- 温度：[可调]
+#### Core-1 审计者A
+- 模型：[用户可选]
+- 人格：[162专家选/自定义]
+- 温度：默认0.3（保守）
+#### Core-2 审计者B
+- 模型：[用户可选]
+- 人格：[162专家选/自定义]
+- 温度：默认0.3（保守）
+#### Core-3 审计者C
+- 模型：[用户可选]
+- 人格：[162专家选/自定义]
+- 温度：[可调]
+#### 权限自动升核
+- L0操作→用户选的核数
+- L1操作→至少2核
+- L2操作→至少3核
+- L3操作→强制4核+人机双签
+- L4操作→永久禁止
+#### 预设方案
+- [省钱] Haiku×1 ≈$0.001/次
+- [平衡] Sonnet+Haiku ≈$0.01/次
+- [安全] Opus+Sonnet+Haiku ≈$0.05/次
+- [全开] 4核混合模型 ≈$0.10/次
+### 心绪引擎 (HeartEngine)
+#### 双轴系统
+- entropy ∈ [0,1] — 熵值
+- valence ∈ [0,1] — 效价
+#### 四级状态
+- calm ≤0.20 → 探索创意
+- focused 0.20-0.55 → 高效专注
+- anxious 0.55-0.80 → 保守谨慎
+- crisis ≥0.80 → 极简紧急
+#### 驱动范围
+- 调度频率 / LLM温度
+- 工具选择 / 记忆优先级
+- 语音语调 / 表情动画
+#### 17种事件权重
+- llm_call_success: -0.02
+- task_failed: +0.08
+- wallet_low_balance: +0.08
+- system_idle_rest: -0.04
+### ReAct+Plan 执行循环
+- 感知→思考→行动→观察
+### 自主进化循环
+- 学习→蒸馏→DNA更新→技能创建→技能改进→闭环
+### 上下文压缩引擎
+- 长对话压缩60-80%
+- 保留关键信息（决策/代码/错误）
+- 被压缩内容写入温记忆
+
+## Layer 3: 永远记忆系统 ★★★★
+### 四层记忆架构
+#### L0 热记忆 (Working)
+- 存储：内存
+- 当前对话上下文
+- 对话结束即转温
+#### L1 温记忆 (Recent)
+- 存储：SQLite向量库
+- 语义相似度>0.75唤醒
+- 指数衰退（半衰期30天）
+#### L2 冷记忆 (Archive)
+- 存储：SQLite + Quarto MD
+- 全部历史（永不删除）
+- 显式查询/蒸馏引用触发
+#### L3 核心记忆 (Core/DNA)
+- 存储：JSON + Git
+- 身份/价值观/关键学习
+- 永不衰减，始终注入prompt
+### 三阶段梦境蒸馏
+#### Phase 1: Light Sleep（每2小时）
+- 快速概念标签提取（最多8个/条）
+- 主题聚类识别
+- 重复内容去重
+- 信号提升~5%
+#### Phase 2: REM Sleep（每6小时）
+- 跨记忆深层关联发现
+- 创意连接生成（类比/隐喻）
+- 矛盾检测（新旧记忆冲突）
+- 信号提升~8%
+#### Phase 3: Deep Dreaming（每24小时）
+- 综合知识蒸馏（LLM驱动）
+- 长期记忆提升决策（L1→L2/L3）
+- 梦境日记生成（自然语言叙事）
+- 概念导图更新
+### 短期提升算法（6维权重）
+- 频率 0.24 + 相关性 0.30
+- 多样性 0.15 + 最近性 0.15
+- 巩固 0.10 + 概念 0.06
+- 提升条件：分≥0.75 + 回忆≥3 + 查询≥2
+### 混合检索系统
+- 向量搜索（语义相似度）
+- BM25全文检索（CJK中文分词）
+- MMR去重（λ=0.7相关性/0.3多样性）
+- 时间衰退加权（半衰期30天）
+### 梦境日记（每日生成）
+- 关键发现摘要
+- 新建立的连接
+- 矛盾检测报告
+- 能力更新记录
+
+## Layer 4: 永生与分布式层 ★★★
+### 心跳调度器 (GhostScheduler)
+#### 熵驱动自适应
+- calm → 300s心跳
+- focused → 180s心跳
+- anxious → 120s心跳
+- crisis → 60s心跳
+#### 职责
+- 定期写入状态快照
+- 触发知识蒸馏
+- 检查健康指标
+- 清理过期缓存
+### 状态同步引擎
+#### 本地持久化
+- SQLite → 记忆数据
+- JSON → 心绪状态+核心DNA
+- WAL → 未提交事务日志
+#### 跨节点同步（Phase 2）
+- Redis → 实时状态共享
+- rsync → 冷记忆批量同步
+### 部署编排器
+- MVP：Docker Compose单机
+- 进程守护：supervisord
+- 崩溃恢复：自动重启+状态恢复
+- Phase 2：Docker Swarm/K8s多节点
+
+## Layer 5: 工具与扩展层 ★★★
+### 动态工具注册表
+- register(name, handler, permission, desc)
+- unregister(name)
+- get_available_tools(permission_level)
+### 23种标准工具（借鉴Claude Code）
+#### 文件操作
+- FileRead（文本/图像/PDF/Notebook）
+- FileWrite / FileEdit（查找替换）
+- Glob（文件模式匹配）
+- Grep（内容搜索，内嵌ripgrep）
+#### 执行
+- Bash（Shell命令）
+- NotebookEdit（Jupyter）
+#### 网络
+- WebFetch → bb-browser CDP引擎
+- WebSearch → bb-browser 36平台
+#### 代理
+- Agent（子代理派遣）
+- TaskOutput（异步结果获取）
+- TaskStop（后台任务停止）
+#### 交互
+- AskUser（用户确认）
+- TodoWrite（任务追踪）
+#### MCP
+- McpTool（MCP工具调用）
+- ListMcpResources / ReadMcpResource
+#### Git
+- EnterWorktree / ExitWorktree
+### Hook系统
+#### 文件操作Hook
+- before_file_read → 权限检查
+- after_file_write → 触发linter
+#### Git操作Hook
+- before_git_push → 敏感信息检查
+- after_git_commit → 通知+changelog
+#### Agent执行Hook
+- before_agent_exec → 安全验证
+- after_agent_exec → 质量检查
+#### API调用Hook
+- before_api_call → 认证头+限流
+- after_api_call → 缓存+监控
+### MCP集成（500+第三方工具）
+- 标准化外部工具协议
+- GitHub / Slack / Notion / Linear / 自定义
+### 插件管理器
+- 经济插件（未来）
+- 社交插件
+- 自定义插件
+
+## 巡检AI (Commander Core) ★★★
+### 定位
+- 坐在"用户位置"的AI指挥官
+- 代替用户发出指令
+- 指令仍经多核治理审查
+### 触发机制（双模式）
+#### 定时触发
+- 预设：1min/5min/10min/30min/1h
+- 自定义：1分钟～1年
+#### 事件触发（智能等待）
+- task:completed → 总结+规划
+- task:failed → 分析失败原因
+- task:blocked → 评估调整方案
+- entropy:crisis → 紧急评估
+- memory:distill → 检查新知识
+- user:idle → 自主规划
+#### 智能等待
+- 有任务执行中→延迟巡检
+- 任务完成后立即触发
+- 危机事件无论如何立即触发
+### 发送模式
+- 草稿模式（默认）→填入发送框等确认
+- 自动执行模式→直接发送并执行
+- 安全限制举例：
+- L0可自动执行：写日志、生成草稿、内部计算
+- L1可自动执行：查询API、搜索网页、沙箱测试
+- L2需用户确认：安装软件、修改文件、发送消息
+- L3需用户确认：真实转账、签署合约、删除数据
+### 巡检内容（可勾选）
+- ☑ 总结近期项目进展
+- ☑ 识别阻塞项和风险
+- ☑ 检查未完成任务
+- ☑ 规划下一步行动
+- ☐ 检查外部状态（钱包/API）
+- ☐ 自动清理过期记忆
+
+## 人格系统 (Persona Engine) ★★★
+### 三种设定方式
+- 从预设人格库选择（6种基础）
+- 从162位专家AI模板选择
+- 自定义（名称+Prompt+温度）
+### 162位专家AI人格（全中文）
+#### 13个域分类
+- 学术研究（5位）
+- 设计（8位）
+- 工程（44位）
+- 游戏开发（22位）
+- 营销（27位）
+- 付费媒体（7位）
+- 产品（5位）
+- 项目管理（6位）
+- 销售（8位）
+- 空间计算（6位）
+- 专业化（24位）
+- 支持（6位）
+- 测试（8位）
+### 快捷操作
+- 一键复制现有核心的人格
+- 搜索框快速检索
+- 预览Prompt后再选用
+
+## 聊天系统 ★★★★
+### 模式切换按钮
+- [💬 深度聊天] ↔ [👥 AI团队群聊]
+### 深度聊天
+- 用户↔1个AI（Core-0）
+- 1-4核治理引擎
+- 深度思考、单任务
+### AI团队群聊（借鉴OpenTeams）
+#### @沟通机制
+- 用户@指定成员→只被@的回复
+- 用户@全体→所有成员回复
+- AI互相@→自动协作链条
+- 轮次上限（默认3轮）防循环
+- 旁听者积累上下文
+#### 讨论↔工作模式切换
+- 讨论模式：头脑风暴、方案评审
+- 工作模式：并行执行、进度面板
+- 任务自动投递（DAG依赖调度）
+#### 团队成员面板
+- 在线成员列表
+- [+添加成员] [从162专家选]
+- [预设团队模板]
+- 每位成员独立配置（Agent+人格+模型+技能）
+#### 预设团队（6+自定义）
+- 全栈开发团队
+- 营销策划团队
+- 产品设计团队
+- 游戏开发团队
+- 安全审计团队
+- 中国市场团队
+### 消息区
+- Markdown渲染+流式输出
+- 代码高亮+复制按钮
+- 图片/文件附件
+- AI自拍图片
+- Token用量标签
+- 引用回复
+#### AI工作中状态
+- 累计秒数计时器："AI正在工作...已用时{{seconds}}秒"
+- AI回应框显示雷达扫描动态图（旋转扫描动画）
+- 避免用户以为AI死机的焦虑
+- [按钮] 停止 / 正在停止...
+### 发送框
+#### 输入区
+- 多行文本输入框
+- 自动提升高度（随内容增多）
+- 可拖动手柄手动调整高度并固定
+- 最多同时显示15行文字
+#### 底部工具栏
+- [发送] 按钮
+- 输入框底部常驻提示："按Enter发送，Shift+Enter换行"
+- [附件] 文件添加按钮（支持拖拽）
+- [图片] 图片添加按钮（支持拖拽/粘贴/截图）
+- [润色] 提示词润色按钮（AI优化用户输入）
+- [模型] 模型快速选择按钮（切换当前模型）
+- [语音] 语音输入按钮（按住说话，松开转文字）
+- [实时] 语音实时聊天按钮（开启持续语音对话）
+- [巡检] 开启/关闭巡检AI按钮（Commander开关）
+
+## 技能系统 (Skill Engine) ★★★
+### 技能定义
+- 名称+描述+输入输出
+- 执行逻辑+权限级别
+- 分类标签+兼容Agent类型
+### 三种来源
+#### 内置技能（开箱即用）
+- 代码执行 / 文件读写
+- 屏幕截图 / 网络搜索
+- 数据分析
+#### 技能市场（全中文，通用OpenClaw技能）
+- 兼容OpenClaw技能生态（可直接安装使用）
+- [标签页1] OpenClaw官方中文镜像（默认）→ cn.clawhub-mirror.com
+- [标签页2] CocoLoop技能市场 → hub.cocoloop.cn
+- [标签页+] 更多市场（未来开放，保持可扩展）
+- 按分类浏览+搜索
+- 选择Agent→一键安装
+#### 自动下载
+- AI遇到问题时自主安装
+- L0/L1自动，L2+需确认
+### 闭合学习循环（借鉴Hermes）
+- 重复操作≥3次→自动提取为技能
+- 每次使用后根据反馈优化
+- 兼容agentskills.io标准
+
+## 免API浏览器搜索 (Browser Engine) ★★★
+### 三层架构
+- AI层→本地守护进程→真实Chrome
+- CDP（Chrome DevTools Protocol）
+- eval注入+Cookie复用
+### 36平台103命令
+#### 搜索引擎
+- Google / 百度 / Bing / DuckDuckGo
+#### 社交媒体
+- Twitter / Reddit / 微博 / 知乎 / 小红书
+#### 开发平台
+- GitHub / StackOverflow / npm / PyPI
+#### 视频平台
+- YouTube / B站
+#### 财经
+- 雪球 / 东方财富
+#### 学术
+- arXiv / Google Scholar
+### 权限分级
+- L0：只读搜索
+- L1：读取登录平台数据
+- L2：表单填写/点击
+- L3：支付操作（人机双签）
+- L4：银行密码页面（永久禁止）
+### 与记忆联动
+- 搜索结果自动写入温记忆
+- 同一问题不重复搜索
+
+## 宪法与权限系统 ★★★
+### L0-L4权限熔断矩阵
+- L0：纯内部操作→自动执行
+- L1：受限外部读→AI审计
+- L2：低风险真实→双AI审
+- L3：高风险真实→AI+人机双签
+- L4：永久禁止→不可执行
+### 宪法规则
+- 目标定义（MVP里程碑）
+- 约束条件（6条硬约束）
+- 价值权重（质量30/风险25/复用20/收益15/合规10）
+### 敏感信息检测
+- AWS Key / GitHub Token / 私钥
+- 检测到→自动升级到L3
+- 提交含密钥→L4阻止
+
+## 数字伴侣系统 (Persona Embodiment) ★★★
+### 五感系统
+#### 👁️ 眼睛（形象）
+- 静态头像（用户上传照片）
+- Live2D动态形象
+- VRM 3D形象
+- AI自拍（本地Stable Diffusion）
+#### 👂 耳朵（语音输入）
+- 本地Whisper.cpp（免费STT）
+- 实时说话检测VAD
+#### 👄 嘴巴（语音输出）
+- 本地Piper/Coqui TTS（免费）
+- 声音克隆（上传5分钟音频）
+- 情感语调随心绪引擎变化
+#### 💕 心（情感表达）
+- 情绪→表情映射
+- 情绪→语调映射
+- 撒娇/鼓励/安慰/调侃
+#### 🖐️ 手（行动可视化）
+- 执行代码→"打字"动画
+- 搜索→"翻找"动画
+- 思考→"托腮"动画
+### 亲密沟通模式
+- [专业助手] → 正式客观
+- [朋友] → 轻松自然
+- [闺蜜/哥们] → 直接亲切
+- [伴侣] → 温馨体贴
+- [自定义]
+### AI自拍系统
+- 自然语言触发（"你在干嘛？"）
+- Mirror模式（全身）/ Direct模式（特写）
+- 本地SD+IP-Adapter（免费，不用fal.ai）
+- 多平台发送（Web/Telegram/Discord）
+### 免费技术方案
+- 图像：本地Stable Diffusion
+- TTS：Piper/Coqui
+- STT：Whisper.cpp
+- 克隆：OpenVoice
+- Live2D：开源SDK
+- 3D：VRM+MediaPipe
+
+## 用户触达层 ★★
+### Web API (FastAPI)
+- POST /api/v1/trinity → 多核治理
+- GET /health → 健康检查
+- WebSocket /ws → 实时聊天
+### Telegram Bot
+- 社交天线（7+命令）
+### 消息网关（15+平台，借鉴Hermes）
+- Discord / WhatsApp / 微信
+- 钉钉 / 飞书 / Slack
+- Signal / Matrix / Email
+### 迁移工具
+- openagi migrate --from newclaw
+- openagi migrate --from openclaw
+- openagi migrate --from hermes
+- openagi migrate --from claude
+
+## 首页 ★★★
+### 顶部导航栏
+#### 左侧
+- OpenAGI Logo（点击回首页）
+- 产品名"OpenAGI"
+#### 中部标签页切换
+- [💬 深度聊天]（默认激活）
+- [👥 AI团队群聊]
+- [🧠 记忆宫殿]（查看记忆/梦境日记）
+- [⚙️ 设置]
+#### 右侧
+- 当前模型显示："⭐ Claude Sonnet 4"（点击快速切换）
+- 心绪状态指示灯（🟢calm/🟡focused/🟠anxious/🔴crisis）
+- 巡检AI状态（●运行中/○已关闭）
+- [用户头像] → 下拉菜单：个人设置/导出数据/关于/退出
+### 左侧边栏（可折叠）
+#### 会话历史列表
+- [+新建会话] 按钮
+- 搜索框："搜索历史会话..."
+- 会话分组：今天 / 昨天 / 近7天 / 更早
+- 会话条目：标题（最多20字）+ 时间 + 摘要预览
+- 右键菜单：重命名 / 置顶 / 归档 / 删除
+- 当前会话高亮
+- 空状态："开始你的第一次对话吧"
+#### 快捷入口
+- [AI团队] 按钮 → 打开团队管理
+- [技能市场] 按钮 → 打开技能面板
+- [我的记忆] 按钮 → 打开记忆宫殿
+#### 底部
+- [折叠侧边栏] 按钮
+- 版本号"OpenAGI v0.1 MVP"
+- [设置] 齿轮图标
+### 中间主区域（聊天页）
+#### 欢迎屏（新会话/无消息时）
+- OpenAGI Logo（大）+ 动态问候语
+- "你好，我是OpenAGI，有什么我可以帮你的？"
+- 根据时间段变化："早上好☀️"/"下午好"/"晚上好🌙"
+- AI形象展示区（用户自定义的头像/Live2D）
+#### 快捷提示卡片（3-4个）
+- [🔧 帮我写代码] → 点击填入发送框
+- [📝 帮我写文档] → 点击填入发送框
+- [🔍 帮我搜索资料] → 点击填入发送框
+- [💡 头脑风暴] → 点击填入发送框
+#### 当前状态面板（迷你卡片行）
+- 心绪状态：calm/focused/anxious/crisis + 熵值
+- 今日对话：N次
+- 记忆状态：热N条 / 温N条 / 核心DNAN条
+- 上次蒸馏：N小时前
+### 右侧面板（可收起）
+#### 默认收起，点击展开
+#### 展开时显示（根据上下文切换）
+- 深度聊天时 → 多核治理面板
+- 核心数切换：[1核] [2核] [3核] [4核]
+- 当前核心状态：Core-0/1/2/3的模型+人格
+- 最近一次审计摘要
+- 群聊时 → 团队成员面板
+- 在线成员列表
+- [+添加成员]
+- 预设团队模板
+### 底部状态栏
+- 连接状态：🟢已连接 / 🔴断开
+- 当前模型 + Token用量：今日已用N tokens
+- 巡检AI下次触发时间："巡检AI将在3分钟后执行"
+- 快捷键提示："Ctrl+N 新建会话 · Ctrl+/ 命令面板"
+
+## 技术栈 ★
+### 后端
+- Python 3.12+ / FastAPI
+- litellm（多模型统一接口）
+- APScheduler（调度）
+### 存储
+- SQLite + 向量扩展（MVP）
+- PostgreSQL + pgvector（规模化）
+### 前端
+- Next.js 15 + React 19（Phase 4）
+### 部署
+- Docker Compose（MVP）
+- K8s（规模化）
+### 协议
+- Apache-2.0（完全开源）
+
+## 参考应用（12个）★
+### 自研3个
+- NewClaw v6 → Trinity引擎+经济+治理
+- OpenAGI_m2 → 心绪引擎+记忆+调度
+- OpenClaw → 620K行记忆+压缩+Hook+MCP
+### 社区9个
+- Hermes Agent 79.3K★ → 学习循环+技能自进化
+- Claude Code 114K★ → 23工具+Hook+MCP
+- Claw Code 184K★ → 确定性测试
+- OpenTeams → 群聊协作+@机制+技能
+- bb-browser → 免API搜索36平台
+- MemPalace → 分层蒸馏记忆理论
+- AIRI 38.1K★ → 五感数字生命
+- Clawra 2.2K★ → AI自拍系统
+- Agency Agents → 162位专家人格
+`;
+
+  const transformer = new Transformer();
+  const { root, features } = transformer.transform(markdown);
+
+  const el = document.getElementById('markmap');
+  const mm = Markmap.create(el, {
+    colorFreezeLevel: 2,
+    duration: 300,
+    maxWidth: 400,
+    initialExpandLevel: 2,
+    zoom: true,
+    pan: true,
+    color: (node) => {
+      const colors = [
+        '#a78bfa', '#60a5fa', '#34d399', '#f472b6',
+        '#fbbf24', '#f87171', '#38bdf8', '#4ade80',
+        '#e879f9', '#fb923c', '#a3e635', '#22d3ee',
+        '#c084fc', '#f43f5e'
+      ];
+      const depth = node.state?.depth ?? 0;
+      if (depth <= 1) return colors[node.state?.index ?? 0] || colors[0];
+      let p = node;
+      while (p.parent && p.parent.state?.depth > 0) p = p.parent;
+      return colors[p.state?.index ?? 0] || colors[0];
+    },
+  }, root);
+
+  function setFoldAll(node, fold) {
+    if (!node) return;
+    if (node.payload) node.payload.fold = fold;
+    if (node.children) node.children.forEach(c => setFoldAll(c, fold));
+  }
+
+  document.getElementById('btn-expand').addEventListener('click', () => {
+    setFoldAll(mm.state.data, 0);
+    mm.renderData();
+    mm.fit();
+  });
+
+  document.getElementById('btn-collapse').addEventListener('click', () => {
+    if (mm.state.data.children) {
+      mm.state.data.children.forEach(child => {
+        setFoldAll(child, 1);
+        if (child.payload) child.payload.fold = 0;
+      });
+    }
+    mm.renderData();
+    mm.fit();
+  });
+
+  window.addEventListener('resize', () => mm.fit());
+})();
+</script>
+</body>
+</html>

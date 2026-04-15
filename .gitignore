@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Data (运行时生成)
+data/
+*.db
+*.sqlite
+
+# Env
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (前端)
+web/node_modules/
+web/.next/
+web/out/
+
+# Logs
+*.log
+
+# Cache
+.pytest_cache/
+.ruff_cache/

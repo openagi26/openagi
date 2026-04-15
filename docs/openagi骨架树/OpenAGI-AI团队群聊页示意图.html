@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenAGI AI团队群聊页示意图</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      background: #f0f2f5; color: #1f2937;
+      height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* 顶部栏 */
+    .topbar {
+      height: 52px; background: linear-gradient(135deg, #1e1b4b, #312e81);
+      display: flex; align-items: center; padding: 0 20px; gap: 16px; flex-shrink: 0;
+    }
+    .topbar .logo { font-size: 18px; font-weight: 700; background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .topbar .divider { width: 1px; height: 24px; background: rgba(255,255,255,0.15); }
+    .topbar .tabs { display: flex; gap: 4px; }
+    .topbar .tab { padding: 6px 14px; border-radius: 8px; font-size: 13px; color: rgba(255,255,255,0.6); cursor: pointer; border: 1px solid transparent; }
+    .topbar .tab:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .topbar .tab.active { color: #fff; background: rgba(124,58,237,0.35); border-color: rgba(124,58,237,0.5); }
+    .topbar .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .topbar .model-badge { font-size: 11px; padding: 3px 10px; border-radius: 999px; background: rgba(96,165,250,0.15); color: #93c5fd; border: 1px solid rgba(96,165,250,0.3); }
+    .topbar .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .topbar .status-dot.green { background: #34d399; box-shadow: 0 0 6px #34d399; }
+    .topbar .status-label { font-size: 11px; color: rgba(255,255,255,0.5); }
+    .topbar .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #2563eb); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; font-weight: 600; cursor: pointer; }
+
+    .main { flex: 1; display: flex; overflow: hidden; }
+
+    /* 左侧边栏 */
+    .sidebar { width: 260px; background: #fff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar .section-title { font-size: 11px; color: #9ca3af; font-weight: 600; padding: 14px 16px 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .sidebar .new-chat-btn { margin: 12px 12px 8px; padding: 8px; border-radius: 8px; border: 1px dashed #d1d5db; background: #fafafa; text-align: center; font-size: 13px; color: #6b7280; cursor: pointer; }
+    .sidebar .new-chat-btn:hover { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; }
+    .sidebar .search-box { margin: 0 12px 8px; padding: 7px 10px; border-radius: 6px; border: 1px solid #e5e7eb; background: #f9fafb; font-size: 12px; color: #9ca3af; }
+    .sidebar .group-label { font-size: 11px; color: #9ca3af; padding: 8px 16px 4px; font-weight: 500; }
+    .session-item { padding: 8px 16px; cursor: pointer; border-left: 3px solid transparent; }
+    .session-item:hover { background: #f5f3ff; }
+    .session-item.active { background: #ede9fe; border-left-color: #7c3aed; }
+    .session-item .title { font-size: 13px; color: #1f2937; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .session-item .meta { font-size: 11px; color: #9ca3af; margin-top: 2px; display: flex; justify-content: space-between; }
+    .session-item .member-dots { display: flex; gap: -4px; margin-top: 4px; }
+    .session-item .member-dot { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #fff; border: 1.5px solid #fff; margin-left: -4px; }
+    .sidebar .footer { border-top: 1px solid #e5e7eb; padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: #9ca3af; margin-top: auto; }
+
+    /* 中间聊天区 */
+    .center { flex: 1; display: flex; flex-direction: column; background: #fafbfc; }
+
+    /* 群聊头部 */
+    .chat-header {
+      padding: 10px 16px; border-bottom: 1px solid #e5e7eb; background: #fff;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .chat-header .team-name { font-size: 15px; font-weight: 600; color: #1f2937; }
+    .chat-header .team-count { font-size: 11px; color: #6b7280; }
+    .mode-switch { display: flex; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-left: auto; }
+    .mode-btn { padding: 5px 14px; font-size: 12px; cursor: pointer; border: none; background: #fff; color: #6b7280; font-family: inherit; transition: all 0.2s; }
+    .mode-btn.active { background: #7c3aed; color: #fff; }
+    .mode-btn:hover:not(.active) { background: #f5f3ff; color: #7c3aed; }
+
+    /* 消息区 */
+    .messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    .msg { display: flex; gap: 10px; max-width: 85%; }
+    .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+    .msg-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; flex-shrink: 0; }
+    .msg-body { display: flex; flex-direction: column; gap: 2px; }
+    .msg-name { font-size: 11px; color: #6b7280; font-weight: 500; }
+    .msg-name .mention { color: #7c3aed; font-weight: 600; }
+    .msg-bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.6; }
+    .msg.user .msg-bubble { background: #7c3aed; color: #fff; border-bottom-right-radius: 4px; }
+    .msg.ai .msg-bubble { background: #fff; color: #1f2937; border: 1px solid #e5e7eb; border-bottom-left-radius: 4px; }
+    .msg-time { font-size: 10px; color: #9ca3af; }
+    .msg.user .msg-name, .msg.user .msg-time { text-align: right; }
+
+    /* @标签 */
+    .at-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; background: #ede9fe; color: #7c3aed; font-size: 12px; font-weight: 500; cursor: pointer; }
+    .at-tag:hover { background: #ddd6fe; }
+
+    /* 工作进度面板 */
+    .work-progress { padding: 12px 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; margin: 0 16px; }
+    .work-progress .title { font-size: 12px; font-weight: 600; color: #166534; margin-bottom: 8px; }
+    .progress-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; }
+    .progress-item .status-icon { font-size: 14px; }
+    .progress-item .agent-name { font-weight: 500; color: #374151; width: 100px; }
+    .progress-item .task-desc { color: #6b7280; flex: 1; }
+    .progress-item .timer { font-size: 11px; color: #059669; font-weight: 500; }
+
+    /* AI工作中雷达 */
+    .radar-container { display: flex; align-items: center; gap: 8px; padding: 8px 16px; }
+    .radar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #7c3aed; position: relative; overflow: hidden; }
+    .radar::after { content: ''; position: absolute; top: 50%; left: 50%; width: 50%; height: 2px; background: #7c3aed; transform-origin: left center; animation: radar-spin 2s linear infinite; }
+    @keyframes radar-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .radar-text { font-size: 12px; color: #7c3aed; font-weight: 500; }
+    .radar-timer { font-size: 11px; color: #6b7280; }
+
+    /* 发送框 */
+    .input-area { border-top: 1px solid #e5e7eb; background: #fff; padding: 12px 16px; }
+    .input-wrapper { border: 1px solid #d1d5db; border-radius: 12px; background: #fff; overflow: hidden; transition: border-color 0.2s; }
+    .input-wrapper:focus-within { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
+    .mention-bar { display: flex; gap: 4px; padding: 6px 10px; border-bottom: 1px solid #f3f4f6; flex-wrap: wrap; align-items: center; }
+    .mention-bar .label { font-size: 11px; color: #9ca3af; }
+    .mention-chip { display: flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px; background: #ede9fe; color: #7c3aed; font-size: 11px; font-weight: 500; }
+    .mention-chip .remove { cursor: pointer; opacity: 0.6; }
+    .mention-chip .remove:hover { opacity: 1; }
+    .input-textarea { width: 100%; min-height: 44px; max-height: 200px; padding: 10px 14px; border: none; outline: none; resize: none; font-size: 14px; font-family: inherit; color: #1f2937; background: transparent; line-height: 1.5; }
+    .input-textarea::placeholder { color: #9ca3af; }
+    .input-toolbar { display: flex; align-items: center; padding: 6px 10px; border-top: 1px solid #f3f4f6; gap: 2px; }
+    .toolbar-btn { width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #6b7280; transition: all 0.15s; }
+    .toolbar-btn:hover { background: #f3f4f6; color: #7c3aed; }
+    .toolbar-spacer { flex: 1; }
+    .send-btn { padding: 6px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #7c3aed, #6366f1); color: #fff; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .send-btn:hover { background: linear-gradient(135deg, #6d28d9, #4f46e5); }
+    .input-hint { font-size: 10px; color: #9ca3af; text-align: right; padding: 4px 4px 0; }
+
+    /* 右侧成员面板 */
+    .right-panel { width: 280px; background: #fff; border-left: 1px solid #e5e7eb; flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto; }
+    .panel-header { padding: 14px 16px; font-size: 13px; font-weight: 600; color: #374151; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between; }
+    .panel-section { padding: 8px 12px; }
+    .panel-section-title { font-size: 11px; color: #9ca3af; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+
+    .member-card { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; cursor: pointer; transition: background 0.15s; margin-bottom: 2px; }
+    .member-card:hover { background: #f5f3ff; }
+    .member-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; flex-shrink: 0; position: relative; }
+    .member-avatar .online-dot { position: absolute; bottom: -1px; right: -1px; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #fff; }
+    .member-avatar .online-dot.green { background: #34d399; }
+    .member-avatar .online-dot.yellow { background: #fbbf24; }
+    .member-info { flex: 1; min-width: 0; }
+    .member-info .name { font-size: 12px; font-weight: 500; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .member-info .role { font-size: 10px; color: #9ca3af; }
+    .member-status { font-size: 10px; padding: 2px 6px; border-radius: 999px; }
+    .member-status.idle { background: #f3f4f6; color: #6b7280; }
+    .member-status.working { background: #dcfce7; color: #166534; animation: pulse-status 2s infinite; }
+    @keyframes pulse-status { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+    .add-member-btn { width: 100%; padding: 8px; border-radius: 8px; border: 1px dashed #d1d5db; background: #fafafa; text-align: center; font-size: 12px; color: #6b7280; cursor: pointer; margin-top: 4px; }
+    .add-member-btn:hover { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; }
+
+    .preset-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; font-size: 11px; color: #6b7280; cursor: pointer; }
+    .preset-btn:hover { border-color: #7c3aed; color: #7c3aed; }
+
+    .team-protocol { margin: 8px 12px; padding: 8px 10px; border-radius: 6px; background: #eff6ff; border: 1px solid #bfdbfe; font-size: 11px; color: #1e40af; }
+    .team-protocol .proto-title { font-weight: 600; margin-bottom: 2px; }
+
+    /* 底部状态栏 */
+    .bottombar { height: 28px; background: #f9fafb; border-top: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 16px; font-size: 10px; color: #9ca3af; gap: 16px; flex-shrink: 0; }
+    .bottombar .spacer { flex: 1; }
+  </style>
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<div class="topbar">
+  <div class="logo">OpenAGI</div>
+  <div class="divider"></div>
+  <div class="tabs">
+    <div class="tab">💬 深度聊天</div>
+    <div class="tab active">👥 AI团队群聊</div>
+    <div class="tab">🧠 记忆宫殿</div>
+    <div class="tab">⚙️ 设置</div>
+  </div>
+  <div class="right">
+    <span class="model-badge">⭐ Claude Sonnet 4</span>
+    <span style="display:flex;align-items:center;gap:4px;"><span class="status-dot green"></span><span class="status-label">calm</span></span>
+    <div class="avatar">王</div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- 左侧：群聊会话列表 -->
+  <div class="sidebar">
+    <div class="new-chat-btn">＋ 新建团队群聊</div>
+    <div class="search-box">🔍 搜索群聊会话...</div>
+
+    <div class="group-label">进行中</div>
+    <div class="session-item active">
+      <div class="title">🔧 OpenAGI 登录页开发</div>
+      <div class="meta"><span>5位成员</span><span>进行中</span></div>
+      <div class="member-dots">
+        <div class="member-dot" style="background:#7c3aed;">设</div>
+        <div class="member-dot" style="background:#2563eb;">前</div>
+        <div class="member-dot" style="background:#059669;">研</div>
+        <div class="member-dot" style="background:#dc2626;">安</div>
+        <div class="member-dot" style="background:#ea580c;">后</div>
+      </div>
+    </div>
+    <div class="session-item">
+      <div class="title">📝 产品PRD评审</div>
+      <div class="meta"><span>3位成员</span><span>14:20</span></div>
+      <div class="member-dots">
+        <div class="member-dot" style="background:#7c3aed;">产</div>
+        <div class="member-dot" style="background:#2563eb;">设</div>
+        <div class="member-dot" style="background:#059669;">研</div>
+      </div>
+    </div>
+
+    <div class="group-label">已完成</div>
+    <div class="session-item">
+      <div class="title">💡 MVP架构头脑风暴</div>
+      <div class="meta"><span>4位成员</span><span>昨天</span></div>
+    </div>
+    <div class="session-item">
+      <div class="title">🔒 安全审计讨论</div>
+      <div class="meta"><span>3位成员</span><span>4月12日</span></div>
+    </div>
+
+    <div style="flex:1;"></div>
+    <div class="footer">
+      <span>OpenAGI v0.1 MVP</span>
+      <span style="cursor:pointer;">⚙️</span>
+    </div>
+  </div>
+
+  <!-- 中间：群聊消息区 -->
+  <div class="center">
+    <!-- 群聊头部 -->
+    <div class="chat-header">
+      <span style="font-size:18px;">🔧</span>
+      <div>
+        <div class="team-name">OpenAGI 登录页开发</div>
+        <div class="team-count">5位AI成员 · 讨论模式</div>
+      </div>
+      <div class="mode-switch">
+        <div class="mode-btn active" id="mode-discuss">💬 讨论模式</div>
+        <div class="mode-btn" id="mode-work">⚡ 工作模式</div>
+      </div>
+    </div>
+
+    <!-- 消息区 -->
+    <div class="messages">
+      <!-- 用户消息 -->
+      <div class="msg user">
+        <div class="msg-avatar" style="background:linear-gradient(135deg,#7c3aed,#2563eb);">王</div>
+        <div class="msg-body">
+          <div class="msg-name">陛下</div>
+          <div class="msg-bubble">
+            我们需要设计OpenAGI的登录页面，<span class="at-tag">@界面设计师</span> <span class="at-tag">@前端开发者</span> <span class="at-tag">@体验研究员</span> 一起讨论方案。要支持微信登录和手机号登录。
+          </div>
+          <div class="msg-time">14:30</div>
+        </div>
+      </div>
+
+      <!-- 界面设计师 -->
+      <div class="msg ai">
+        <div class="msg-avatar" style="background:#7c3aed;">🎨</div>
+        <div class="msg-body">
+          <div class="msg-name">界面设计师 · <span style="font-size:10px;color:#9ca3af;">Claude Opus · 0.7</span></div>
+          <div class="msg-bubble">
+            收到！我先出一版视觉方案：<br/><br/>
+            <b>方案A：极简分屏布局</b><br/>
+            • 左侧：品牌区（Logo + 一句话Slogan + 动态粒子背景）<br/>
+            • 右侧：登录卡片（毛玻璃效果）<br/>
+            • 主按钮：微信登录（绿色）&gt; 手机号登录（紫色）<br/><br/>
+            <span class="at-tag">@前端开发者</span> 这个毛玻璃+粒子效果技术上可行吗？
+          </div>
+          <div class="msg-time">14:31</div>
+        </div>
+      </div>
+
+      <!-- 前端开发者 -->
+      <div class="msg ai">
+        <div class="msg-avatar" style="background:#2563eb;">💻</div>
+        <div class="msg-body">
+          <div class="msg-name">前端开发者 · <span style="font-size:10px;color:#9ca3af;">Claude Sonnet · 0.7</span></div>
+          <div class="msg-bubble">
+            技术上完全没问题！Next.js + Tailwind 可以实现：<br/><br/>
+            • 毛玻璃：`backdrop-blur-xl` + `bg-white/10`<br/>
+            • 粒子效果：`tsparticles` 库，约 20KB gzip<br/>
+            • 微信OAuth：服务端走 `wechat-oauth` 包<br/><br/>
+            但 <span class="at-tag">@体验研究员</span> 建议先确认一下，中国用户是不是真的优先微信登录？
+          </div>
+          <div class="msg-time">14:32</div>
+        </div>
+      </div>
+
+      <!-- 体验研究员 -->
+      <div class="msg ai">
+        <div class="msg-avatar" style="background:#059669;">🔬</div>
+        <div class="msg-body">
+          <div class="msg-name">体验研究员 · <span style="font-size:10px;color:#9ca3af;">GPT-4o · 0.5</span></div>
+          <div class="msg-bubble">
+            好问题！根据我的经验数据：<br/><br/>
+            <b>中国用户登录偏好排序：</b><br/>
+            1. 📱 微信扫码登录 — 62%（零输入，最快）<br/>
+            2. 📲 手机号+验证码 — 28%（备选主力）<br/>
+            3. ✉️ 邮箱密码 — 8%（开发者偏好）<br/>
+            4. 🔑 其他OAuth — 2%<br/><br/>
+            建议微信登录按钮做最大最醒目。<span class="at-tag">@安全工程师</span> OAuth安全方面怎么做？
+          </div>
+          <div class="msg-time">14:33</div>
+        </div>
+      </div>
+
+      <!-- 安全工程师 -->
+      <div class="msg ai">
+        <div class="msg-avatar" style="background:#dc2626;">🔒</div>
+        <div class="msg-body">
+          <div class="msg-name">安全工程师 · <span style="font-size:10px;color:#9ca3af;">Claude Haiku · 0.3</span></div>
+          <div class="msg-bubble">
+            OAuth 2.0 + PKCE 标准流程，建议：<br/><br/>
+            1. 微信OAuth走服务端流程（不暴露 AppSecret）<br/>
+            2. 手机号用短信验证码（60秒防刷 + 图形验证码）<br/>
+            3. 所有 token 存 HttpOnly Secure Cookie<br/>
+            4. 增加设备指纹识别，异常登录二次验证<br/><br/>
+            ⚠️ 注意：微信小程序和网页版的OAuth流程不同，需分别处理。
+          </div>
+          <div class="msg-time">14:34</div>
+        </div>
+      </div>
+
+      <!-- AI工作中雷达（后端架构师正在编码） -->
+      <div class="radar-container">
+        <div class="radar"></div>
+        <span class="radar-text">后端架构师正在工作中...</span>
+        <span class="radar-timer">已用时 12 秒</span>
+      </div>
+
+      <!-- 后端架构师（正在生成中） -->
+      <div class="msg ai">
+        <div class="msg-avatar" style="background:#ea580c;">⚙️</div>
+        <div class="msg-body">
+          <div class="msg-name">后端架构师 · <span style="font-size:10px;color:#9ca3af;">DeepSeek · 0.7</span></div>
+          <div class="msg-bubble" style="background:#fff7ed;border-color:#fed7aa;">
+            我来补充后端API设计，<span style="color:#ea580c;">正在生成中...</span>
+            <span style="display:inline-block;animation:blink 1s infinite;">▊</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <style>@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }</style>
+
+    <!-- 发送框 -->
+    <div class="input-area">
+      <div class="input-wrapper">
+        <div class="mention-bar">
+          <span class="label">已@：</span>
+          <span class="mention-chip">@界面设计师 <span class="remove">✕</span></span>
+          <span class="mention-chip">@前端开发者 <span class="remove">✕</span></span>
+          <span class="mention-chip">@体验研究员 <span class="remove">✕</span></span>
+          <span class="mention-chip" style="background:#fff3cd;color:#92400e;">@全体成员 <span class="remove">✕</span></span>
+        </div>
+        <textarea class="input-textarea" placeholder="输入消息，使用 @ 给成员发送消息..." rows="2"></textarea>
+        <div class="input-toolbar">
+          <button class="toolbar-btn" title="附件">📎</button>
+          <button class="toolbar-btn" title="图片">🖼️</button>
+          <button class="toolbar-btn" title="润色">✨</button>
+          <button class="toolbar-btn" title="模型">🧠</button>
+          <button class="toolbar-btn" title="语音">🎤</button>
+          <button class="toolbar-btn" title="实时对话">📞</button>
+          <button class="toolbar-btn" title="巡检AI">🔭</button>
+          <div class="toolbar-spacer"></div>
+          <button class="send-btn">发送 ↑</button>
+        </div>
+      </div>
+      <div class="input-hint">按 Enter 发送，Shift + Enter 换行</div>
+    </div>
+  </div>
+
+  <!-- 右侧：团队成员面板 -->
+  <div class="right-panel">
+    <div class="panel-header">
+      团队成员 (5)
+      <span style="cursor:pointer;color:#9ca3af;font-size:16px;">✕</span>
+    </div>
+
+    <!-- 团队公告板 -->
+    <div class="team-protocol">
+      <div class="proto-title">📋 团队协作准则</div>
+      先讨论方案 → 达成共识 → 切换工作模式并行开发 → 代码完成后安全审查
+    </div>
+
+    <!-- 在线成员 -->
+    <div class="panel-section">
+      <div class="panel-section-title">在线成员 <span style="font-size:10px;color:#34d399;">● 全部在线</span></div>
+
+      <div class="member-card">
+        <div class="member-avatar" style="background:#7c3aed;">🎨 <span class="online-dot green"></span></div>
+        <div class="member-info">
+          <div class="name">界面设计师</div>
+          <div class="role">Claude Opus · 创新开拓者</div>
+        </div>
+        <span class="member-status idle">空闲</span>
+      </div>
+
+      <div class="member-card">
+        <div class="member-avatar" style="background:#2563eb;">💻 <span class="online-dot green"></span></div>
+        <div class="member-info">
+          <div class="name">前端开发者</div>
+          <div class="role">Claude Sonnet · 务实工程师</div>
+        </div>
+        <span class="member-status idle">空闲</span>
+      </div>
+
+      <div class="member-card">
+        <div class="member-avatar" style="background:#059669;">🔬 <span class="online-dot green"></span></div>
+        <div class="member-info">
+          <div class="name">体验研究员</div>
+          <div class="role">GPT-4o · 跨界思考者</div>
+        </div>
+        <span class="member-status idle">空闲</span>
+      </div>
+
+      <div class="member-card">
+        <div class="member-avatar" style="background:#dc2626;">🔒 <span class="online-dot green"></span></div>
+        <div class="member-info">
+          <div class="name">安全工程师</div>
+          <div class="role">Claude Haiku · 冷酷审计官</div>
+        </div>
+        <span class="member-status idle">空闲</span>
+      </div>
+
+      <div class="member-card">
+        <div class="member-avatar" style="background:#ea580c;">⚙️ <span class="online-dot yellow"></span></div>
+        <div class="member-info">
+          <div class="name">后端架构师</div>
+          <div class="role">DeepSeek · 务实工程师</div>
+        </div>
+        <span class="member-status working">工作中</span>
+      </div>
+    </div>
+
+    <!-- 添加成员 -->
+    <div class="panel-section">
+      <div class="add-member-btn">＋ 添加AI成员</div>
+      <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">
+        <div class="preset-btn">📋 预设团队</div>
+        <div class="preset-btn">🧑‍💼 162专家</div>
+        <div class="preset-btn">🧩 技能市场</div>
+      </div>
+    </div>
+
+    <!-- 成员配置快捷入口 -->
+    <div class="panel-section" style="border-top:1px solid #f3f4f6;padding-top:10px;">
+      <div class="panel-section-title">快捷设置</div>
+      <div style="font-size:11px;color:#6b7280;line-height:1.8;">
+        • 每位成员可独立设置模型/人格/温度<br/>
+        • 点击成员名 → 打开详细配置<br/>
+        • AI之间互@最多 <b>3轮</b>（可调）<br/>
+        • 未被@的成员自动旁听积累上下文
+      </div>
+    </div>
+
+    <!-- 轮次统计 -->
+    <div class="panel-section" style="border-top:1px solid #f3f4f6;padding-top:10px;">
+      <div class="panel-section-title">本次讨论统计</div>
+      <div style="font-size:11px;color:#6b7280;line-height:1.8;">
+        💬 消息总数：6条<br/>
+        🔄 AI互@轮次：2/3（剩余1轮）<br/>
+        📊 Token消耗：入2,431 / 出1,876<br/>
+        ⏱️ 讨论时长：4分钟
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 底部状态栏 -->
+<div class="bottombar">
+  <span>🟢 已连接</span>
+  <span>👥 群聊模式 · 5位成员</span>
+  <span>💬 讨论模式</span>
+  <span>Token: 入2,431 / 出1,876</span>
+  <span class="spacer"></span>
+  <span>🔭 巡检AI: 运行中</span>
+  <span>Ctrl+N 新建 · Ctrl+/ 命令</span>
+</div>
+
+<script>
+// 讨论/工作模式切换
+document.getElementById('mode-discuss').addEventListener('click', function() {
+  this.classList.add('active');
+  document.getElementById('mode-work').classList.remove('active');
+});
+document.getElementById('mode-work').addEventListener('click', function() {
+  this.classList.add('active');
+  document.getElementById('mode-discuss').classList.remove('active');
+});
+</script>
+
+</body>
+</html>

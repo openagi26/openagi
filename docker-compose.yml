@@ -1,0 +1,12 @@
+services:
+  openagi:
+    build: .
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - OPENAGI_LOG_LEVEL=INFO
+    mem_limit: 4g
+    cpus: 2.0
+    restart: unless-stopped

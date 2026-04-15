@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenAGI 设置页面示意图</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      background: #f0f2f5;
+      color: #1f2937;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* 顶部栏 */
+    .topbar {
+      height: 52px;
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .topbar .logo {
+      font-size: 18px; font-weight: 700;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .topbar .divider { width: 1px; height: 24px; background: rgba(255,255,255,0.15); }
+    .topbar .tabs { display: flex; gap: 4px; }
+    .topbar .tab {
+      padding: 6px 14px; border-radius: 8px; font-size: 13px;
+      color: rgba(255,255,255,0.6); cursor: pointer; border: 1px solid transparent;
+    }
+    .topbar .tab:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .topbar .tab.active { color: #fff; background: rgba(124,58,237,0.35); border-color: rgba(124,58,237,0.5); }
+    .topbar .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .topbar .back-btn {
+      padding: 4px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);
+      background: transparent; color: rgba(255,255,255,0.7); font-size: 12px; cursor: pointer;
+    }
+    .topbar .back-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+    /* 主体 */
+    .main { flex: 1; display: flex; overflow: hidden; }
+
+    /* 设置侧边栏 */
+    .settings-nav {
+      width: 220px; background: #fff; border-right: 1px solid #e5e7eb;
+      padding: 16px 0; flex-shrink: 0; overflow-y: auto;
+    }
+    .nav-group-title {
+      font-size: 10px; color: #9ca3af; font-weight: 600; text-transform: uppercase;
+      padding: 12px 20px 6px; letter-spacing: 0.5px;
+    }
+    .nav-item {
+      padding: 8px 20px; font-size: 13px; color: #4b5563; cursor: pointer;
+      display: flex; align-items: center; gap: 8px; transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover { background: #f5f3ff; color: #7c3aed; }
+    .nav-item.active { background: #ede9fe; color: #7c3aed; border-left-color: #7c3aed; font-weight: 500; }
+    .nav-item .icon { font-size: 15px; width: 20px; text-align: center; }
+    .nav-item .badge {
+      margin-left: auto; font-size: 9px; padding: 1px 6px; border-radius: 999px;
+      background: #7c3aed; color: #fff;
+    }
+
+    /* 内容区 */
+    .settings-content {
+      flex: 1; padding: 24px 32px; overflow-y: auto; background: #fafbfc;
+    }
+    .section-title {
+      font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 4px;
+    }
+    .section-desc {
+      font-size: 13px; color: #6b7280; margin-bottom: 20px;
+    }
+    .card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+      padding: 20px; margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title .tag {
+      font-size: 10px; padding: 2px 8px; border-radius: 999px;
+      font-weight: 500;
+    }
+    .tag-primary { background: #ede9fe; color: #7c3aed; }
+    .tag-green { background: #ecfdf5; color: #059669; }
+    .tag-orange { background: #fff7ed; color: #ea580c; }
+
+    .form-row {
+      display: flex; align-items: center; padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6; gap: 12px;
+    }
+    .form-row:last-child { border-bottom: none; }
+    .form-label {
+      font-size: 13px; color: #374151; font-weight: 500; width: 140px; flex-shrink: 0;
+    }
+    .form-desc { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+    .form-input {
+      flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid #d1d5db;
+      font-size: 13px; color: #1f2937; background: #fff; font-family: inherit;
+    }
+    .form-input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
+    .form-select {
+      padding: 7px 10px; border-radius: 6px; border: 1px solid #d1d5db;
+      font-size: 13px; color: #1f2937; background: #fff; font-family: inherit; cursor: pointer;
+    }
+
+    .toggle {
+      width: 40px; height: 22px; border-radius: 11px; background: #d1d5db;
+      position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+    }
+    .toggle.on { background: #7c3aed; }
+    .toggle::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 18px; height: 18px; border-radius: 50%; background: #fff;
+      transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .toggle.on::after { transform: translateX(18px); }
+
+    .btn {
+      padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; font-family: inherit; border: 1px solid;
+    }
+    .btn-primary { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-outline { background: #fff; color: #7c3aed; border-color: #7c3aed; }
+    .btn-outline:hover { background: #f5f3ff; }
+    .btn-danger { background: #fff; color: #dc2626; border-color: #dc2626; }
+    .btn-danger:hover { background: #fef2f2; }
+    .btn-sm { padding: 4px 10px; font-size: 11px; }
+
+    .model-row {
+      display: flex; align-items: center; padding: 8px 12px; border-radius: 8px;
+      border: 1px solid #e5e7eb; margin-bottom: 6px; gap: 10px; background: #fafbfc;
+    }
+    .model-row.primary { border-color: #7c3aed; background: #f5f3ff; }
+    .model-row.fallback { border-color: #fbbf24; background: #fffbeb; }
+    .model-row .name { font-size: 13px; font-weight: 500; color: #1f2937; }
+    .model-row .provider { font-size: 11px; color: #6b7280; }
+    .model-row .latency { font-size: 11px; margin-left: auto; }
+    .model-row .latency.fast { color: #059669; }
+    .model-row .latency.medium { color: #d97706; }
+    .model-row .actions { display: flex; gap: 4px; margin-left: 8px; }
+
+    .core-config {
+      display: flex; gap: 8px; align-items: center; padding: 10px 12px;
+      border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; background: #fafbfc;
+    }
+    .core-config .label {
+      font-size: 12px; font-weight: 600; color: #7c3aed; width: 80px; flex-shrink: 0;
+    }
+    .core-config .fields { flex: 1; display: flex; gap: 6px; flex-wrap: wrap; }
+    .core-config .field-group { display: flex; flex-direction: column; gap: 2px; }
+    .core-config .field-label { font-size: 10px; color: #9ca3af; }
+
+    .persona-preview {
+      display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+      border: 1px solid #e5e7eb; border-radius: 8px; background: #fafbfc; margin-top: 6px;
+    }
+    .persona-preview .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #2563eb);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: #fff;
+    }
+    .persona-preview .info { flex: 1; }
+    .persona-preview .name-line { font-size: 13px; font-weight: 500; color: #1f2937; }
+    .persona-preview .desc-line { font-size: 11px; color: #6b7280; }
+
+    .freq-options { display: flex; gap: 4px; flex-wrap: wrap; }
+    .freq-opt {
+      padding: 4px 10px; border-radius: 6px; border: 1px solid #d1d5db;
+      font-size: 11px; color: #6b7280; cursor: pointer; background: #fff;
+    }
+    .freq-opt.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+    .freq-opt:hover:not(.active) { border-color: #7c3aed; color: #7c3aed; }
+
+    .checkbox-row {
+      display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; color: #374151;
+    }
+    .checkbox {
+      width: 16px; height: 16px; border-radius: 4px; border: 1px solid #d1d5db;
+      display: flex; align-items: center; justify-content: center; font-size: 10px;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .checkbox.checked { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+
+    .voice-preview {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      border: 1px solid #e5e7eb; border-radius: 8px; background: #fafbfc;
+    }
+    .voice-wave {
+      display: flex; align-items: flex-end; gap: 2px; height: 24px;
+    }
+    .voice-wave .bar {
+      width: 3px; border-radius: 2px; background: #7c3aed;
+      animation: wave 1s ease-in-out infinite;
+    }
+    .voice-wave .bar:nth-child(1) { height: 8px; animation-delay: 0s; }
+    .voice-wave .bar:nth-child(2) { height: 16px; animation-delay: 0.1s; }
+    .voice-wave .bar:nth-child(3) { height: 24px; animation-delay: 0.2s; }
+    .voice-wave .bar:nth-child(4) { height: 12px; animation-delay: 0.3s; }
+    .voice-wave .bar:nth-child(5) { height: 20px; animation-delay: 0.4s; }
+    @keyframes wave {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<div class="topbar">
+  <div class="logo">OpenAGI</div>
+  <div class="divider"></div>
+  <div class="tabs">
+    <div class="tab">💬 深度聊天</div>
+    <div class="tab">👥 AI团队群聊</div>
+    <div class="tab">🧠 记忆宫殿</div>
+    <div class="tab active">⚙️ 设置</div>
+  </div>
+  <div class="right">
+    <button class="back-btn">← 返回聊天</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ===== 设置导航侧边栏 ===== -->
+  <div class="settings-nav">
+    <div class="nav-group-title">基础</div>
+    <div class="nav-item active"><span class="icon">🧠</span> 模型管理</div>
+    <div class="nav-item"><span class="icon">🎛️</span> 多核治理</div>
+    <div class="nav-item"><span class="icon">🔭</span> 巡检AI</div>
+    <div class="nav-item"><span class="icon">👤</span> 人格设定</div>
+
+    <div class="nav-group-title">交互</div>
+    <div class="nav-item"><span class="icon">💬</span> 聊天设置</div>
+    <div class="nav-item"><span class="icon">💕</span> 伴侣模式</div>
+    <div class="nav-item"><span class="icon">🎤</span> 语音设置</div>
+    <div class="nav-item"><span class="icon">👁️</span> 形象设置</div>
+
+    <div class="nav-group-title">能力</div>
+    <div class="nav-item"><span class="icon">🧩</span> 技能管理 <span class="badge">8</span></div>
+    <div class="nav-item"><span class="icon">🔧</span> 工具管理 <span class="badge">23</span></div>
+    <div class="nav-item"><span class="icon">🌐</span> 浏览器引擎</div>
+    <div class="nav-item"><span class="icon">🔌</span> MCP集成</div>
+    <div class="nav-item"><span class="icon">🪝</span> Hook管理</div>
+
+    <div class="nav-group-title">数据</div>
+    <div class="nav-item"><span class="icon">🧠</span> 记忆系统</div>
+    <div class="nav-item"><span class="icon">🌊</span> 梦境蒸馏</div>
+    <div class="nav-item"><span class="icon">📊</span> 数据统计</div>
+
+    <div class="nav-group-title">系统</div>
+    <div class="nav-item"><span class="icon">🎨</span> 外观主题</div>
+    <div class="nav-item"><span class="icon">🔒</span> 权限与安全</div>
+    <div class="nav-item"><span class="icon">💾</span> 导入导出</div>
+    <div class="nav-item"><span class="icon">📡</span> 消息网关</div>
+    <div class="nav-item"><span class="icon">🐳</span> 部署与永生</div>
+    <div class="nav-item"><span class="icon">ℹ️</span> 关于</div>
+  </div>
+
+  <!-- ===== 设置内容区（默认显示：模型管理）===== -->
+  <div class="settings-content">
+    <div class="section-title">🧠 模型管理</div>
+    <div class="section-desc">管理AI模型、中转站和故障转移策略</div>
+
+    <!-- 中转模型管理 -->
+    <div class="card">
+      <div class="card-title">
+        中转站管理
+        <span class="tag tag-primary">添加中转站可自动发现模型</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:12px;color:#6b7280;">已保存的中转站配置（刷新不丢失）</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-outline" id="group-select-all">☑ 全选</button>
+          <button class="btn btn-sm btn-outline" id="add-group-btn">＋ 增加测试组（最多10组）</button>
+        </div>
+      </div>
+      <!-- 测试组1 -->
+      <div style="padding:10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;background:#fafbfc;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <input type="checkbox" checked class="group-cb" style="cursor:pointer;" />
+          <span style="font-size:11px;font-weight:600;color:#7c3aed;">测试组 1</span>
+          <input class="form-input" placeholder="备注名称（如：OpenRouter）" style="flex:1;font-size:11px;padding:4px 8px;" value="OpenRouter" />
+          <button class="btn btn-sm btn-danger" style="padding:2px 8px;">✕</button>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <input class="form-input" placeholder="API Base URL" style="flex:1;font-size:11px;padding:4px 8px;" value="https://openrouter.ai/api/v1" />
+          <input class="form-input" type="password" placeholder="API Key" style="width:180px;font-size:11px;padding:4px 8px;" value="sk-or-••••••••" />
+        </div>
+      </div>
+      <!-- 测试组2 -->
+      <div style="padding:10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;background:#fafbfc;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <input type="checkbox" checked class="group-cb" style="cursor:pointer;" />
+          <span style="font-size:11px;font-weight:600;color:#ea580c;">测试组 2</span>
+          <input class="form-input" placeholder="备注名称" style="flex:1;font-size:11px;padding:4px 8px;" value="OneAPI 自建站" />
+          <button class="btn btn-sm btn-danger" style="padding:2px 8px;">✕</button>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <input class="form-input" placeholder="API Base URL" style="flex:1;font-size:11px;padding:4px 8px;" value="https://one.example.com/v1" />
+          <input class="form-input" type="password" placeholder="API Key" style="width:180px;font-size:11px;padding:4px 8px;" value="sk-one-••••••••" />
+        </div>
+      </div>
+      <!-- 测试组3 -->
+      <div style="padding:10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;background:#fafbfc;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <input type="checkbox" checked class="group-cb" style="cursor:pointer;" />
+          <span style="font-size:11px;font-weight:600;color:#059669;">测试组 3</span>
+          <input class="form-input" placeholder="备注名称" style="flex:1;font-size:11px;padding:4px 8px;" value="OpenAI 官方直连" />
+          <button class="btn btn-sm btn-danger" style="padding:2px 8px;">✕</button>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <input class="form-input" placeholder="API Base URL" style="flex:1;font-size:11px;padding:4px 8px;" value="https://api.openai.com/v1" />
+          <input class="form-input" type="password" placeholder="API Key" style="width:180px;font-size:11px;padding:4px 8px;" value="sk-proj-••••••••" />
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;padding-top:4px;">
+        <button class="btn btn-primary">🔍 一键并行测试全部中转站 — 自动发现可用模型</button>
+        <span style="font-size:11px;color:#9ca3af;display:flex;align-items:center;">所有测试组同时并行探测，速度最快</span>
+      </div>
+      <!-- 测试结果 -->
+      <div style="margin-top: 12px; padding: 12px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+        <div style="font-size: 12px; font-weight: 600; color: #166534; margin-bottom: 8px;">✅ 发现 6 个可用模型（测试完成 2.3秒）</div>
+        <div class="model-row">
+          <span style="color:#059669;">✅</span>
+          <div><div class="name">claude-sonnet-4</div><div class="provider">Anthropic · <span style="color:#7c3aed;">中转站: OpenRouter</span> · 密钥:••Rk</div></div>
+          <div class="latency fast" style="margin-left:auto;">128ms 快</div>
+          <div class="actions">
+            <button class="btn btn-sm btn-primary">设为主模型</button>
+            <button class="btn btn-sm btn-outline">设为回退</button>
+          </div>
+        </div>
+        <div class="model-row">
+          <span style="color:#059669;">✅</span>
+          <div><div class="name">claude-sonnet-4</div><div class="provider">Anthropic · <span style="color:#ea580c;">中转站: OneAPI</span> · 密钥:••7x</div></div>
+          <div class="latency medium" style="margin-left:auto;">256ms 中</div>
+          <div class="actions">
+            <button class="btn btn-sm btn-outline">设为主模型</button>
+            <button class="btn btn-sm btn-outline">设为回退</button>
+          </div>
+        </div>
+        <div class="model-row">
+          <span style="color:#059669;">✅</span>
+          <div><div class="name">claude-haiku-4.5</div><div class="provider">Anthropic · <span style="color:#7c3aed;">中转站: OpenRouter</span> · 密钥:••Rk</div></div>
+          <div class="latency fast" style="margin-left:auto;">95ms 快</div>
+          <div class="actions">
+            <button class="btn btn-sm btn-outline">设为主模型</button>
+            <button class="btn btn-sm btn-outline">设为回退</button>
+          </div>
+        </div>
+        <div class="model-row">
+          <span style="color:#059669;">✅</span>
+          <div><div class="name">gpt-4o</div><div class="provider">OpenAI · <span style="color:#059669;">中转站: 官方直连</span> · 密钥:••3j</div></div>
+          <div class="latency medium" style="margin-left:auto;">342ms 中</div>
+          <div class="actions">
+            <button class="btn btn-sm btn-outline">设为主模型</button>
+            <button class="btn btn-sm btn-outline">设为回退</button>
+          </div>
+        </div>
+        <div class="model-row">
+          <span style="color:#dc2626;">❌</span>
+          <div><div class="name" style="color:#9ca3af;text-decoration:line-through;">gpt-3.5-turbo</div><div class="provider" style="color:#dc2626;">OneAPI · 密钥:••7x · 连接超时</div></div>
+          <div class="latency" style="margin-left:auto;color:#dc2626;">超时</div>
+          <div class="actions">
+            <button class="btn btn-sm btn-outline" disabled style="opacity:0.4;">不可用</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 本地Claude自动识别 -->
+    <div class="card" style="border-color:#34d399;">
+      <div class="card-title">
+        🔍 本地 Claude 自动识别
+        <span class="tag tag-green">已检测到本机安装的 Claude Code</span>
+      </div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:10px;">
+        自动识别本台电脑已安装的 Claude 模型，无需输入 API Key，直接引用。
+      </div>
+      <div class="model-row" style="border-color:#34d399;background:#ecfdf5;">
+        <span style="color:#059669;">🖥️</span>
+        <div><div class="name">claude-opus-4-6</div><div class="provider">Anthropic · <span style="color:#059669;">本地 Claude Code 自动识别</span> · 免API</div></div>
+        <div class="latency fast" style="margin-left:auto;">本地直连</div>
+        <div class="actions">
+          <button class="btn btn-sm btn-outline">设为主模型</button>
+          <button class="btn btn-sm btn-outline">设为回退</button>
+        </div>
+      </div>
+      <div class="model-row" style="border-color:#34d399;background:#ecfdf5;">
+        <span style="color:#059669;">🖥️</span>
+        <div><div class="name">claude-sonnet-4-6</div><div class="provider">Anthropic · <span style="color:#059669;">本地 Claude Code 自动识别</span> · 免API</div></div>
+        <div class="latency fast" style="margin-left:auto;">本地直连</div>
+        <div class="actions">
+          <button class="btn btn-sm btn-outline">设为主模型</button>
+          <button class="btn btn-sm btn-outline">设为回退</button>
+        </div>
+      </div>
+      <div class="model-row" style="border-color:#34d399;background:#ecfdf5;">
+        <span style="color:#059669;">🖥️</span>
+        <div><div class="name">claude-haiku-4-5</div><div class="provider">Anthropic · <span style="color:#059669;">本地 Claude Code 自动识别</span> · 免API</div></div>
+        <div class="latency fast" style="margin-left:auto;">本地直连</div>
+        <div class="actions">
+          <button class="btn btn-sm btn-outline">设为主模型</button>
+          <button class="btn btn-sm btn-outline">设为回退</button>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#059669;margin-top:6px;">💡 自动检测到本机 Claude Code v2.1.104，已加入可用模型列表</div>
+    </div>
+
+    <!-- 可用模型列表 -->
+    <div class="card">
+      <div class="card-title">
+        可用模型列表
+        <span class="tag tag-green">已登记 8 个模型（含3个本地自动识别）</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:11px;color:#6b7280;">按优先级排列：⭐主模型 → 🔄回退①② → 其他</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="btn btn-sm btn-outline" id="select-all-btn" style="font-weight:600;">☑ 全选</button>
+          <button class="btn btn-sm btn-outline">🔍 一键并行测试选中模型</button>
+          <span style="font-size:10px;color:#9ca3af;">（并行测试，出结果最快）</span>
+        </div>
+      </div>
+
+      <div class="model-row primary">
+        <input type="checkbox" checked style="cursor:pointer;" />
+        <span>⭐</span>
+        <div><div class="name">claude-sonnet-4</div><div class="provider">Anthropic · <span style="color:#7c3aed;">OpenRouter</span> · 密钥:••Rk · 主模型</div></div>
+        <div class="latency fast" style="margin-left:auto;">128ms</div>
+        <div class="actions">
+          <button class="btn btn-sm btn-outline" disabled style="opacity:0.4;">已是主模型</button>
+          <button class="btn btn-sm btn-outline">设为回退</button>
+          <button class="btn btn-sm btn-danger">删除</button>
+        </div>
+      </div>
+      <div class="model-row fallback">
+        <input type="checkbox" checked style="cursor:pointer;" />
+        <span>🔄①</span>
+        <div><div class="name">claude-haiku-4.5</div><div class="provider">Anthropic · <span style="color:#7c3aed;">OpenRouter</span> · 密钥:••Rk · <b>回退①</b></div></div>
+        <div class="latency fast" style="margin-left:auto;">95ms</div>
+        <div class="actions">
+          <button class="btn btn-sm btn-outline">设为主模型</button>
+          <button class="btn btn-sm btn-outline" disabled style="opacity:0.4;">已是回退①</button>
+          <button class="btn btn-sm btn-danger">删除</button>
+        </div>
+      </div>
+      <div class="model-row fallback">
+        <input type="checkbox" checked style="cursor:pointer;" />
+        <span>🔄②</span>
+        <div><div class="name">gpt-4o</div><div class="provider">OpenAI · <span style="color:#059669;">官方直连</span> · 密钥:••3j · <b>回退②</b></div></div>
+        <div class="latency medium" style="margin-left:auto;">342ms</div>
+        <div class="actions">
+          <button class="btn btn-sm btn-outline">设为主模型</button>
+          <button class="btn btn-sm btn-outline" disabled style="opacity:0.4;">已是回退②</button>
+          <button class="btn btn-sm btn-danger">删除</button>
+        </div>
+      </div>
+      <div class="model-row">
+        <input type="checkbox" checked style="cursor:pointer;" />
+        <span style="color:#9ca3af;">　</span>
+        <div><div class="name">deepseek-v3</div><div class="provider">DeepSeek · <span style="color:#ea580c;">OneAPI</span> · 密钥:••7x</div></div>
+        <div class="latency medium" style="margin-left:auto;">267ms</div>
+        <div class="actions">
+          <button class="btn btn-sm btn-outline">设为主模型</button>
+          <button class="btn btn-sm btn-outline">设为回退</button>
+          <button class="btn btn-sm btn-danger">删除</button>
+        </div>
+      </div>
+      <div class="model-row">
+        <input type="checkbox" checked style="cursor:pointer;" />
+        <span style="color:#9ca3af;">　</span>
+        <div><div class="name">qwen-72b</div><div class="provider">Ollama · <span style="color:#059669;">本地</span></div></div>
+        <div class="latency fast" style="margin-left:auto;">45ms 本地</div>
+        <div class="actions">
+          <button class="btn btn-sm btn-outline">设为主模型</button>
+          <button class="btn btn-sm btn-outline">设为回退</button>
+          <button class="btn btn-sm btn-danger">删除</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 故障转移策略 -->
+    <div class="card">
+      <div class="card-title">
+        故障转移策略
+        <span class="tag tag-orange">自动切换</span>
+      </div>
+      <div class="form-row">
+        <div class="form-label">
+          连续失败阈值
+          <div class="form-desc">连续失败N次后切换到回退模型</div>
+        </div>
+        <select class="form-select">
+          <option>2次</option>
+          <option selected>3次</option>
+          <option>5次</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-label">
+          重试退避策略
+          <div class="form-desc">失败后的等待时间策略</div>
+        </div>
+        <select class="form-select">
+          <option selected>指数退避（2s→4s→8s）</option>
+          <option>固定间隔（3s）</option>
+          <option>线性增长（2s→4s→6s）</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-label">
+          故障转移通知
+          <div class="form-desc">切换模型时通知用户</div>
+        </div>
+        <div class="toggle on"></div>
+      </div>
+    </div>
+
+    <!-- 多核治理预览 -->
+    <div class="card" style="border-color: #c4b5fd;">
+      <div class="card-title">
+        ⚡ 快速预览：多核治理（详细设置请点左侧"多核治理"）
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:12px;">
+        <div class="freq-opt">1核</div>
+        <div class="freq-opt">2核</div>
+        <div class="freq-opt">3核</div>
+        <div class="freq-opt active">4核</div>
+      </div>
+      <div class="core-config" style="border-color:#7c3aed;background:#f5f3ff;">
+        <div class="label">执行CEO</div>
+        <div class="fields">
+          <div class="field-group">
+            <div class="field-label">模型</div>
+            <select class="form-select" style="font-size:11px;padding:3px 6px;">
+              <option>claude-sonnet-4</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">人格</div>
+            <select class="form-select" style="font-size:11px;padding:3px 6px;">
+              <option>创新开拓者</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">温度</div>
+            <input class="form-input" value="0.7" style="width:48px;font-size:11px;padding:3px 6px;" />
+          </div>
+        </div>
+      </div>
+      <div class="core-config">
+        <div class="label">审计A</div>
+        <div class="fields">
+          <div class="field-group">
+            <div class="field-label">模型</div>
+            <select class="form-select" style="font-size:11px;padding:3px 6px;">
+              <option>claude-haiku-4.5</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">人格</div>
+            <select class="form-select" style="font-size:11px;padding:3px 6px;">
+              <option>冷酷审计官</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">温度</div>
+            <input class="form-input" value="0.3" style="width:48px;font-size:11px;padding:3px 6px;" />
+          </div>
+        </div>
+      </div>
+      <div class="core-config">
+        <div class="label">审计B</div>
+        <div class="fields">
+          <div class="field-group">
+            <div class="field-label">模型</div>
+            <select class="form-select" style="font-size:11px;padding:3px 6px;">
+              <option>gpt-4o</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">人格</div>
+            <select class="form-select" style="font-size:11px;padding:3px 6px;">
+              <option>务实工程师</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">温度</div>
+            <input class="form-input" value="0.3" style="width:48px;font-size:11px;padding:3px 6px;" />
+          </div>
+        </div>
+      </div>
+      <div class="core-config">
+        <div class="label">审计C</div>
+        <div class="fields">
+          <div class="field-group">
+            <div class="field-label">模型</div>
+            <select class="form-select" style="font-size:11px;padding:3px 6px;">
+              <option>deepseek-v3</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">人格</div>
+            <select class="form-select" style="font-size:11px;padding:3px 6px;">
+              <option>跨界思考者</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">温度</div>
+            <input class="form-input" value="0.5" style="width:48px;font-size:11px;padding:3px 6px;" />
+          </div>
+        </div>
+      </div>
+      <div class="core-config" style="border-color:#34d399;background:#ecfdf5;">
+        <div class="label" style="color:#059669;">巡检CEO</div>
+        <div class="fields">
+          <div class="field-group">
+            <div class="field-label">模型</div>
+            <select class="form-select" style="font-size:11px;padding:3px 6px;">
+              <option>claude-sonnet-4</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">人格</div>
+            <select class="form-select" style="font-size:11px;padding:3px 6px;">
+              <option>战略指挥官</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <div class="field-label">温度</div>
+            <input class="form-input" value="0.5" style="width:48px;font-size:11px;padding:3px 6px;" />
+          </div>
+          <div class="field-group">
+            <div class="field-label">频率</div>
+            <select class="form-select" style="font-size:11px;padding:3px 6px;">
+              <option>每10分钟</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// 侧边栏导航切换
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+// 开关切换
+document.querySelectorAll('.toggle').forEach(t => {
+  t.addEventListener('click', () => t.classList.toggle('on'));
+});
+// 频率选择
+document.querySelectorAll('.freq-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    opt.parentElement.querySelectorAll('.freq-opt').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+  });
+});
+// 复选框
+document.querySelectorAll('.checkbox').forEach(cb => {
+  cb.addEventListener('click', () => {
+    cb.classList.toggle('checked');
+    cb.textContent = cb.classList.contains('checked') ? '✓' : '';
+  });
+});
+// 测试组全选/全不选
+const groupSelectAll = document.getElementById('group-select-all');
+if (groupSelectAll) {
+  let groupAll = true;
+  groupSelectAll.addEventListener('click', () => {
+    groupAll = !groupAll;
+    document.querySelectorAll('.group-cb').forEach(cb => { cb.checked = groupAll; });
+    groupSelectAll.textContent = groupAll ? '☐ 全不选' : '☑ 全选';
+  });
+}
+// 模型列表全选/全不选
+const selectAllBtn = document.getElementById('select-all-btn');
+if (selectAllBtn) {
+  let allSelected = true;
+  selectAllBtn.addEventListener('click', () => {
+    allSelected = !allSelected;
+    document.querySelectorAll('.model-row input[type="checkbox"]').forEach(cb => {
+      cb.checked = allSelected;
+    });
+    selectAllBtn.textContent = allSelected ? '☐ 全不选' : '☑ 全选';
+  });
+}
+</script>
+
+</body>
+</html>
