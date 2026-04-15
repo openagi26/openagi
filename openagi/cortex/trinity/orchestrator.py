@@ -130,7 +130,7 @@ async def generate_role_response(
         result = await llm_router.call(
             messages=messages,
             temperature=temperature,
-            max_tokens=500,
+            max_tokens=2000,
         )
         duration = (time.monotonic() - start) * 1000
         content = sanitize_llm_output(result["content"] or "")

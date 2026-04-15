@@ -305,10 +305,15 @@ class LLMRouter:
                         call_kwargs["api_key"] = relay.api_key
 
                     response = await litellm.acompletion(**call_kwargs)
-                    content = response.choices[0].message.content
-                    # 空内容视为软失败，继续重试
-                    if not content or not content.strip():
-                        raise LLMError(f"模型 {model_entry.model_id} 返回空内容")
+                    msg = response.choices[0].message
+                    content = msg.content
+                    # 推理模型（如 GLM-5.1）把答案放在 reasoning_content，content 可能为空
+                    if (not content or not content.strip()):
+                        reasoning = getattr(msg, "reasoning_content", None) or ""
+                        if reasoning.strip():
+                            content = reasoning  # 使用推理内容作为实际回复
+                        else:
+                            raise LLMError(f"模型 {model_entry.model_id} 返回空内容")
                     model_entry.consecutive_failures = 0
                     return {
                         "content": content,

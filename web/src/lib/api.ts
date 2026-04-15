@@ -22,16 +22,28 @@ const FALLBACK_STATUS = {
 
 // ======== 通用请求封装 ========
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+async function request<T>(path: string, options?: RequestInit, timeoutMs = 60000): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       ...options,
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      let body = '';
+      try { body = await res.text(); } catch { /* ignore */ }
+      throw new Error(`HTTP_${res.status}:${body}`);
+    }
     return res.json();
-  } catch {
-    throw new Error(`API请求失败: ${path}`);
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('TIMEOUT');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -105,7 +117,7 @@ export async function sendMessage(sessionId: string, content: string, model: str
     }>('/api/v1/chat/send', {
       method: 'POST',
       body: JSON.stringify({ message: content, session_id: sessionId, model }),
-    });
+    }, 90000); // LLM推理最长90秒
     return {
       id: Date.now().toString(),
       content: res.data.reply,
@@ -113,12 +125,24 @@ export async function sendMessage(sessionId: string, content: string, model: str
       tokens: res.data.tokens,
       audit: res.data.audit,
     };
-  } catch {
-    // Fallback: 模拟AI回复
-    await new Promise(r => setTimeout(r, 800));
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    let errorContent: string;
+
+    if (msg === 'TIMEOUT') {
+      errorContent = `[请求超时] LLM推理超时（>90秒），请稍后重试。`;
+    } else if (msg.includes('Failed to fetch') || msg.includes('ECONNREFUSED') || msg.includes('NetworkError')) {
+      errorContent = `[后端不可达] 无法连接到后端服务（${BASE_URL}）。请确认后端已启动：make dev`;
+    } else if (msg.startsWith('HTTP_')) {
+      const [code, ...rest] = msg.slice(5).split(':');
+      errorContent = `[LLM调用失败] 后端返回错误 HTTP ${code}。${rest.join(':') ? `详情：${rest.join(':')}` : '请检查后端日志。'}`;
+    } else {
+      errorContent = `[请求失败] ${msg}`;
+    }
+
     return {
       id: Date.now().toString(),
-      content: `[演示模式] 您说：「${content}」\n\n后端服务暂未连接（${BASE_URL}），当前显示占位回复。请启动后端服务后重试。`,
+      content: errorContent,
       model,
       tokens: undefined as number | undefined,
       audit: undefined as string | undefined,
@@ -128,7 +152,8 @@ export async function sendMessage(sessionId: string, content: string, model: str
 
 export async function fetchSettings() {
   try {
-    return await request<Record<string, unknown>>('/api/v1/settings/');
+    const res = await request<{ success: boolean; data: Record<string, unknown> }>('/api/v1/settings/');
+    return res.data ?? {};
   } catch {
     return {};
   }
@@ -136,7 +161,7 @@ export async function fetchSettings() {
 
 export async function saveSettings(settings: Record<string, unknown>) {
   try {
-    return await request('/api/v1/settings/multicore', {
+    return await request('/api/v1/settings/', {
       method: 'PUT',
       body: JSON.stringify(settings),
     });

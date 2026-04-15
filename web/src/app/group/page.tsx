@@ -40,7 +40,7 @@ export default function GroupPage() {
 
   const [chatMode, setChatMode] = useState<ChatMode>('group');
   const [workMode, setWorkMode] = useState<WorkMode>('discuss');
-  const [messages, setMessages] = useState<Message[]>(DEMO_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [showMentionPicker, setShowMentionPicker] = useState(false);
   const [mentionFilter, setMentionFilter] = useState('');
