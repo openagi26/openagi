@@ -68,7 +68,21 @@ _MARKET_SKILLS: list[dict] = [
         "source": "github.com/quincygunter/quincy-baidu-scholar-search",
         "params": {"wd": "搜索关键词", "pageNum": "页码(默认0)", "enable_abstract": "是否返回摘要"},
     },
-    # ── 排行榜Top20精选 ──────────────────────────────────────
+    # ── 排行榜Top20精选 + 用户推荐 ─────────────────────────────
+    {
+        "id": "gsd_context_engineering",
+        "name": "GSD上下文工程系统",
+        "description": "解决'上下文腐烂'：任务原子化拆分+独立窗口隔离+8文档持久化+波形并行+XML验证",
+        "category": "效率工具",
+        "version": "1.0.0",
+        "author": "gsd-build（53K★）",
+        "source": "github.com/gsd-build/get-shit-done",
+        "task_hierarchy": ["里程碑(Milestone)", "阶段(Phase)", "计划(Plan)", "原子任务(Atomic Task)"],
+        "eight_docs": ["PROJECT.md", "REQUIREMENTS.md", "ROADMAP.md", "STATE.md", "research/", "PLAN.md", "SUMMARY.md", "CONTEXT.md"],
+        "wave_execution": "依赖分析→同波并行→跨波串行，每任务独占200K窗口",
+        "verify": "每个任务含<verify>标签，执行后自动检查",
+        "commands": ["/gsd-new-project", "/gsd-plan-phase", "/gsd-execute-phase", "/gsd-verify-work", "/gsd-ship", "/gsd-quick", "/gsd-fast"],
+    },
     {
         "id": "simplemem",
         "name": "SimpleMem 多模态长效记忆",
