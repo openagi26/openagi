@@ -12,10 +12,10 @@ def test_preset_count():
 
 
 def test_expert_count():
-    """验证专家总数与域定义一致。"""
-    total = sum(len(experts) for experts in EXPERT_DOMAINS.values())
-    assert len(EXPERT_PERSONAS) == total
-    assert len(EXPERT_PERSONAS) >= 90  # 当前精选版≥90位，未来扩展到162
+    """验证专家总数包含内置+Agency Agents扩展。"""
+    builtin_total = sum(len(experts) for experts in EXPERT_DOMAINS.values())
+    assert len(EXPERT_PERSONAS) >= builtin_total  # 至少包含内置专家
+    assert len(EXPERT_PERSONAS) >= 150  # 内置+Agency Agents扩展后≥150位
 
 
 def test_expert_domains():

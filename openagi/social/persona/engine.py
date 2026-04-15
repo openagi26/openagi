@@ -256,6 +256,40 @@ def _build_expert_personas() -> list[Persona]:
 EXPERT_PERSONAS: list[Persona] = _build_expert_personas()
 
 
+def _load_agency_agents() -> list[Persona]:
+    """从 Agency Agents 206人格 JSON 加载（去重已有的专家）。"""
+    json_path = Path(__file__).parent / "agents_206.json"
+    if not json_path.exists():
+        return []
+    try:
+        data = json.loads(json_path.read_text(encoding="utf-8"))
+        existing_names = {p.name_en.lower() for p in EXPERT_PERSONAS}
+        result = []
+        for item in data:
+            if item.get("name_en", "").lower() in existing_names:
+                continue
+            result.append(Persona(
+                id=item["id"],
+                name=item["name"],
+                name_en=item.get("name_en", ""),
+                domain=item.get("domain", ""),
+                description=f'{item["name"]}（{item.get("name_en", "")}）— 领域：{item.get("domain", "")}',
+                system_prompt=f'你是一位{item["name"]}（{item.get("name_en", "")}），专业领域：{item.get("domain", "")}。请以该专业身份回答问题，提供专业、深入、可操作的建议。用中文回答。',
+                recommended_temperature=item.get("temperature", 0.7),
+                source="agency-agents",
+                tags=[item.get("domain", ""), item.get("domain_en", "")],
+            ))
+        logger.info(f"从 Agency Agents 加载 {len(result)} 个人格（去重后）")
+        return result
+    except Exception as e:
+        logger.warning(f"加载 Agency Agents 人格失败: {e}")
+        return []
+
+
+AGENCY_PERSONAS: list[Persona] = _load_agency_agents()
+EXPERT_PERSONAS.extend(AGENCY_PERSONAS)
+
+
 # ─── 人格引擎 ───────────────────────────────────────────────────────────────
 
 class PersonaEngine:
