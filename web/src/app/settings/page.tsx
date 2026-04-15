@@ -194,62 +194,191 @@ export default function SettingsPage() {
 
 // ======== 模型管理 ========
 function ModelSettings({ relayUrl, setRelayUrl }: { relayUrl: string; setRelayUrl: (v: string) => void }) {
-  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'ok' | 'fail'>('idle');
-  const testRelay = async () => {
-    setTestStatus('testing');
-    await new Promise(r => setTimeout(r, 1200));
-    setTestStatus('ok');
+  const [groups, setGroups] = useState([
+    { id: 1, name: 'OpenRouter', url: 'https://openrouter.ai/api/v1', key: 'sk-or-••••', color: '#7c3aed', checked: true },
+    { id: 2, name: 'OneAPI 自建站', url: 'https://one.example.com/v1', key: 'sk-one-••••', color: '#ea580c', checked: true },
+    { id: 3, name: 'OpenAI 官方直连', url: 'https://api.openai.com/v1', key: 'sk-proj-••••', color: '#059669', checked: true },
+  ]);
+  const [testResult, setTestResult] = useState<null | { count: number; time: string; models: { name: string; provider: string; relay: string; latency: string; ok: boolean }[] }>(null);
+  const [testing, setTesting] = useState(false);
+  const [primaryModel, setPrimaryModel] = useState('claude-sonnet-4');
+  const [fallbacks, setFallbacks] = useState(['claude-haiku-4.5', 'gpt-4o']);
+  const [failThreshold, setFailThreshold] = useState(3);
+  const [backoffStrategy, setBackoffStrategy] = useState('exponential');
+
+  const localModels = [
+    { name: 'claude-opus-4-6', provider: 'Anthropic' },
+    { name: 'claude-sonnet-4-6', provider: 'Anthropic' },
+    { name: 'claude-haiku-4-5', provider: 'Anthropic' },
+  ];
+
+  const allModels = [
+    { name: 'claude-sonnet-4', provider: 'Anthropic', relay: 'OpenRouter', latency: '128ms', speed: 'fast', role: 'primary' as const },
+    { name: 'claude-haiku-4.5', provider: 'Anthropic', relay: 'OpenRouter', latency: '95ms', speed: 'fast', role: 'fallback1' as const },
+    { name: 'gpt-4o', provider: 'OpenAI', relay: '官方直连', latency: '342ms', speed: 'medium', role: 'fallback2' as const },
+    { name: 'deepseek-v3', provider: 'DeepSeek', relay: 'OneAPI', latency: '267ms', speed: 'medium', role: 'normal' as const },
+    { name: 'qwen-72b', provider: 'Ollama', relay: '本地', latency: '45ms', speed: 'fast', role: 'normal' as const },
+  ];
+
+  const doTestAll = async () => {
+    setTesting(true);
+    await new Promise(r => setTimeout(r, 2000));
+    setTestResult({
+      count: 5, time: '2.3',
+      models: [
+        { name: 'claude-sonnet-4', provider: 'Anthropic', relay: 'OpenRouter', latency: '128ms', ok: true },
+        { name: 'claude-haiku-4.5', provider: 'Anthropic', relay: 'OpenRouter', latency: '95ms', ok: true },
+        { name: 'gpt-4o', provider: 'OpenAI', relay: '官方直连', latency: '342ms', ok: true },
+        { name: 'deepseek-v3', provider: 'DeepSeek', relay: 'OneAPI', latency: '267ms', ok: true },
+        { name: 'gpt-3.5-turbo', provider: 'OpenAI', relay: 'OneAPI', latency: '-', ok: false },
+      ],
+    });
+    setTesting(false);
   };
+
+  const roleIcon = (role: string) => role === 'primary' ? '⭐' : role === 'fallback1' ? '🔄①' : role === 'fallback2' ? '🔄②' : '';
+  const rowStyle = (role: string) => role === 'primary' ? { border: '1px solid #7c3aed', background: '#f5f3ff' } : role.startsWith('fallback') ? { border: '1px solid #fbbf24', background: '#fffbeb' } : { border: '1px solid var(--card-border)', background: 'var(--center-bg)' };
 
   return (
     <section>
-      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>模型管理</h1>
-      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>配置AI模型中转站、可用模型列表与故障转移策略</p>
+      <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>🧠 模型管理</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>管理AI模型、中转站和故障转移策略</p>
 
-      <Card title="中转站配置" tag="基础" tagColor="tag-primary">
-        <FormRow label="中转站URL" desc="兼容OpenAI格式的API端点">
-          <input
-            type="text" value={relayUrl} onChange={e => setRelayUrl(e.target.value)}
-            className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
-            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}
-            aria-label="中转站URL"
-          />
-          <button
-            onClick={testRelay} disabled={testStatus === 'testing'}
-            className="px-3 py-1.5 rounded-md text-sm font-medium text-white flex-shrink-0"
-            style={{ background: testStatus === 'ok' ? '#059669' : 'linear-gradient(135deg, #7c3aed, #6366f1)' }}
-          >
-            {testStatus === 'testing' ? '检测中...' : testStatus === 'ok' ? '✓ 连通' : '测试连接'}
+      {/* 卡片1：中转站管理 */}
+      <Card title="中转站管理" tag="添加中转站可自动发现模型" tagColor="tag-primary">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>已保存的中转站配置（刷新不丢失）</span>
+          <div className="flex gap-2">
+            <button className="text-xs px-2 py-1 rounded-md" style={{ border: '1px solid var(--card-border)', color: 'var(--text-secondary)' }}
+              onClick={() => setGroups(g => g.map(x => ({ ...x, checked: true })))}>☑ 全选</button>
+            <button className="text-xs px-2 py-1 rounded-md" style={{ border: '1px solid var(--card-border)', color: 'var(--text-secondary)' }}
+              onClick={() => groups.length < 10 && setGroups(g => [...g, { id: Date.now(), name: '', url: '', key: '', color: '#6b7280', checked: true }])}>
+              ＋ 增加测试组（最多10组）</button>
+          </div>
+        </div>
+        {groups.map((g, i) => (
+          <div key={g.id} className="p-2.5 rounded-lg mb-2" style={{ border: '1px solid var(--card-border)', background: 'var(--center-bg)' }}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <input type="checkbox" checked={g.checked} onChange={() => setGroups(prev => prev.map(x => x.id === g.id ? { ...x, checked: !x.checked } : x))} />
+              <span className="text-xs font-semibold" style={{ color: g.color }}>测试组 {i + 1}</span>
+              <input defaultValue={g.name} placeholder="备注名称" className="flex-1 text-xs px-2 py-1 rounded-md outline-none"
+                style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+              <button className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#fee2e2', color: '#dc2626' }}
+                onClick={() => setGroups(prev => prev.filter(x => x.id !== g.id))}>✕</button>
+            </div>
+            <div className="flex gap-2">
+              <input defaultValue={g.url} placeholder="API Base URL" className="flex-1 text-xs px-2 py-1 rounded-md outline-none"
+                style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+              <input defaultValue={g.key} type="password" placeholder="API Key" className="text-xs px-2 py-1 rounded-md outline-none"
+                style={{ width: 160, border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
+            </div>
+          </div>
+        ))}
+        <div className="flex items-center gap-2 mt-2">
+          <button onClick={doTestAll} disabled={testing}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium text-white"
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)' }}>
+            {testing ? '⏳ 并行测试中...' : '🔍 一键并行测试全部中转站 — 自动发现可用模型'}
           </button>
-        </FormRow>
-        <FormRow label="API密钥" desc="中转站鉴权密钥">
-          <input type="password" placeholder="sk-..." className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
-            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}
-            aria-label="API密钥" />
-        </FormRow>
-        <FormRow label="故障转移" desc="主模型不可用时自动切换"><Toggle defaultOn /></FormRow>
-        <FormRow label="超时时间" desc="单次请求最大等待时间">
-          <select className="px-2 py-1.5 rounded-md text-sm"
-            style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}
-            aria-label="超时时间">
-            <option>30秒</option><option>60秒</option><option>120秒</option>
-          </select>
-        </FormRow>
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>所有测试组同时并行探测，速度最快</span>
+        </div>
+        {testResult && (
+          <div className="mt-3 p-3 rounded-lg" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+            <div className="text-xs font-semibold mb-2" style={{ color: '#166534' }}>✅ 发现 {testResult.count} 个可用模型（测试完成 {testResult.time}秒）</div>
+            {testResult.models.map(m => (
+              <div key={m.name + m.relay} className="flex items-center gap-2 py-1.5 px-2 rounded-md mb-1" style={{ border: '1px solid #e5e7eb', background: '#fafbfc' }}>
+                <span>{m.ok ? '✅' : '❌'}</span>
+                <div className="flex-1">
+                  <div className="text-xs font-medium" style={{ color: m.ok ? 'var(--text-primary)' : '#9ca3af', textDecoration: m.ok ? 'none' : 'line-through' }}>{m.name}</div>
+                  <div className="text-xs" style={{ color: m.ok ? '#6b7280' : '#dc2626' }}>{m.provider} · 中转站: {m.relay} · {m.ok ? m.latency : '连接超时'}</div>
+                </div>
+                {m.ok && (
+                  <div className="flex gap-1">
+                    <button className="text-xs px-2 py-0.5 rounded font-medium text-white" style={{ background: '#7c3aed' }}>设为主模型</button>
+                    <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }}>设为回退</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
 
-      <Card title="可用模型" tag="列表">
-        <div className="flex flex-col gap-2">
-          {AVAILABLE_MODELS.map(model => (
-            <div key={model.id} className="flex items-center gap-3 py-2.5 px-1" style={{ borderBottom: '1px solid var(--card-border)' }}>
-              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: model.status === 'active' ? '#34d399' : '#9ca3af' }} />
-              <div className="flex-1">
-                <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{model.name}</div>
-                <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{model.provider} · 延迟 {model.latency} · 费用{model.cost}</div>
-              </div>
-              <Toggle defaultOn={model.status === 'active'} />
+      {/* 卡片2：本地Claude自动识别 */}
+      <Card title="🔍 本地 Claude 自动识别" tag="已检测到本机 Claude Code" tagColor="tag-green">
+        <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>自动识别本台电脑已安装的 Claude 模型，无需输入 API Key，直接引用。</p>
+        {localModels.map(m => (
+          <div key={m.name} className="flex items-center gap-2 py-2 px-3 rounded-lg mb-1.5" style={{ border: '1px solid #34d399', background: '#ecfdf5' }}>
+            <span style={{ color: '#059669' }}>🖥️</span>
+            <div className="flex-1">
+              <div className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{m.name}</div>
+              <div className="text-xs" style={{ color: '#059669' }}>{m.provider} · 本地 Claude Code 自动识别 · 免API</div>
             </div>
-          ))}
+            <span className="text-xs" style={{ color: '#059669' }}>本地直连</span>
+            <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }}>设为主模型</button>
+            <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }}>设为回退</button>
+          </div>
+        ))}
+        <p className="text-xs mt-1" style={{ color: '#059669' }}>💡 自动检测到本机 Claude Code，已加入可用模型列表</p>
+      </Card>
+
+      {/* 卡片3：可用模型列表 */}
+      <Card title="可用模型列表" tag={`已登记 ${allModels.length + localModels.length} 个模型（含${localModels.length}个本地）`} tagColor="tag-green">
+        <div className="flex justify-between items-center mb-3">
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>按优先级排列：⭐主模型 → 🔄回退①② → 其他</span>
+          <div className="flex gap-2 items-center">
+            <button className="text-xs px-2 py-1 rounded-md font-semibold" style={{ border: '1px solid var(--card-border)', color: 'var(--text-secondary)' }}>☑ 全选</button>
+            <button className="text-xs px-2 py-1 rounded-md" style={{ border: '1px solid var(--card-border)', color: 'var(--text-secondary)' }}>🔍 一键并行测试选中模型</button>
+          </div>
         </div>
+        {allModels.map(m => (
+          <div key={m.name} className="flex items-center gap-2 py-2 px-3 rounded-lg mb-1.5" style={rowStyle(m.role)}>
+            <input type="checkbox" defaultChecked />
+            <span className="text-sm w-6 text-center">{roleIcon(m.role)}</span>
+            <div className="flex-1">
+              <div className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{m.name}</div>
+              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                {m.provider} · <span style={{ color: m.relay === 'OpenRouter' ? '#7c3aed' : m.relay === 'OneAPI' ? '#ea580c' : '#059669' }}>{m.relay}</span>
+                {m.role === 'primary' && ' · 主模型'}
+                {m.role === 'fallback1' && <> · <b>回退①</b></>}
+                {m.role === 'fallback2' && <> · <b>回退②</b></>}
+              </div>
+            </div>
+            <span className="text-xs" style={{ color: m.speed === 'fast' ? '#059669' : '#d97706' }}>{m.latency}</span>
+            <div className="flex gap-1">
+              {m.role === 'primary' ? (
+                <button className="text-xs px-2 py-0.5 rounded opacity-40" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }} disabled>已是主模型</button>
+              ) : (
+                <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }}>设为主模型</button>
+              )}
+              {m.role.startsWith('fallback') ? (
+                <button className="text-xs px-2 py-0.5 rounded opacity-40" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }} disabled>已是回退</button>
+              ) : (
+                <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }}>设为回退</button>
+              )}
+              <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #dc2626', color: '#dc2626' }}>删除</button>
+            </div>
+          </div>
+        ))}
+      </Card>
+
+      {/* 卡片4：故障转移策略 */}
+      <Card title="故障转移策略" tag="自动切换" tagColor="tag-orange">
+        <FormRow label="连续失败阈值" desc="连续失败N次后切换到回退模型">
+          <select value={failThreshold} onChange={e => setFailThreshold(Number(e.target.value))}
+            className="px-2 py-1.5 rounded-md text-sm" style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}>
+            <option value={2}>2次</option><option value={3}>3次</option><option value={5}>5次</option>
+          </select>
+        </FormRow>
+        <FormRow label="重试退避策略" desc="失败后的等待时间策略">
+          <select value={backoffStrategy} onChange={e => setBackoffStrategy(e.target.value)}
+            className="px-2 py-1.5 rounded-md text-sm" style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }}>
+            <option value="exponential">指数退避（2s→4s→8s）</option>
+            <option value="fixed">固定间隔（3s）</option>
+            <option value="linear">线性增长（2s→4s→6s）</option>
+          </select>
+        </FormRow>
+        <FormRow label="故障转移通知" desc="切换模型时通知用户"><Toggle defaultOn /></FormRow>
       </Card>
     </section>
   );
