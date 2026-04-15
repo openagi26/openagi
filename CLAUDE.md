@@ -1,5 +1,11 @@
 # OpenAGI 项目开发规则
 
+## 硬件环境（永久记住，不得搞混）
+- **M4**：MacBook Air M4，陛下的主力开发机，当前这台电脑
+- **M2**：MacBook Air M2，陛下的第二台电脑，用于双机协作
+- GitHub 协作仓库：`openagi26/openagi415`（私有，双机共用）
+- GitHub 未来公开仓库：`openagi26/openagi`
+
 ## 安全启动规则（强制执行，无例外）
 
 ### 禁止事项
