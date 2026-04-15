@@ -1,4 +1,4 @@
-.PHONY: dev test api web install clean kill pre-check
+.PHONY: dev test api web install clean kill pre-check docker-build docker-up docker-down docker-logs
 
 install:
 	pip install -e ".[dev]"
@@ -46,3 +46,22 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type d -name .pytest_cache -exec rm -rf {} +
 	rm -rf web/.next/cache 2>/dev/null || true
+
+# ─── Docker 部署 ─────────────────────────────────────────────────────────────
+docker-build:
+	@echo "🐳 构建 OpenAGI Docker 镜像..."
+	docker compose build --no-cache
+	@echo "✅ 镜像构建完成"
+
+docker-up:
+	@echo "🚀 启动 OpenAGI 容器..."
+	docker compose --env-file .env up -d
+	@echo "✅ 服务已启动，访问 http://localhost:8888/health 检查状态"
+
+docker-down:
+	@echo "🛑 停止 OpenAGI 容器..."
+	docker compose down
+	@echo "✅ 容器已停止"
+
+docker-logs:
+	docker compose logs -f openagi
