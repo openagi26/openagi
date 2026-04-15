@@ -57,6 +57,34 @@ _MARKET_SKILLS: list[dict] = [
         "version": "1.1.0",
         "author": "OpenAGI",
     },
+    # ── 来自 OpenClaw 社区 ──────────────────────────────────────
+    {
+        "id": "baidu_scholar_search",
+        "name": "百度学术搜索",
+        "description": "搜索中英文学术文献（期刊/会议/论文/学位论文），支持摘要提取和分页",
+        "category": "学术研究",
+        "version": "1.0.0",
+        "author": "quincygunter",
+        "source": "github.com/quincygunter/quincy-baidu-scholar-search",
+        "params": {"wd": "搜索关键词", "pageNum": "页码(默认0)", "enable_abstract": "是否返回摘要"},
+    },
+    {
+        "id": "ai_news_collector",
+        "name": "AI新闻收集器",
+        "description": "6维度分层搜索AI领域最新动态（周报/社区热度/产品发布/融资/研究/政策），输出15-25条热度排序新闻",
+        "category": "信息获取",
+        "version": "1.0.0",
+        "author": "quincygunter",
+        "source": "github.com/quincygunter/quincy-ai-news-collector",
+        "dimensions": ["周报Newsletter", "社区热度", "产品与模型更新", "融资与商业", "研究突破", "监管与政策"],
+        "news_sources": {
+            "高价值周报": ["Last Week in AI", "Andrew Ng Weekly", "Ben's Bites", "TLDR AI"],
+            "独立观点": ["Gary Marcus", "Simon Willison"],
+            "主流媒体": ["TechCrunch", "The Verge", "MIT Tech Review", "机器之心", "量子位"],
+            "社区信号": ["Hacker News", "r/LocalLLaMA", "Twitter/X"],
+            "深度源": ["arXiv", "GitHub Trending", "OpenAI Blog", "Anthropic Blog"],
+        },
+    },
 ]
 
 
