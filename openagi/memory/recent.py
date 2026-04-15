@@ -333,6 +333,47 @@ class RecentMemory:
         logger.warning(f"清空全部温记忆: {count}条")
         return count
 
+    def decay_old_entries(self, days: int = 30) -> int:
+        """
+        删除超过指定天数未被访问（按创建时间）的向量记忆条目。
+
+        Args:
+            days: 超过此天数的条目将被删除，默认30天。
+
+        Returns:
+            被删除的条目数量。
+        """
+        total = self._collection.count()
+        if total == 0:
+            return 0
+
+        results = self._collection.get(
+            limit=total,
+            include=["metadatas"],
+        )
+
+        now = datetime.now(timezone.utc)
+        cutoff_seconds = days * 86400.0
+        ids_to_delete: list[str] = []
+
+        for entry_id, meta in zip(results["ids"], results["metadatas"]):
+            created_at_str = meta.get("created_at", "")
+            try:
+                created = datetime.fromisoformat(created_at_str)
+                if created.tzinfo is None:
+                    created = created.replace(tzinfo=timezone.utc)
+                elapsed_seconds = (now - created).total_seconds()
+                if elapsed_seconds > cutoff_seconds:
+                    ids_to_delete.append(entry_id)
+            except Exception:
+                pass  # 无法解析时间的条目保留
+
+        if ids_to_delete:
+            self._collection.delete(ids=ids_to_delete)
+            logger.info(f"时间衰减删除 {len(ids_to_delete)} 条超过 {days} 天的温记忆")
+
+        return len(ids_to_delete)
+
     def get_stats(self) -> dict:
         """获取统计信息。"""
         total = self._collection.count()

@@ -83,6 +83,26 @@ class WorkingMemory:
         """获取所有会话的总条目数。"""
         return sum(len(items) for items in self._items.values())
 
+    def trim_to_budget(self, session_id: str, max_tokens: int) -> int:
+        """
+        当会话 token 总量超过预算时，从最旧的条目开始移除，直到满足预算。
+
+        Args:
+            session_id: 要修剪的会话ID。
+            max_tokens: token 预算上限。
+
+        Returns:
+            被移除的条目数量。
+        """
+        items = self._items.get(session_id, [])
+        removed = 0
+        while items and sum(i.token_count for i in items) > max_tokens:
+            items.pop(0)
+            removed += 1
+        if removed:
+            logger.info(f"trim_to_budget: 会话 {session_id} 移除 {removed} 条，剩余 token={sum(i.token_count for i in items)}")
+        return removed
+
     def get_stats(self) -> dict:
         """获取统计信息。"""
         return {

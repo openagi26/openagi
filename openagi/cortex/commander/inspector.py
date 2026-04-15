@@ -284,3 +284,27 @@ class Commander:
             "task_in_progress": self._task_in_progress,
             "pending_events": len(self._pending_events),
         }
+
+    def recover_from_crash(self, reason: str) -> None:
+        """
+        崩溃恢复：记录崩溃原因，重置内部状态，触发心跳事件。
+
+        Args:
+            reason: 崩溃原因描述
+        """
+        logger.error(f"崩溃恢复触发，原因: {reason}")
+
+        # 重置内部状态
+        self._task_in_progress = False
+        self._pending_events = []
+
+        logger.info(
+            f"巡检AI状态已重置 — inspection_count={self._inspection_count}，running={self._running}"
+        )
+
+        # 触发心跳事件
+        self._dispatch_heartbeat_event("crash_recovered", reason=reason)
+
+    def _dispatch_heartbeat_event(self, event_name: str, reason: str = "") -> None:
+        """内部：向已注册的信息收集器广播心跳事件（用于崩溃恢复通知）。"""
+        logger.info(f"心跳事件: {event_name}，备注: {reason}")

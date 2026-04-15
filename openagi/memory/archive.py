@@ -114,6 +114,27 @@ class ArchiveMemory:
         self._conn.commit()
         return cursor.rowcount > 0
 
+    def decay_old_entries(self, days: int = 30) -> int:
+        """
+        删除超过指定天数的冷记忆条目。
+
+        Args:
+            days: 超过此天数（按 created_at）的条目将被删除，默认30天。
+
+        Returns:
+            被删除的条目数量。
+        """
+        from datetime import timedelta
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        cursor = self._conn.execute(
+            "DELETE FROM archive WHERE created_at < ?", (cutoff,)
+        )
+        self._conn.commit()
+        deleted = cursor.rowcount
+        if deleted:
+            logger.info(f"时间衰减删除 {deleted} 条超过 {days} 天的冷记忆")
+        return deleted
+
     def clear_all(self) -> int:
         """清空所有冷记忆（危险操作）。"""
         cursor = self._conn.execute("DELETE FROM archive")
