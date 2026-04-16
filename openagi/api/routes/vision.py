@@ -1,0 +1,81 @@
+"""视觉问答API路由 — 小星的真正眼睛（摄像头）。
+
+通过摄像头拍照→多模态VL模型分析→回答问题。
+参考RobotDuck的视觉问答功能（通义千问VL）。
+"""
+
+from __future__ import annotations
+
+import os
+
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/api/v1/vision", tags=["视觉问答"])
+
+
+@router.post("/ask")
+async def vision_ask(payload: dict):
+    """摄像头拍照+视觉问答。"""
+    image_b64 = payload.get("image_base64", "")
+    question = payload.get("question", "描述你看到了什么")
+
+    if not image_b64 or len(image_b64) < 100:
+        return {"success": False, "error": "缺少图片数据"}
+
+    answer = await _ask_vision_model(image_b64, question)
+
+    if answer:
+        return {"success": True, "data": {"answer": answer}}
+
+    return {"success": False, "error": "无可用的视觉模型。请配置 VISION_MODEL 环境变量"}
+
+
+async def _ask_vision_model(image_b64: str, question: str) -> str | None:
+    """调用多模态VL模型进行视觉问答。"""
+    try:
+        from openai import AsyncOpenAI
+
+        api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("LLM_API_KEY", "")
+        base_url = os.environ.get("OPENAI_BASE_URL") or os.environ.get("LLM_BASE_URL", "")
+
+        if not api_key:
+            return None
+
+        client = AsyncOpenAI(api_key=api_key, base_url=base_url or None)
+        vision_model = os.environ.get("VISION_MODEL", "glm-4v-flash")
+
+        response = await client.chat.completions.create(
+            model=vision_model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "你是小星的视觉系统。通过摄像头看到真实世界。"
+                        "简洁描述你看到的内容，回答用户的问题。"
+                        "称呼用户为'陛下'，温暖友好。1-3句话。用中文。"
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": question},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{image_b64[:100000]}",
+                            },
+                        },
+                    ],
+                },
+            ],
+            max_tokens=300,
+            timeout=20,
+        )
+
+        if response.choices:
+            return response.choices[0].message.content
+        return None
+
+    except Exception as e:
+        print(f"视觉问答异常: {e}")
+        return None

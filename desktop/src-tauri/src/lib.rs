@@ -174,6 +174,36 @@ async fn analyze_screenshot(image_base64: String) -> Result<String, String> {
     }
 }
 
+/// Tauri command: 摄像头视觉问答（小星的真正眼睛）
+#[tauri::command]
+async fn vision_ask(image_base64: String, question: String) -> Result<String, String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let body = serde_json::json!({
+        "image_base64": image_base64,
+        "question": question,
+    });
+
+    match client
+        .post("http://localhost:8888/api/v1/vision/ask")
+        .json(&body)
+        .send()
+        .await
+    {
+        Ok(resp) => match resp.json::<serde_json::Value>().await {
+            Ok(json) => Ok(json.get("data")
+                .and_then(|d| d.get("answer"))
+                .and_then(|a| a.as_str())
+                .unwrap_or("视觉分析暂不可用").to_string()),
+            Err(e) => Err(format!("解析失败: {}", e)),
+        },
+        Err(e) => Err(format!("视觉问答请求失败: {}", e)),
+    }
+}
+
 /// Tauri command: 获取当前活动窗口标题（主动感知引擎用）
 #[tauri::command]
 async fn get_active_window() -> Result<String, String> {
@@ -277,6 +307,7 @@ pub fn run() {
             transcribe_audio,
             capture_screenshot,
             analyze_screenshot,
+            vision_ask,
             check_backend,
         ])
         .run(tauri::generate_context!())

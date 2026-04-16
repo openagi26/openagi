@@ -10,6 +10,7 @@ import { Live2DAvatar } from "./live2d-avatar.js";
 import { FocusGuard, FOCUS_PRESETS } from "./focus-guard.js";
 import { ProactiveEngine } from "./proactive-engine.js";
 import { ScreenObserver } from "./screen-observer.js";
+import { CameraVision } from "./camera-vision.js";
 
 // ── 全局状态 ──────────────────────────────────────────────
 
@@ -24,6 +25,7 @@ let autoSpeak = true; // AI回复是否自动朗读
 let focusGuard = null; // 专注模式看护
 let proactive = null;  // 主动感知引擎
 let screenObserver = null; // 屏幕截图感知
+let camera = null;         // 摄像头视觉
 
 // ── 初始化 ────────────────────────────────────────────────
 
@@ -170,6 +172,34 @@ function setupControls() {
       }
     });
     speakerBtn.classList.toggle("active", autoSpeak);
+  }
+
+  // 摄像头按钮
+  const cameraBtn = document.getElementById("camera-btn");
+  if (cameraBtn) {
+    cameraBtn.addEventListener("click", async () => {
+      if (!camera) {
+        camera = new CameraVision();
+        camera.onVisionResult = (answer, emotion) => {
+          addMessage("ai", answer);
+          emotionEngine?.setEmotion(emotion);
+          if (autoSpeak && voice?.ttsAvailable) voice.speak(answer);
+        };
+      }
+
+      if (camera.isActive) {
+        camera.togglePreview(document.getElementById("app"));
+      } else {
+        const ok = await camera.init();
+        if (ok) {
+          addMessage("system", "📷 摄像头已开启！对小星说[帮我看一下]触发视觉问答");
+          camera.togglePreview(document.getElementById("app"));
+          cameraBtn.classList.add("active");
+        } else {
+          addMessage("system", "摄像头访问失败，请检查权限");
+        }
+      }
+    });
   }
 
   // 形象切换按钮
@@ -372,6 +402,19 @@ async function handleSend() {
 
   input.value = "";
   addMessage("user", text);
+
+  // 视觉问答触发词检测
+  const visionKeywords = ["帮我看", "看一下", "这是什么", "看看", "拍一张"];
+  if (camera?.isActive && visionKeywords.some(kw => text.includes(kw))) {
+    emotionEngine?.setEmotion("curious");
+    const typingEl = showTyping();
+    const answer = await camera.ask(text);
+    removeTyping(typingEl);
+    addMessage("ai", answer);
+    if (autoSpeak && voice?.ttsAvailable) voice.speak(answer);
+    setTimeout(() => emotionEngine?.setEmotion("neutral"), 3000);
+    return;
+  }
 
   if (!backendOnline) {
     const msg = "后端暂时离线，请确保 OpenAGI 运行在 localhost:8888";
