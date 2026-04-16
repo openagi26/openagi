@@ -125,8 +125,24 @@ async def send_message(
 
     except Exception as e:
         heart.push_event("llm_call_failed")
-        logger.error(f"send_message error: {e}")
-        raise HTTPException(status_code=500, detail=f"LLM调用失败: {str(e)}")
+        logger.warning(f"在线模型失败: {e}，尝试Ollama本地降级...")
+        # 自动降级到Ollama本地模型
+        try:
+            from openagi.cortex.llm.ollama import get_ollama
+            ollama = get_ollama()
+            if await ollama.is_available():
+                ollama_result = await ollama.chat(
+                    req.message,
+                    system_prompt="你是小星，温暖体贴的AI伴侣。称呼主人为陛下。简洁回答，用简体中文。",
+                )
+                reply = ollama_result["content"]
+                tokens = ollama_result["tokens"]["input"] + ollama_result["tokens"]["output"]
+                model_used = f"ollama/{ollama_result.get('model', 'local')}"
+                audit = f"在线模型失败，已降级到本地Ollama"
+                return {"success": True, "data": {"reply": reply, "model": model_used, "tokens": tokens, "audit": audit}}
+        except Exception:
+            pass
+        raise HTTPException(status_code=500, detail=f"LLM调用失败（在线+本地均不可用）: {str(e)}")
 
 
 @router.get("/sessions")
