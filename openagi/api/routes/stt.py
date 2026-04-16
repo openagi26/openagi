@@ -46,6 +46,11 @@ async def transcribe_audio(payload: dict):
         audio_path = f.name
 
     try:
+        # 策略0（最优）: 本地 Whisper Python 模型
+        text = await _try_whisper_python(audio_path)
+        if text:
+            return {"success": True, "data": {"text": text}}
+
         # 策略1: 尝试 OpenAI 兼容的 Whisper API
         text = await _try_openai_whisper(audio_path)
         if text:
@@ -68,6 +73,38 @@ async def transcribe_audio(payload: dict):
             os.unlink(audio_path)
         except OSError:
             pass
+
+
+_whisper_model = None  # 缓存模型，避免每次加载
+
+
+async def _try_whisper_python(audio_path: str) -> str | None:
+    """本地 Whisper Python 模型（最优方案，首次加载后缓存）。"""
+    import asyncio
+
+    def _transcribe():
+        global _whisper_model
+        try:
+            import whisper
+
+            # 首次加载模型（base模型约150MB，中文效果好）
+            if _whisper_model is None:
+                _whisper_model = whisper.load_model("base")
+
+            result = _whisper_model.transcribe(
+                audio_path,
+                language="zh",
+                fp16=False,  # M4 CPU 兼容
+            )
+            return result.get("text", "").strip()
+        except ImportError:
+            return None
+        except Exception as e:
+            print(f"Whisper转写异常: {e}")
+            return None
+
+    # 在线程池运行（避免阻塞事件循环）
+    return await asyncio.get_event_loop().run_in_executor(None, _transcribe)
 
 
 async def _try_openai_whisper(audio_path: str) -> str | None:
