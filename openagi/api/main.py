@@ -48,6 +48,7 @@ from openagi.api.routes import stt as stt_routes
 from openagi.api.routes import screen as screen_routes
 from openagi.api.routes import tts as tts_routes
 from openagi.api.routes import vision as vision_routes
+from openagi.api.routes import ollama as ollama_routes
 from openagi.api.deps import init_deps
 
 logger = logging.getLogger("openagi.api")
@@ -165,6 +166,7 @@ app.include_router(stt_routes.router)
 app.include_router(screen_routes.router)
 app.include_router(tts_routes.router)
 app.include_router(vision_routes.router)
+app.include_router(ollama_routes.router)
 
 
 # ─── 请求/响应模型 ──────────────────────────────────────────────────────────
