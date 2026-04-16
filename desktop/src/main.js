@@ -7,6 +7,7 @@ import { StarSpirit } from "./star-spirit.js";
 import { EmotionEngine } from "./emotion-engine.js";
 import { VoiceSystem } from "./voice.js";
 import { Live2DAvatar } from "./live2d-avatar.js";
+import { FocusGuard, FOCUS_PRESETS } from "./focus-guard.js";
 
 // ── 全局状态 ──────────────────────────────────────────────
 
@@ -18,6 +19,7 @@ let backendOnline = false;
 let isWaiting = false;
 let currentAvatar = "star-spirit"; // "star-spirit" | "live2d"
 let autoSpeak = true; // AI回复是否自动朗读
+let focusGuard = null; // 专注模式看护
 
 // ── 初始化 ────────────────────────────────────────────────
 
@@ -58,7 +60,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   sendBtn.addEventListener("click", handleSend);
 
-  // 5. 绑定控制按钮
+  // 5. 初始化专注模式
+  focusGuard = new FocusGuard();
+  setupFocusGuard();
+
+  // 6. 绑定控制按钮
   setupControls();
 
   // 6. 检查后端连接
@@ -180,6 +186,73 @@ function toggleAvatar() {
     // 恢复当前情绪
     spirit.setEmotion(emotionEngine?.currentEmotion || "neutral");
   }
+}
+
+// ── 专注模式 ──────────────────────────────────────────────
+
+function setupFocusGuard() {
+  const focusBtn = document.getElementById("focus-btn");
+  if (!focusBtn) return;
+
+  focusGuard.onStart = ({ minutes }) => {
+    emotionEngine?.setEmotion("focus");
+    addMessage("system", `🎯 专注模式开启！${minutes}分钟后提醒你`);
+    focusBtn.classList.add("active");
+    focusBtn.title = "点击结束专注";
+  };
+
+  focusGuard.onTick = ({ remaining }) => {
+    const focusBtn = document.getElementById("focus-btn");
+    if (focusBtn) focusBtn.textContent = remaining;
+  };
+
+  focusGuard.onMilestone = (pct) => {
+    const msgs = {
+      25: "已完成25%，继续加油陛下！💪",
+      50: "一半了！陛下坚持得很好！🔥",
+      75: "还剩最后25%，冲刺！⚡",
+    };
+    if (msgs[pct]) addMessage("system", msgs[pct]);
+  };
+
+  focusGuard.onIdleWarning = (seconds) => {
+    const min = Math.round(seconds / 60);
+    addMessage("ai", `陛下，已经${min}分钟没有操作了，还在专注吗？😊`);
+    if (autoSpeak && voice?.ttsAvailable) {
+      voice.speak(`陛下，已经${min}分钟没有操作了`);
+    }
+  };
+
+  focusGuard.onEnd = ({ completed, actualMinutes, todaySessions, streak }) => {
+    focusBtn.classList.remove("active");
+    focusBtn.textContent = "🎯";
+    focusBtn.title = "开启专注模式";
+
+    if (completed) {
+      emotionEngine?.setEmotion("happy");
+      const msg = `🎉 太棒了！专注${actualMinutes}分钟完成！今日第${todaySessions}次，${streak > 1 ? `连续${streak}次！` : "继续保持！"}`;
+      addMessage("ai", msg);
+      if (autoSpeak && voice?.ttsAvailable) {
+        voice.speak(`太棒了陛下！专注${actualMinutes}分钟完成！`);
+      }
+    } else {
+      emotionEngine?.setEmotion("neutral");
+      addMessage("system", `专注已中断，完成了${actualMinutes}分钟`);
+    }
+  };
+
+  // 点击按钮开始/结束
+  focusBtn.addEventListener("click", () => {
+    if (focusGuard.isActive) {
+      focusGuard.stop(false);
+    } else {
+      focusGuard.start(25); // 默认番茄钟25分钟
+    }
+  });
+
+  // 记录用户活动
+  document.addEventListener("mousemove", () => focusGuard.recordActivity());
+  document.addEventListener("keydown", () => focusGuard.recordActivity());
 }
 
 // ── 后端通信 ──────────────────────────────────────────────
