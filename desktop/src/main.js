@@ -292,11 +292,18 @@ function setupContinuousVoice() {
     emotionEngine?.setEmotion("curious");
   };
 
+  // 防重复锁
+  let _convoProcessing = false;
+
   // 用户说完→发送录音→转写→AI回复→小星说
   convoMode.onUserSpeechEnd = async (audioBlob, duration) => {
+    if (_convoProcessing) return; // 防止重复处理
+    _convoProcessing = true;
+
     // 1. 转写语音
     const text = await transcribeBlob(audioBlob);
     if (!text || !text.trim()) {
+      _convoProcessing = false;
       if (convoMode.isActive) convoMode._setState("listening");
       return;
     }
@@ -304,18 +311,17 @@ function setupContinuousVoice() {
     // 2. 显示用户消息
     addMessage("user", text.trim());
 
-    // 3. 获取AI回复（自动附带最新视觉帧）
+    // 3. 获取AI回复（只走一条路径，不重复）
     emotionEngine?.setEmotion("think");
-    // 通知视觉节奏：有新消息
     visionRhythm?.onNewMessage(text.trim(), true);
     let reply;
     try {
-      if (camera?.isActive && visionRhythm) {
-        // 用视觉节奏系统的最新帧（不用每次都重新拍照）
+      if (camera?.isActive) {
+        // 摄像头开着→走视觉路径（拍照+提问）
         reply = await camera.ask(text.trim());
       }
+      // 视觉路径失败或摄像头没开→走普通文字路径
       if (!reply || reply.includes("暂不可用")) {
-        // 普通文字对话
         if (window.__TAURI_INTERNALS__) {
           const { invoke } = window.__TAURI_INTERNALS__;
           reply = await invoke("send_message", { message: text.trim() });
@@ -343,6 +349,7 @@ function setupContinuousVoice() {
     }
 
     setTimeout(() => emotionEngine?.setEmotion("neutral"), 2000);
+    _convoProcessing = false; // 解锁
   };
 
   // 状态变化→更新按钮显示
