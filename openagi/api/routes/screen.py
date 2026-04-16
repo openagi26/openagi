@@ -38,8 +38,12 @@ async def _analyze_with_llm(image_b64: str) -> str | None:
     try:
         from openai import AsyncOpenAI
 
-        api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("LLM_API_KEY", "")
-        base_url = os.environ.get("OPENAI_BASE_URL") or os.environ.get("LLM_BASE_URL", "")
+        api_key = (os.environ.get("ZHIPU_API_KEY")
+                   or os.environ.get("OPENAI_API_KEY")
+                   or os.environ.get("LLM_API_KEY", ""))
+        base_url = (os.environ.get("ZHIPU_API_BASE")
+                    or os.environ.get("OPENAI_BASE_URL")
+                    or os.environ.get("LLM_BASE_URL", ""))
 
         if not api_key:
             return None

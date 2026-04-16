@@ -407,18 +407,24 @@ async function handleSend() {
   // AI自己判断是否需要用视觉信息回答，不需要关键词触发
   if (camera?.isActive) {
     emotionEngine?.setEmotion("curious");
+    isWaiting = true;
     const typingEl = showTyping();
-    const answer = await camera.ask(text);
-    removeTyping(typingEl);
-    if (answer) {
-      addMessage("ai", answer);
-      emotionEngine?.setEmotion("happy");
-      if (autoSpeak && voice?.ttsAvailable) voice.speak(answer);
-      setTimeout(() => emotionEngine?.setEmotion("neutral"), 3000);
-      return;
+    try {
+      const answer = await camera.ask(text);
+      removeTyping(typingEl);
+      if (answer && !answer.includes("暂不可用")) {
+        addMessage("ai", answer);
+        emotionEngine?.setEmotion("happy");
+        if (autoSpeak && voice?.ttsAvailable) voice.speak(answer);
+        setTimeout(() => emotionEngine?.setEmotion("neutral"), 3000);
+        isWaiting = false;
+        return; // 视觉回答成功，不再走普通文字路径
+      }
+    } catch {
+      removeTyping(typingEl);
     }
-    // 视觉API失败时降级到普通文字对话
-    removeTyping(typingEl);
+    isWaiting = false;
+    // 视觉API失败时才降级到下面的普通文字对话
   }
 
   if (!backendOnline) {

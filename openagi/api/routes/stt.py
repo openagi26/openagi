@@ -259,9 +259,13 @@ async def _try_openai_whisper(audio_path: str) -> str | None:
     try:
         from openai import AsyncOpenAI
 
-        # 读取环境变量中的 API 配置
-        api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("LLM_API_KEY", "")
-        base_url = os.environ.get("OPENAI_BASE_URL") or os.environ.get("LLM_BASE_URL", "")
+        # 读取环境变量中的 API 配置（兼容ZHIPU/OPENAI/通用）
+        api_key = (os.environ.get("ZHIPU_API_KEY")
+                   or os.environ.get("OPENAI_API_KEY")
+                   or os.environ.get("LLM_API_KEY", ""))
+        base_url = (os.environ.get("ZHIPU_API_BASE")
+                    or os.environ.get("OPENAI_BASE_URL")
+                    or os.environ.get("LLM_BASE_URL", ""))
 
         if not api_key:
             return None
