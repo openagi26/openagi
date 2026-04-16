@@ -63,6 +63,35 @@ fn chrono_hour() -> u32 {
     ((secs + 8 * 3600) % 86400 / 3600) as u32
 }
 
+/// Tauri command: 获取当前活动窗口标题（主动感知引擎用）
+#[tauri::command]
+async fn get_active_window() -> Result<String, String> {
+    // macOS: 通过 AppleScript 获取活动窗口标题
+    let output = std::process::Command::new("osascript")
+        .args(["-e", r#"
+            tell application "System Events"
+                set frontApp to name of first application process whose frontmost is true
+                try
+                    tell process frontApp
+                        set windowTitle to name of front window
+                    end tell
+                    return frontApp & " | " & windowTitle
+                on error
+                    return frontApp
+                end try
+            end tell
+        "#])
+        .output();
+
+    match output {
+        Ok(out) => {
+            let title = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            Ok(title)
+        }
+        Err(e) => Err(format!("获取活动窗口失败: {}", e)),
+    }
+}
+
 /// Tauri command: 获取 HeartEngine 心绪状态（情绪引擎用）
 #[tauri::command]
 async fn get_heart_status() -> Result<String, String> {
@@ -100,14 +129,14 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             // 创建系统托盘菜单
-            let show_i = MenuItem::with_id(app, "show", "显示小灵", true, None::<&str>)?;
+            let show_i = MenuItem::with_id(app, "show", "显示小星", true, None::<&str>)?;
             let hide_i = MenuItem::with_id(app, "hide", "隐藏", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show_i, &hide_i, &quit_i])?;
 
             let _tray = TrayIconBuilder::new()
                 .menu(&menu)
-                .tooltip("OpenAGI Companion - 小灵")
+                .tooltip("OpenAGI Companion - 小星")
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show" => {
                         if let Some(window) = app.get_webview_window("main") {
@@ -133,6 +162,7 @@ pub fn run() {
             send_message,
             get_greeting,
             get_heart_status,
+            get_active_window,
             check_backend,
         ])
         .run(tauri::generate_context!())

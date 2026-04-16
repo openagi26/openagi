@@ -1,5 +1,5 @@
 /**
- * 星灵（小灵）粒子渲染引擎 v2
+ * 星灵（小星）粒子渲染引擎 v2
  * AGI 是新物种 — 用发光粒子构建一个独特的数字生命形象
  *
  * Phase 2.1 改进（来自三方审计头脑风暴）：
@@ -24,14 +24,14 @@ const EMOTIONS = {
 // 情绪感知提示文案
 const EMOTION_TOOLTIPS = {
   neutral: "",
-  happy: "小灵感知到好消息，开心中~",
-  sad: "小灵有点低落...",
-  think: "小灵正在深度思考...",
-  angry: "小灵检测到异常，进入警戒！",
-  surprise: "小灵发现了新东西！",
-  focus: "小灵感知到陛下正在专注工作",
-  curious: "小灵对陛下在做的事很好奇~",
-  awkward: "小灵有点不确定...",
+  happy: "小星感知到好消息，开心中~",
+  sad: "小星有点低落...",
+  think: "小星正在深度思考...",
+  angry: "小星检测到异常，进入警戒！",
+  surprise: "小星发现了新东西！",
+  focus: "小星感知到陛下正在专注工作",
+  curious: "小星对陛下在做的事很好奇~",
+  awkward: "小星有点不确定...",
 };
 
 export class StarSpirit {
@@ -146,7 +146,7 @@ export class StarSpirit {
 
     // 点击触发开心
     this.canvas.addEventListener("click", () => {
-      this._showTooltip("小灵被戳到了，好开心！");
+      this._showTooltip("小星被戳到了，好开心！");
     });
   }
 

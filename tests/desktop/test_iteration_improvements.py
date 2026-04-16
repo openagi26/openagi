@@ -114,7 +114,7 @@ def test_emotion_chinese_labels():
 def test_emotion_tooltip_messages():
     """每种情绪有对应的感知提示文案。"""
     content = (DESKTOP_ROOT / "src" / "star-spirit.js").read_text()
-    assert "小灵感知到" in content
+    assert "小星感知到" in content
     assert "正在专注" in content
     assert "好开心" in content
 

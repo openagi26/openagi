@@ -1,6 +1,6 @@
 /**
  * OpenAGI Desktop Companion - 主入口 (Phase 2)
- * 星灵(小灵) + Live2D + 情绪引擎 + 语音对话 + 气泡对话
+ * 星灵(小星) + Live2D + 情绪引擎 + 语音对话 + 主动感知
  */
 
 import { StarSpirit } from "./star-spirit.js";
@@ -8,6 +8,7 @@ import { EmotionEngine } from "./emotion-engine.js";
 import { VoiceSystem } from "./voice.js";
 import { Live2DAvatar } from "./live2d-avatar.js";
 import { FocusGuard, FOCUS_PRESETS } from "./focus-guard.js";
+import { ProactiveEngine } from "./proactive-engine.js";
 
 // ── 全局状态 ──────────────────────────────────────────────
 
@@ -20,6 +21,7 @@ let isWaiting = false;
 let currentAvatar = "star-spirit"; // "star-spirit" | "live2d"
 let autoSpeak = true; // AI回复是否自动朗读
 let focusGuard = null; // 专注模式看护
+let proactive = null;  // 主动感知引擎
 
 // ── 初始化 ────────────────────────────────────────────────
 
@@ -64,7 +66,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   focusGuard = new FocusGuard();
   setupFocusGuard();
 
-  // 6. 绑定控制按钮
+  // 6. 初始化主动感知引擎
+  proactive = new ProactiveEngine();
+  setupProactive();
+  proactive.start();
+
+  // 7. 绑定控制按钮
   setupControls();
 
   // 6. 检查后端连接
@@ -186,6 +193,30 @@ function toggleAvatar() {
     // 恢复当前情绪
     spirit.setEmotion(emotionEngine?.currentEmotion || "neutral");
   }
+}
+
+// ── 主动感知 ──────────────────────────────────────────────
+
+function setupProactive() {
+  // 场景识别 → 主动消息
+  proactive.onProactiveMessage = (message, emotion, sceneType) => {
+    addMessage("ai", message);
+    emotionEngine?.setEmotion(emotion);
+    if (autoSpeak && voice?.ttsAvailable) {
+      voice.speak(message);
+    }
+    setTimeout(() => emotionEngine?.setEmotion("neutral"), 3000);
+  };
+
+  // 健康提醒
+  proactive.onWellnessReminder = (type, message) => {
+    addMessage("ai", message);
+    emotionEngine?.setEmotion("curious");
+    if (autoSpeak && voice?.ttsAvailable) {
+      voice.speak(message);
+    }
+    setTimeout(() => emotionEngine?.setEmotion("neutral"), 3000);
+  };
 }
 
 // ── 专注模式 ──────────────────────────────────────────────
