@@ -292,6 +292,59 @@ _MARKET_SKILLS: list[dict] = [
             "深度源": ["arXiv", "GitHub Trending", "OpenAI Blog", "Anthropic Blog"],
         },
     },
+    # ── 2026-04-16 第二批吸收 ──────────────────────────────────
+    {
+        "id": "money_printer_v2",
+        "name": "MoneyPrinter 自动化变现",
+        "description": "YouTube Shorts全自动生产+Twitter机器人+联盟营销自动化+本地商业拓客，完整内容→发布→变现闭环",
+        "category": "自动化变现",
+        "version": "2.0.0",
+        "author": "FujiwaraChoki（29.7K★）",
+        "source": "github.com/FujiwaraChoki/MoneyPrinterV2",
+        "capabilities": {
+            "youtube_shorts": "全自动视频脚本→TTS配音→合成→上传",
+            "twitter_bot": "CRON定时调度自动发推运营",
+            "affiliate": "Amazon联盟营销+Twitter整合推广",
+            "local_outreach": "本地商业自动发现+冷邮件外联",
+        },
+        "tech_stack": ["Python 3.12", "gpt4free", "KittenTTS", "CRON"],
+    },
+    {
+        "id": "agent_reach",
+        "name": "Agent Reach 全平台搜索",
+        "description": "为AI Agent一键提供16+平台互联网访问能力，零API费用，支持GitHub/Twitter/B站/小红书/抖音/微信公众号/Reddit/微博等",
+        "category": "信息获取",
+        "version": "1.0.0",
+        "author": "Panniantong（17.5K★）",
+        "source": "github.com/Panniantong/Agent-Reach",
+        "platforms": [
+            "GitHub", "Twitter/X", "B站", "小红书", "抖音",
+            "微信公众号", "Reddit", "LinkedIn", "微博",
+            "YouTube", "Hacker News", "Stack Overflow",
+        ],
+        "features": {
+            "zero_api_cost": "无需付费API密钥",
+            "pluggable": "可插拔架构，按需启用平台",
+            "auto_diagnose": "agent-reach doctor 自动诊断",
+            "privacy": "凭证本地存储",
+        },
+    },
+    {
+        "id": "claude_code_best_practice",
+        "name": "Claude Code 最佳实践",
+        "description": "4.5万Star社区验证的Claude Code工程实践：CLAUDE.md分层管理(200行限制)、子代理隔离架构、技能优先于指令、50%上下文compact触发",
+        "category": "工程实践",
+        "version": "1.0.0",
+        "author": "shanraisshan（44.9K★）",
+        "source": "github.com/shanraisshan/claude-code-best-practice",
+        "practices": {
+            "claude_md": "单文件≤200行，<important if>条件标签，多目录分层继承",
+            "sub_agents": "功能专属子代理替代通用角色，独立上下文隔离",
+            "skills_over_instructions": "技能给目标+约束而非步骤，内嵌动态Shell输出",
+            "permissions": "settings.json通配符语法减少84%权限弹窗",
+            "context_budget": "50%用量触发/compact，超过进入代理迟钝区",
+        },
+    },
 ]
 
 

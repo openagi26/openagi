@@ -1,4 +1,4 @@
-.PHONY: dev test api web install clean kill pre-check docker-build docker-up docker-down docker-logs
+.PHONY: dev test api web install clean kill pre-check docker-build docker-up docker-down docker-logs companion companion-build
 
 # 虚拟环境路径（自动检测）
 VENV := .venv
@@ -52,6 +52,13 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type d -name .pytest_cache -exec rm -rf {} +
 	rm -rf web/.next/cache 2>/dev/null || true
+
+# ─── 桌面数字人 (Tauri) ──────────────────────────────────────────────────────
+companion:
+	cd desktop && npx tauri dev
+
+companion-build:
+	cd desktop && npx tauri build
 
 # ─── Docker 部署 ─────────────────────────────────────────────────────────────
 docker-build:

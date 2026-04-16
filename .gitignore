@@ -30,6 +30,11 @@ web/node_modules/
 web/.next/
 web/out/
 
+# Desktop (Tauri)
+desktop/node_modules/
+desktop/dist/
+desktop/src-tauri/target/
+
 # Logs
 *.log
 
