@@ -12,6 +12,7 @@ import { ProactiveEngine } from "./proactive-engine.js";
 import { ScreenObserver } from "./screen-observer.js";
 import { CameraVision } from "./camera-vision.js";
 import { ContinuousVoice } from "./continuous-voice.js";
+import { VisionRhythm } from "./vision-rhythm.js";
 
 // ── 全局状态 ──────────────────────────────────────────────
 
@@ -28,6 +29,7 @@ let proactive = null;  // 主动感知引擎
 let screenObserver = null; // 屏幕截图感知
 let camera = null;         // 摄像头视觉
 let convoMode = null;      // 连续对话模式
+let visionRhythm = null;   // 视觉节奏系统
 
 // ── 初始化 ────────────────────────────────────────────────
 
@@ -221,9 +223,12 @@ function setupControls() {
       } else {
         const ok = await camera.init();
         if (ok) {
-          addMessage("system", "📷 摄像头已开启！对小星说[帮我看一下]触发视觉问答");
+          addMessage("system", "📷 摄像头已开启！小星现在能看到外面的世界了");
           camera.togglePreview(document.getElementById("app"));
           cameraBtn.classList.add("active");
+          // 启动视觉节奏（AI自主控制拍照频率）
+          visionRhythm = new VisionRhythm(camera);
+          visionRhythm.start();
         } else {
           addMessage("system", "摄像头访问失败，请检查权限");
         }
@@ -299,11 +304,14 @@ function setupContinuousVoice() {
     // 2. 显示用户消息
     addMessage("user", text.trim());
 
-    // 3. 获取AI回复（带视觉如果摄像头开着）
+    // 3. 获取AI回复（自动附带最新视觉帧）
     emotionEngine?.setEmotion("think");
+    // 通知视觉节奏：有新消息
+    visionRhythm?.onNewMessage(text.trim(), true);
     let reply;
     try {
-      if (camera?.isActive) {
+      if (camera?.isActive && visionRhythm) {
+        // 用视觉节奏系统的最新帧（不用每次都重新拍照）
         reply = await camera.ask(text.trim());
       }
       if (!reply || reply.includes("暂不可用")) {
@@ -537,6 +545,9 @@ async function handleSend() {
 
   input.value = "";
   addMessage("user", text);
+
+  // 通知视觉节奏系统
+  visionRhythm?.onNewMessage(text, true);
 
   // 摄像头开启时：每次对话都"睁着眼睛"——自动拍照+消息一起发给AI
   // AI自己判断是否需要用视觉信息回答，不需要关键词触发
