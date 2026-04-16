@@ -63,6 +63,44 @@ fn chrono_hour() -> u32 {
     ((secs + 8 * 3600) % 86400 / 3600) as u32
 }
 
+/// Tauri command: 语音转文字（录音→后端转写）
+#[tauri::command]
+async fn transcribe_audio(audio_base64: String, format: String) -> Result<String, String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let body = serde_json::json!({
+        "audio_base64": audio_base64,
+        "format": format,
+    });
+
+    match client
+        .post("http://localhost:8888/api/v1/stt/transcribe")
+        .json(&body)
+        .send()
+        .await
+    {
+        Ok(resp) => match resp.json::<serde_json::Value>().await {
+            Ok(json) => {
+                if let Some(text) = json.get("data")
+                    .and_then(|d| d.get("text"))
+                    .and_then(|t| t.as_str())
+                {
+                    Ok(text.to_string())
+                } else if let Some(text) = json.get("text").and_then(|t| t.as_str()) {
+                    Ok(text.to_string())
+                } else {
+                    Ok(String::new())
+                }
+            }
+            Err(e) => Err(format!("解析转写结果失败: {}", e)),
+        },
+        Err(e) => Err(format!("语音转写请求失败: {}", e)),
+    }
+}
+
 /// Tauri command: 获取当前活动窗口标题（主动感知引擎用）
 #[tauri::command]
 async fn get_active_window() -> Result<String, String> {
@@ -163,6 +201,7 @@ pub fn run() {
             get_greeting,
             get_heart_status,
             get_active_window,
+            transcribe_audio,
             check_backend,
         ])
         .run(tauri::generate_context!())

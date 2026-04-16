@@ -48,11 +48,11 @@ def test_voice_system_exists():
 
 
 def test_voice_stt_config():
-    """STT 配置为中文。"""
+    """STT 使用 MediaRecorder 录音 + 后端转写。"""
     content = (DESKTOP_ROOT / "src" / "voice.js").read_text()
-    assert "zh-CN" in content
-    assert "SpeechRecognition" in content
-    assert "interimResults" in content
+    assert "MediaRecorder" in content
+    assert "getUserMedia" in content
+    assert "transcribe_audio" in content or "_transcribe" in content
 
 
 def test_voice_tts_config():

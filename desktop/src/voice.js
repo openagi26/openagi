@@ -1,108 +1,131 @@
 /**
- * 语音系统 — STT(语音识别) + TTS(语音合成)
+ * 语音系统 v2 — 真正可用的 STT + TTS
  *
- * Phase 2 MVP: 使用 Web Speech API（浏览器原生，零依赖）
- * Phase 3 升级: Whisper.cpp(本地STT) + Piper(本地TTS)
+ * STT方案：MediaRecorder录音 → 后端Whisper/API转写（兼容Tauri WKWebView）
+ * TTS方案：Web Speech API（WKWebView支持）+ 后端TTS备选
+ *
+ * Web Speech API 的 SpeechRecognition 在 WKWebView 中不可用，
+ * 所以用 MediaRecorder 录音 + 后端转写替代
  */
 
 export class VoiceSystem {
   constructor() {
     this.isListening = false;
     this.isSpeaking = false;
-    this.recognition = null;
     this.synthesis = window.speechSynthesis;
-    this.onResult = null;       // 语音识别结果回调
-    this.onListenStart = null;  // 开始听回调
-    this.onListenEnd = null;    // 停止听回调
-    this.onSpeakStart = null;   // 开始说回调
-    this.onSpeakEnd = null;     // 停止说回调
-    this.preferredVoice = null; // 首选语音
+    this.preferredVoice = null;
 
-    this._initSTT();
+    // 录音相关
+    this._mediaRecorder = null;
+    this._audioChunks = [];
+    this._stream = null;
+
+    // 回调
+    this.onResult = null;       // (text, isFinal) => void
+    this.onListenStart = null;
+    this.onListenEnd = null;
+    this.onSpeakStart = null;
+    this.onSpeakEnd = null;
+    this.onRecordingProgress = null; // (seconds) => void
+
+    // 录音计时
+    this._recordTimer = null;
+    this._recordSeconds = 0;
+    this._maxRecordSeconds = 30; // 最长录音30秒
+
     this._initTTS();
   }
 
-  // ── STT 语音识别 ──────────────────────────────────────
+  // ── STT: 录音 + 后端转写 ──────────────────────────────
 
-  _initSTT() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      console.warn("浏览器不支持 SpeechRecognition");
-      return;
-    }
-
-    this.recognition = new SpeechRecognition();
-    this.recognition.lang = "zh-CN";        // 中文优先
-    this.recognition.continuous = false;      // 单次识别
-    this.recognition.interimResults = true;   // 实时中间结果
-
-    this.recognition.onstart = () => {
-      this.isListening = true;
-      this.onListenStart?.();
-    };
-
-    this.recognition.onend = () => {
-      this.isListening = false;
-      this.onListenEnd?.();
-    };
-
-    this.recognition.onresult = (event) => {
-      let finalText = "";
-      let interimText = "";
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result.isFinal) {
-          finalText += result[0].transcript;
-        } else {
-          interimText += result[0].transcript;
-        }
-      }
-
-      if (finalText) {
-        this.onResult?.(finalText, true);
-      } else if (interimText) {
-        this.onResult?.(interimText, false);
-      }
-    };
-
-    this.recognition.onerror = (event) => {
-      console.warn("语音识别错误:", event.error);
-      this.isListening = false;
-      this.onListenEnd?.();
-    };
+  get sttAvailable() {
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   }
 
-  /** 开始语音识别 */
-  startListening() {
-    if (!this.recognition) {
-      console.warn("STT 不可用");
-      return false;
-    }
+  /** 开始录音 */
+  async startListening() {
     if (this.isListening) return true;
 
-    // 如果正在说话，先停止
-    if (this.isSpeaking) {
-      this.stopSpeaking();
-    }
+    // 停止正在播放的语音
+    if (this.isSpeaking) this.stopSpeaking();
 
     try {
-      this.recognition.start();
+      // 请求麦克风权限
+      this._stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          sampleRate: 16000,
+          echoCancellation: true,
+          noiseSuppression: true,
+        }
+      });
+
+      // 创建 MediaRecorder
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/mp4")
+          ? "audio/mp4"
+          : "audio/webm";
+
+      this._mediaRecorder = new MediaRecorder(this._stream, { mimeType });
+      this._audioChunks = [];
+
+      this._mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          this._audioChunks.push(e.data);
+        }
+      };
+
+      this._mediaRecorder.onstop = async () => {
+        this._stopRecordTimer();
+        this._releaseStream();
+
+        if (this._audioChunks.length === 0) {
+          this.onListenEnd?.();
+          return;
+        }
+
+        // 合并音频数据
+        const audioBlob = new Blob(this._audioChunks, { type: mimeType });
+        this._audioChunks = [];
+
+        // 转为 base64 发送给后端转写
+        this.onResult?.("语音识别中...", false);
+        const text = await this._transcribe(audioBlob);
+
+        if (text && text.trim()) {
+          this.onResult?.(text.trim(), true);
+        } else {
+          this.onResult?.("", true); // 空结果，清除"识别中"提示
+        }
+        this.onListenEnd?.();
+      };
+
+      // 开始录音（每秒收集一次数据）
+      this._mediaRecorder.start(1000);
+      this.isListening = true;
+      this._recordSeconds = 0;
+      this._startRecordTimer();
+      this.onListenStart?.();
       return true;
-    } catch (e) {
-      console.warn("启动语音识别失败:", e);
+
+    } catch (err) {
+      console.warn("麦克风访问失败:", err);
+      this.isListening = false;
+      this.onListenEnd?.();
       return false;
     }
   }
 
-  /** 停止语音识别 */
+  /** 停止录音 */
   stopListening() {
-    if (this.recognition && this.isListening) {
-      this.recognition.stop();
+    if (this._mediaRecorder && this.isListening) {
+      this.isListening = false;
+      this._mediaRecorder.stop();
     }
   }
 
-  /** 切换语音识别 */
+  /** 切换录音 */
   toggleListening() {
     if (this.isListening) {
       this.stopListening();
@@ -111,22 +134,70 @@ export class VoiceSystem {
     }
   }
 
-  get sttAvailable() {
-    return !!this.recognition;
+  _startRecordTimer() {
+    this._recordTimer = setInterval(() => {
+      this._recordSeconds++;
+      this.onRecordingProgress?.(this._recordSeconds);
+      // 超时自动停止
+      if (this._recordSeconds >= this._maxRecordSeconds) {
+        this.stopListening();
+      }
+    }, 1000);
   }
 
-  // ── TTS 语音合成 ──────────────────────────────────────
+  _stopRecordTimer() {
+    if (this._recordTimer) {
+      clearInterval(this._recordTimer);
+      this._recordTimer = null;
+    }
+  }
+
+  _releaseStream() {
+    if (this._stream) {
+      this._stream.getTracks().forEach(t => t.stop());
+      this._stream = null;
+    }
+  }
+
+  /** 音频转文字：发送到后端转写 */
+  async _transcribe(audioBlob) {
+    try {
+      // 转为 base64
+      const buffer = await audioBlob.arrayBuffer();
+      const base64 = btoa(
+        new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
+      );
+
+      // 通过 Tauri invoke 或 HTTP 发送
+      if (window.__TAURI_INTERNALS__) {
+        const { invoke } = window.__TAURI_INTERNALS__;
+        return await invoke("transcribe_audio", {
+          audioBase64: base64,
+          format: audioBlob.type.includes("mp4") ? "mp4" : "webm",
+        });
+      } else {
+        // 浏览器 fallback: 直接调后端API
+        const resp = await fetch("http://localhost:8888/api/v1/stt/transcribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ audio_base64: base64, format: "webm" }),
+        });
+        const json = await resp.json();
+        return json?.data?.text || json?.text || "";
+      }
+    } catch (err) {
+      console.warn("语音转写失败:", err);
+      return "";
+    }
+  }
+
+  // ── TTS: 语音合成 ──────────────────────────────────────
 
   _initTTS() {
-    if (!this.synthesis) {
-      console.warn("浏览器不支持 SpeechSynthesis");
-      return;
-    }
+    if (!this.synthesis) return;
 
-    // 等待 voices 加载（部分浏览器异步加载）
     const loadVoices = () => {
       const voices = this.synthesis.getVoices();
-      // 优先选择中文女声
       this.preferredVoice =
         voices.find(v => v.lang.startsWith("zh") && v.name.includes("Ting")) ||
         voices.find(v => v.lang.startsWith("zh") && v.name.includes("female")) ||
@@ -141,42 +212,32 @@ export class VoiceSystem {
     }
   }
 
-  /** 语音朗读文本 */
+  get ttsAvailable() {
+    return !!this.synthesis;
+  }
+
+  /** 语音朗读 */
   speak(text) {
     if (!this.synthesis) return;
-
-    // 停止当前朗读
     this.synthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "zh-CN";
     utterance.rate = 1.0;
-    utterance.pitch = 1.1;  // 略高音调，更可爱
+    utterance.pitch = 1.1;
     utterance.volume = 0.9;
 
     if (this.preferredVoice) {
       utterance.voice = this.preferredVoice;
     }
 
-    utterance.onstart = () => {
-      this.isSpeaking = true;
-      this.onSpeakStart?.();
-    };
-
-    utterance.onend = () => {
-      this.isSpeaking = false;
-      this.onSpeakEnd?.();
-    };
-
-    utterance.onerror = () => {
-      this.isSpeaking = false;
-      this.onSpeakEnd?.();
-    };
+    utterance.onstart = () => { this.isSpeaking = true; this.onSpeakStart?.(); };
+    utterance.onend = () => { this.isSpeaking = false; this.onSpeakEnd?.(); };
+    utterance.onerror = () => { this.isSpeaking = false; this.onSpeakEnd?.(); };
 
     this.synthesis.speak(utterance);
   }
 
-  /** 停止朗读 */
   stopSpeaking() {
     if (this.synthesis) {
       this.synthesis.cancel();
@@ -184,11 +245,6 @@ export class VoiceSystem {
     }
   }
 
-  get ttsAvailable() {
-    return !!this.synthesis;
-  }
-
-  /** 获取可用语音列表 */
   getVoices() {
     if (!this.synthesis) return [];
     return this.synthesis.getVoices().filter(v => v.lang.startsWith("zh"));
