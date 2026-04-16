@@ -92,7 +92,7 @@ class LLMRouter:
     - 本地Claude自动识别
     """
 
-    def __init__(self, max_retries: int = 1, base_backoff: float = 0.5):
+    def __init__(self, max_retries: int = 3, base_backoff: float = 2.0):
         self._relays: list[RelayStation] = []
         self._models: list[ModelEntry] = []
         self._max_retries = max_retries
@@ -304,11 +304,7 @@ class LLMRouter:
                         call_kwargs["api_base"] = relay.base_url
                         call_kwargs["api_key"] = relay.api_key
 
-                    # asyncio.wait_for 硬超时：litellm 内置 timeout 对推理模型无效（61s 实测）
-                    response = await asyncio.wait_for(
-                        litellm.acompletion(**call_kwargs),
-                        timeout=25,
-                    )
+                    response = await litellm.acompletion(**call_kwargs)
                     msg = response.choices[0].message
                     content = msg.content or ""
                     # 推理模型（GLM-5.1/o1等）内容在 reasoning_content 字段
