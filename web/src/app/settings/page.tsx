@@ -80,8 +80,11 @@ export default function SettingsPage() {
     fetchSettings().then(data => {
       if (data && typeof data === 'object') {
         const d = data as Record<string, unknown>;
-        if (typeof d.relay_url === 'string') setRelayUrl(d.relay_url);
-        if (typeof d.core_count === 'number') setCoreCount(d.core_count);
+        // 后端返回嵌套结构: multicore.core_count / relay.url
+        const multicore = d.multicore as Record<string, unknown> | undefined;
+        const relay = d.relay as Record<string, unknown> | undefined;
+        if (typeof relay?.url === 'string') setRelayUrl(relay.url as string);
+        if (typeof multicore?.core_count === 'number') setCoreCount(multicore.core_count as number);
         if (d.inspection && typeof d.inspection === 'object') {
           const insp = d.inspection as Record<string, unknown>;
           dispatch({
@@ -101,13 +104,12 @@ export default function SettingsPage() {
     setSaveStatus('saving');
     try {
       await saveSettings({
-        relay_url: relayUrl,
-        core_count: coreCount,
-        inspection: {
+        relay: { url: relayUrl },
+        multicore: { core_count: coreCount, auto_escalate: true },
+        commander: {
           enabled: state.inspectionEnabled,
-          frequency: state.inspectionFrequency,
+          interval_seconds: state.inspectionFrequency ?? 600,
         },
-        model: state.currentModel,
       });
       setSaveStatus('ok');
       setTimeout(() => setSaveStatus('idle'), 2000);
