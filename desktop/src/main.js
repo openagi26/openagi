@@ -9,6 +9,7 @@ import { VoiceSystem } from "./voice.js";
 import { Live2DAvatar } from "./live2d-avatar.js";
 import { FocusGuard, FOCUS_PRESETS } from "./focus-guard.js";
 import { ProactiveEngine } from "./proactive-engine.js";
+import { ScreenObserver } from "./screen-observer.js";
 
 // ── 全局状态 ──────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ let currentAvatar = "star-spirit"; // "star-spirit" | "live2d"
 let autoSpeak = true; // AI回复是否自动朗读
 let focusGuard = null; // 专注模式看护
 let proactive = null;  // 主动感知引擎
+let screenObserver = null; // 屏幕截图感知
 
 // ── 初始化 ────────────────────────────────────────────────
 
@@ -71,7 +73,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupProactive();
   proactive.start();
 
-  // 7. 绑定控制按钮
+  // 7. 初始化屏幕截图感知（小星的眼睛）
+  screenObserver = new ScreenObserver();
+  screenObserver.onObservation = (message, emotion) => {
+    addMessage("ai", message);
+    emotionEngine?.setEmotion(emotion);
+    if (autoSpeak && voice?.ttsAvailable) {
+      voice.speak(message);
+    }
+    setTimeout(() => emotionEngine?.setEmotion("neutral"), 3000);
+  };
+  // 默认关闭，用户可在设置中开启（隐私考虑）
+  // screenObserver.start(60000);
+
+  // 8. 绑定控制按钮
   setupControls();
 
   // 6. 检查后端连接

@@ -45,6 +45,7 @@ from openagi.api.routes import chat as chat_routes
 from openagi.api.routes import settings as settings_routes
 from openagi.api.routes import skills as skills_routes
 from openagi.api.routes import stt as stt_routes
+from openagi.api.routes import screen as screen_routes
 from openagi.api.deps import init_deps
 
 logger = logging.getLogger("openagi.api")
@@ -159,6 +160,7 @@ app.include_router(chat_routes.router)
 app.include_router(settings_routes.router)
 app.include_router(skills_routes.router)
 app.include_router(stt_routes.router)
+app.include_router(screen_routes.router)
 
 
 # ─── 请求/响应模型 ──────────────────────────────────────────────────────────

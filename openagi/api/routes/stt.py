@@ -46,12 +46,22 @@ async def transcribe_audio(payload: dict):
         audio_path = f.name
 
     try:
-        # 策略0（最优）: 本地 Whisper Python 模型
+        # 策略0（最快）: Vosk离线识别（50MB模型，零延迟）
+        text = await _try_vosk(audio_path)
+        if text:
+            return {"success": True, "data": {"text": text}}
+
+        # 策略1: 阿里FunASR SenseVoiceSmall（234M，中文最准）
+        text = await _try_funasr(audio_path)
+        if text:
+            return {"success": True, "data": {"text": text}}
+
+        # 策略2: 本地 Whisper Python 模型（备选）
         text = await _try_whisper_python(audio_path)
         if text:
             return {"success": True, "data": {"text": text}}
 
-        # 策略1: 尝试 OpenAI 兼容的 Whisper API
+        # 策略2: 尝试 OpenAI 兼容的 Whisper API
         text = await _try_openai_whisper(audio_path)
         if text:
             return {"success": True, "data": {"text": text}}
@@ -75,7 +85,9 @@ async def transcribe_audio(payload: dict):
             pass
 
 
-_whisper_model = None  # 缓存模型，避免每次加载
+_whisper_model = None  # 缓存Whisper模型
+_funasr_model = None   # 缓存FunASR模型
+_vosk_model = None     # 缓存Vosk模型（最快）
 
 # 常用繁→简映射（覆盖Whisper最常见的繁体输出）
 _T2S_MAP = str.maketrans(
@@ -87,6 +99,126 @@ _T2S_MAP = str.maketrans(
 def _to_simplified(text: str) -> str:
     """繁体中文→简体中文（轻量映射，无外部依赖）。"""
     return text.translate(_T2S_MAP)
+
+
+async def _try_vosk(audio_path: str) -> str | None:
+    """Vosk 离线语音识别 — 最快方案（50MB模型，零延迟）。
+
+    支持20+语言，模型极小，Raspberry Pi都能跑。
+    https://github.com/alphacep/vosk-api
+    """
+    import asyncio
+
+    def _transcribe():
+        global _vosk_model
+        try:
+            import json as _json
+            import subprocess
+            import wave
+
+            from vosk import KaldiRecognizer, Model, SetLogLevel
+
+            SetLogLevel(-1)  # 静默日志
+
+            # 先用ffmpeg转成16kHz WAV（Vosk要求）
+            wav_path = audio_path + ".vosk.wav"
+            result = subprocess.run(
+                ["ffmpeg", "-i", audio_path, "-ar", "16000", "-ac", "1",
+                 "-f", "wav", wav_path, "-y"],
+                capture_output=True, timeout=10,
+            )
+            if result.returncode != 0:
+                return None
+
+            # 加载模型（首次自动下载中文小模型）
+            if _vosk_model is None:
+                # 尝试加载中文模型
+                import os
+                model_path = os.path.expanduser("~/.openagi/models/vosk-model-cn")
+                if os.path.exists(model_path):
+                    _vosk_model = Model(model_path)
+                else:
+                    # 自动下载小模型
+                    _vosk_model = Model(lang="cn")
+
+            # 识别
+            wf = wave.open(wav_path, "rb")
+            rec = KaldiRecognizer(_vosk_model, wf.getframerate())
+            rec.SetWords(True)
+
+            text_parts = []
+            while True:
+                data = wf.readframes(4000)
+                if len(data) == 0:
+                    break
+                if rec.AcceptWaveform(data):
+                    part = _json.loads(rec.Result())
+                    if part.get("text"):
+                        text_parts.append(part["text"])
+
+            final = _json.loads(rec.FinalResult())
+            if final.get("text"):
+                text_parts.append(final["text"])
+
+            wf.close()
+            # 清理临时wav
+            try:
+                os.unlink(wav_path)
+            except OSError:
+                pass
+
+            return " ".join(text_parts).strip() if text_parts else None
+
+        except ImportError:
+            return None
+        except Exception as e:
+            print(f"Vosk转写异常: {e}")
+            return None
+
+    return await asyncio.get_event_loop().run_in_executor(None, _transcribe)
+
+
+async def _try_funasr(audio_path: str) -> str | None:
+    """阿里FunASR SenseVoiceSmall — 中文识别最优方案。
+
+    234M参数，比Whisper small更小更快更准（CER降低34-46%）。
+    内置标点恢复+情绪识别，M4 Apple Silicon CPU直接运行。
+    """
+    import asyncio
+
+    def _transcribe():
+        global _funasr_model
+        try:
+            from funasr import AutoModel
+
+            if _funasr_model is None:
+                _funasr_model = AutoModel(
+                    model="iic/SenseVoiceSmall",
+                    device="cpu",
+                    disable_update=True,
+                )
+
+            result = _funasr_model.generate(
+                input=audio_path,
+                language="zh",
+                use_itn=True,  # 逆文本正则化（数字/日期等）
+            )
+
+            if result and len(result) > 0:
+                text = result[0].get("text", "").strip()
+                # 清理FunASR可能的特殊标记
+                for tag in ["<|zh|>", "<|en|>", "<|EMO_UNKNOWN|>", "<|Speech|>",
+                            "<|HAPPY|>", "<|SAD|>", "<|ANGRY|>", "<|NEUTRAL|>"]:
+                    text = text.replace(tag, "")
+                return text.strip()
+            return None
+        except ImportError:
+            return None
+        except Exception as e:
+            print(f"FunASR转写异常: {e}")
+            return None
+
+    return await asyncio.get_event_loop().run_in_executor(None, _transcribe)
 
 
 async def _try_whisper_python(audio_path: str) -> str | None:

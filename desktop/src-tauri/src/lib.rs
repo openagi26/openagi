@@ -101,6 +101,79 @@ async fn transcribe_audio(audio_base64: String, format: String) -> Result<String
     }
 }
 
+/// Tauri command: 屏幕截图并分析（小星的眼睛）
+/// 截图→保存到临时文件→后端分析→返回结果
+#[tauri::command]
+async fn capture_screenshot() -> Result<String, String> {
+    let tmp_path = "/tmp/xiaoxing_screenshot.png";
+
+    // macOS screencapture（-x静默，-C含光标，-t格式）
+    let output = std::process::Command::new("screencapture")
+        .args(["-x", "-t", "png", tmp_path])
+        .output()
+        .map_err(|e| format!("截图命令错误: {}", e))?;
+
+    if !output.status.success() {
+        return Err("截图失败".to_string());
+    }
+
+    // 读取截图文件，用Python标准库的base64编码
+    let bytes = std::fs::read(tmp_path)
+        .map_err(|e| format!("读取截图失败: {}", e))?;
+    let _ = std::fs::remove_file(tmp_path);
+
+    // 手动 base64 编码
+    const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut encoded = String::with_capacity(bytes.len() * 4 / 3 + 4);
+    for chunk in bytes.chunks(3) {
+        let b0 = chunk[0] as u32;
+        let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
+        let b2 = if chunk.len() > 2 { chunk[2] as u32 } else { 0 };
+        let triple = (b0 << 16) | (b1 << 8) | b2;
+        encoded.push(CHARS[((triple >> 18) & 0x3F) as usize] as char);
+        encoded.push(CHARS[((triple >> 12) & 0x3F) as usize] as char);
+        if chunk.len() > 1 {
+            encoded.push(CHARS[((triple >> 6) & 0x3F) as usize] as char);
+        } else {
+            encoded.push('=');
+        }
+        if chunk.len() > 2 {
+            encoded.push(CHARS[(triple & 0x3F) as usize] as char);
+        } else {
+            encoded.push('=');
+        }
+    }
+
+    Ok(encoded)
+}
+
+/// Tauri command: 分析截图内容（发送到后端AI视觉模型）
+#[tauri::command]
+async fn analyze_screenshot(image_base64: String) -> Result<String, String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let body = serde_json::json!({ "image_base64": image_base64 });
+
+    match client
+        .post("http://localhost:8888/api/v1/screen/analyze")
+        .json(&body)
+        .send()
+        .await
+    {
+        Ok(resp) => match resp.json::<serde_json::Value>().await {
+            Ok(json) => Ok(json.get("data")
+                .and_then(|d| d.get("analysis"))
+                .and_then(|a| a.as_str())
+                .unwrap_or("").to_string()),
+            Err(e) => Err(format!("解析失败: {}", e)),
+        },
+        Err(e) => Err(format!("请求失败: {}", e)),
+    }
+}
+
 /// Tauri command: 获取当前活动窗口标题（主动感知引擎用）
 #[tauri::command]
 async fn get_active_window() -> Result<String, String> {
@@ -202,6 +275,8 @@ pub fn run() {
             get_heart_status,
             get_active_window,
             transcribe_audio,
+            capture_screenshot,
+            analyze_screenshot,
             check_backend,
         ])
         .run(tauri::generate_context!())
