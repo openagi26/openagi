@@ -101,6 +101,32 @@ def _to_simplified(text: str) -> str:
     return text.translate(_T2S_MAP)
 
 
+# Whisper幻觉过滤（静默/噪音时Whisper会脑补的常见文本）
+_HALLUCINATION_PATTERNS = [
+    "点赞", "订阅", "转发", "打赏", "关注", "感谢观看", "感谢收看",
+    "谢谢大家", "请点赞", "一键三连", "别忘了", "记得点赞",
+    "喜欢的话", "如果喜欢", "下期再见", "我们下期", "拜拜",
+    "字幕", "翻译", "配音", "剪辑", "后期",
+    "www.", "http", ".com", ".cn",
+    "请不要", "禁止", "版权", "侵权",
+]
+
+
+def _filter_hallucinations(text: str) -> str:
+    """过滤Whisper的幻觉输出（静默时脑补的视频结尾语等）。"""
+    if not text:
+        return ""
+    # 如果文本主要由幻觉词组成，返回空
+    hallucination_count = sum(1 for p in _HALLUCINATION_PATTERNS if p in text)
+    word_count = len(text.replace(" ", ""))
+    # 幻觉词占比超50%或文本太短且含幻觉词→过滤
+    if hallucination_count >= 3:
+        return ""
+    if word_count < 10 and hallucination_count >= 1:
+        return ""
+    return text
+
+
 async def _try_vosk(audio_path: str) -> str | None:
     """Vosk 离线语音识别 — 最快方案（50MB模型，零延迟）。
 
@@ -167,7 +193,8 @@ async def _try_vosk(audio_path: str) -> str | None:
             except OSError:
                 pass
 
-            return " ".join(text_parts).strip() if text_parts else None
+            result = " ".join(text_parts).strip() if text_parts else None
+            return _filter_hallucinations(result) if result else None
 
         except ImportError:
             return None
@@ -210,7 +237,8 @@ async def _try_funasr(audio_path: str) -> str | None:
                 for tag in ["<|zh|>", "<|en|>", "<|EMO_UNKNOWN|>", "<|Speech|>",
                             "<|HAPPY|>", "<|SAD|>", "<|ANGRY|>", "<|NEUTRAL|>"]:
                     text = text.replace(tag, "")
-                return text.strip()
+                text = text.strip()
+                return _filter_hallucinations(text) if text else None
             return None
         except ImportError:
             return None
@@ -241,8 +269,9 @@ async def _try_whisper_python(audio_path: str) -> str | None:
                 initial_prompt="以下是简体中文对话。",  # 强制简体中文
             )
             text = result.get("text", "").strip()
-            # 繁体→简体转换
+            # 繁体→简体转换 + 幻觉过滤
             text = _to_simplified(text)
+            text = _filter_hallucinations(text)
             return text
         except ImportError:
             return None
