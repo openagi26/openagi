@@ -92,7 +92,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 默认关闭，用户可在设置中开启（隐私考虑）
   // screenObserver.start(60000);
 
-  // 8. 绑定控制按钮
+  // 8. 窗口控制按钮（关闭/最小化/全屏）
+  setupWindowControls();
+
+  // 9. 绑定功能控制按钮
   setupControls();
 
   // 6. 检查后端连接
@@ -279,6 +282,57 @@ function toggleAvatar() {
     avatarBtn.title = "切换到 Live2D";
     // 恢复当前情绪
     spirit.setEmotion(emotionEngine?.currentEmotion || "neutral");
+  }
+}
+
+// ── 窗口控制 ──────────────────────────────────────────────
+
+function setupWindowControls() {
+  const closeBtn = document.getElementById("win-close");
+  const minBtn = document.getElementById("win-minimize");
+  const maxBtn = document.getElementById("win-maximize");
+
+  if (window.__TAURI_INTERNALS__) {
+    const { invoke } = window.__TAURI_INTERNALS__;
+
+    closeBtn?.addEventListener("click", async () => {
+      try {
+        const { getCurrentWindow } = await import("@tauri-apps/api/window");
+        await getCurrentWindow().hide(); // 隐藏到后台，不退出
+      } catch {
+        // fallback: 直接关闭
+        window.close();
+      }
+    });
+
+    minBtn?.addEventListener("click", async () => {
+      try {
+        const { getCurrentWindow } = await import("@tauri-apps/api/window");
+        await getCurrentWindow().minimize();
+      } catch {}
+    });
+
+    maxBtn?.addEventListener("click", async () => {
+      try {
+        const { getCurrentWindow } = await import("@tauri-apps/api/window");
+        const win = getCurrentWindow();
+        if (await win.isMaximized()) {
+          await win.unmaximize();
+        } else {
+          await win.maximize();
+        }
+      } catch {}
+    });
+  } else {
+    // 浏览器模式 fallback
+    closeBtn?.addEventListener("click", () => window.close());
+    maxBtn?.addEventListener("click", () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        document.documentElement.requestFullscreen();
+      }
+    });
   }
 }
 

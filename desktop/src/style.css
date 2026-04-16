@@ -44,12 +44,49 @@ html, body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 60px var(--glow);
 }
 
-/* 顶部栏：拖拽 + 控制按钮 */
+/* 顶部栏：窗口控制 + 拖拽 + 功能按钮 */
 #top-bar {
   display: flex;
   align-items: center;
   flex-shrink: 0;
   height: 32px;
+}
+
+/* macOS风格窗口控制按钮 */
+#window-controls {
+  display: flex;
+  gap: 6px;
+  padding-left: 10px;
+  flex-shrink: 0;
+}
+
+.win-btn {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 8px;
+  line-height: 14px;
+  text-align: center;
+  color: transparent;
+  transition: all 0.15s;
+}
+
+.win-btn:hover {
+  color: rgba(0,0,0,0.6);
+}
+
+.win-btn.close {
+  background: #ff5f57;
+}
+
+.win-btn.minimize {
+  background: #febc2e;
+}
+
+.win-btn.maximize {
+  background: #28c840;
 }
 
 #drag-handle {

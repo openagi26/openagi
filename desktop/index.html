@@ -8,8 +8,13 @@
   </head>
   <body>
     <div id="app">
-      <!-- 拖拽区域 + 控制按钮 -->
+      <!-- 顶部：窗口控制 + 拖拽 + 功能按钮 -->
       <div id="top-bar">
+        <div id="window-controls">
+          <button class="win-btn close" id="win-close" title="关闭">&#x2715;</button>
+          <button class="win-btn minimize" id="win-minimize" title="缩小到后台">&#x2212;</button>
+          <button class="win-btn maximize" id="win-maximize" title="全屏">&#x2610;</button>
+        </div>
         <div id="drag-handle" data-tauri-drag-region></div>
         <div id="controls">
           <button id="convo-btn" class="ctrl-btn" title="连续对话模式（面对面交流）">🎙️</button>
