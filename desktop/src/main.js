@@ -11,6 +11,7 @@ import { FocusGuard, FOCUS_PRESETS } from "./focus-guard.js";
 import { ProactiveEngine } from "./proactive-engine.js";
 import { ScreenObserver } from "./screen-observer.js";
 import { CameraVision } from "./camera-vision.js";
+import { ContinuousVoice } from "./continuous-voice.js";
 
 // ── 全局状态 ──────────────────────────────────────────────
 
@@ -26,6 +27,7 @@ let focusGuard = null; // 专注模式看护
 let proactive = null;  // 主动感知引擎
 let screenObserver = null; // 屏幕截图感知
 let camera = null;         // 摄像头视觉
+let convoMode = null;      // 连续对话模式
 
 // ── 初始化 ────────────────────────────────────────────────
 
@@ -174,6 +176,33 @@ function setupControls() {
     speakerBtn.classList.toggle("active", autoSpeak);
   }
 
+  // 连续对话按钮
+  const convoBtn = document.getElementById("convo-btn");
+  if (convoBtn) {
+    convoBtn.addEventListener("click", async () => {
+      if (convoMode?.isActive) {
+        // 关闭连续对话
+        convoMode.stop();
+        convoBtn.classList.remove("active");
+        convoBtn.textContent = "🎙️";
+        addMessage("system", "连续对话已关闭");
+      } else {
+        // 开启连续对话
+        if (!convoMode) {
+          convoMode = new ContinuousVoice();
+          setupContinuousVoice();
+        }
+        const ok = await convoMode.start();
+        if (ok) {
+          convoBtn.classList.add("active");
+          addMessage("system", "🎙️ 连续对话已开启！直接说话，小星在听...");
+        } else {
+          addMessage("system", "麦克风访问失败");
+        }
+      }
+    });
+  }
+
   // 摄像头按钮
   const cameraBtn = document.getElementById("camera-btn");
   if (cameraBtn) {
@@ -245,6 +274,112 @@ function toggleAvatar() {
     avatarBtn.title = "切换到 Live2D";
     // 恢复当前情绪
     spirit.setEmotion(emotionEngine?.currentEmotion || "neutral");
+  }
+}
+
+// ── 连续对话模式 ──────────────────────────────────────────
+
+function setupContinuousVoice() {
+  const convoBtn = document.getElementById("convo-btn");
+
+  // 用户开始说话
+  convoMode.onUserSpeechStart = () => {
+    emotionEngine?.setEmotion("curious");
+  };
+
+  // 用户说完→发送录音→转写→AI回复→小星说
+  convoMode.onUserSpeechEnd = async (audioBlob, duration) => {
+    // 1. 转写语音
+    const text = await transcribeBlob(audioBlob);
+    if (!text || !text.trim()) {
+      if (convoMode.isActive) convoMode._setState("listening");
+      return;
+    }
+
+    // 2. 显示用户消息
+    addMessage("user", text.trim());
+
+    // 3. 获取AI回复（带视觉如果摄像头开着）
+    emotionEngine?.setEmotion("think");
+    let reply;
+    try {
+      if (camera?.isActive) {
+        reply = await camera.ask(text.trim());
+      }
+      if (!reply || reply.includes("暂不可用")) {
+        // 普通文字对话
+        if (window.__TAURI_INTERNALS__) {
+          const { invoke } = window.__TAURI_INTERNALS__;
+          reply = await invoke("send_message", { message: text.trim() });
+        } else {
+          const resp = await fetch("http://localhost:8888/api/v1/chat/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: text.trim(), core_count: 1 }),
+          });
+          const json = await resp.json();
+          reply = json?.data?.reply || json?.data?.response || "...";
+        }
+      }
+    } catch (err) {
+      reply = "抱歉陛下，我没有听清";
+    }
+
+    // 4. 显示AI回复
+    addMessage("ai", reply);
+    emotionEngine?.setEmotion("happy");
+
+    // 5. 小星说出回复（连续对话模式用convoMode.speak，支持打断）
+    if (convoMode.isActive) {
+      convoMode.speak(reply);
+    }
+
+    setTimeout(() => emotionEngine?.setEmotion("neutral"), 2000);
+  };
+
+  // 状态变化→更新按钮显示
+  convoMode.onStateChange = (state) => {
+    if (!convoBtn) return;
+    const labels = {
+      listening: "👂",
+      thinking: "🤔",
+      speaking: "🗣️",
+      idle: "🎙️",
+    };
+    convoBtn.textContent = labels[state] || "🎙️";
+  };
+
+  // 音量电平→星灵粒子大小脉动
+  convoMode.onVolumeLevel = (volume) => {
+    // 可以用来驱动粒子大小变化（未来增强）
+  };
+}
+
+/** 录音blob转文字（复用STT后端） */
+async function transcribeBlob(audioBlob) {
+  try {
+    const buffer = await audioBlob.arrayBuffer();
+    const base64 = btoa(
+      new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
+    );
+
+    if (window.__TAURI_INTERNALS__) {
+      const { invoke } = window.__TAURI_INTERNALS__;
+      return await invoke("transcribe_audio", {
+        audioBase64: base64,
+        format: audioBlob.type.includes("mp4") ? "mp4" : "webm",
+      });
+    } else {
+      const resp = await fetch("http://localhost:8888/api/v1/stt/transcribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ audio_base64: base64, format: "webm" }),
+      });
+      const json = await resp.json();
+      return json?.data?.text || "";
+    }
+  } catch {
+    return "";
   }
 }
 
