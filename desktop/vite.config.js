@@ -11,5 +11,9 @@ export default defineConfig({
     target: "esnext",
     minify: "esbuild",
     sourcemap: true,
+    rollupOptions: {
+      // Live2D 依赖为可选，运行时动态加载
+      external: ["pixi.js", "pixi-live2d-display"],
+    },
   },
 });

@@ -8,10 +8,16 @@
   </head>
   <body>
     <div id="app">
-      <!-- 拖拽区域 -->
-      <div id="drag-handle" data-tauri-drag-region></div>
+      <!-- 拖拽区域 + 控制按钮 -->
+      <div id="top-bar">
+        <div id="drag-handle" data-tauri-drag-region></div>
+        <div id="controls">
+          <button id="avatar-btn" class="ctrl-btn" title="切换形象">🎭</button>
+          <button id="speaker-btn" class="ctrl-btn active" title="语音朗读开关">🔊</button>
+        </div>
+      </div>
 
-      <!-- 星灵形象 -->
+      <!-- 形象区域 -->
       <div id="avatar-container">
         <canvas id="star-spirit" width="200" height="200"></canvas>
         <div id="emotion-label">neutral</div>
@@ -21,6 +27,14 @@
       <div id="chat-container">
         <div id="messages"></div>
         <div id="input-area">
+          <button id="mic-btn" class="ctrl-btn mic" title="语音输入">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </button>
           <input
             type="text"
             id="message-input"

@@ -63,6 +63,23 @@ fn chrono_hour() -> u32 {
     ((secs + 8 * 3600) % 86400 / 3600) as u32
 }
 
+/// Tauri command: 获取 HeartEngine 心绪状态（情绪引擎用）
+#[tauri::command]
+async fn get_heart_status() -> Result<String, String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(3))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    match client.get("http://localhost:8888/health").send().await {
+        Ok(resp) => match resp.text().await {
+            Ok(body) => Ok(body),
+            Err(e) => Err(format!("读取心绪数据失败: {}", e)),
+        },
+        Err(e) => Err(format!("HeartEngine 不可用: {}", e)),
+    }
+}
+
 /// Tauri command: 检查后端健康状态
 #[tauri::command]
 async fn check_backend() -> Result<bool, String> {
@@ -115,6 +132,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             send_message,
             get_greeting,
+            get_heart_status,
             check_backend,
         ])
         .run(tauri::generate_context!())
