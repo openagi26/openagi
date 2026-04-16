@@ -91,7 +91,7 @@ export class CameraVision {
         answer = json?.data?.answer || "抱歉，视觉分析暂时不可用";
       }
 
-      this.onVisionResult?.(answer, "curious");
+      // 不在这里触发回调，由调用者负责显示（防止重复）
       return answer;
     } catch (err) {
       return `视觉分析失败: ${err.message || err}`;
