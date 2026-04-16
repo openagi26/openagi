@@ -13,6 +13,7 @@ import { ScreenObserver } from "./screen-observer.js";
 import { CameraVision } from "./camera-vision.js";
 import { ContinuousVoice } from "./continuous-voice.js";
 import { VisionRhythm } from "./vision-rhythm.js";
+import { ChatHistory } from "./chat-history.js";
 
 // ── 全局状态 ──────────────────────────────────────────────
 
@@ -30,10 +31,21 @@ let screenObserver = null; // 屏幕截图感知
 let camera = null;         // 摄像头视觉
 let convoMode = null;      // 连续对话模式
 let visionRhythm = null;   // 视觉节奏系统
+let chatHistory = null;    // 聊天历史持久化
 
 // ── 初始化 ────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // 0. 初始化聊天历史（持久化）
+  chatHistory = new ChatHistory();
+  // 恢复今日历史消息
+  const todayMsgs = chatHistory.getToday();
+  if (todayMsgs.length > 0) {
+    for (const msg of todayMsgs.slice(-20)) { // 最多恢复20条
+      addMessage(msg.type, msg.text, true); // true = 不再保存到history
+    }
+  }
+
   // 1. 初始化星灵渲染（默认形象）
   const canvas = document.getElementById("star-spirit");
   spirit = new StarSpirit(canvas);
@@ -683,13 +695,18 @@ async function handleSend() {
 
 // ── DOM 工具函数 ──────────────────────────────────────────
 
-function addMessage(type, text) {
+function addMessage(type, text, skipSave = false) {
   const container = document.getElementById("messages");
   const msg = document.createElement("div");
   msg.className = `message ${type}`;
   msg.textContent = text;
   container.appendChild(msg);
   container.scrollTop = container.scrollHeight;
+
+  // 持久化到聊天历史（恢复时跳过）
+  if (!skipSave && chatHistory) {
+    chatHistory.add(type, text);
+  }
 }
 
 function showTyping() {
