@@ -403,17 +403,22 @@ async function handleSend() {
   input.value = "";
   addMessage("user", text);
 
-  // 视觉问答触发词检测
-  const visionKeywords = ["帮我看", "看一下", "这是什么", "看看", "拍一张"];
-  if (camera?.isActive && visionKeywords.some(kw => text.includes(kw))) {
+  // 摄像头开启时：每次对话都"睁着眼睛"——自动拍照+消息一起发给AI
+  // AI自己判断是否需要用视觉信息回答，不需要关键词触发
+  if (camera?.isActive) {
     emotionEngine?.setEmotion("curious");
     const typingEl = showTyping();
     const answer = await camera.ask(text);
     removeTyping(typingEl);
-    addMessage("ai", answer);
-    if (autoSpeak && voice?.ttsAvailable) voice.speak(answer);
-    setTimeout(() => emotionEngine?.setEmotion("neutral"), 3000);
-    return;
+    if (answer) {
+      addMessage("ai", answer);
+      emotionEngine?.setEmotion("happy");
+      if (autoSpeak && voice?.ttsAvailable) voice.speak(answer);
+      setTimeout(() => emotionEngine?.setEmotion("neutral"), 3000);
+      return;
+    }
+    // 视觉API失败时降级到普通文字对话
+    removeTyping(typingEl);
   }
 
   if (!backendOnline) {
