@@ -211,7 +211,8 @@ export default function GroupPage() {
   const [workMode, setWorkMode] = useState<WorkMode>('discuss');
   const [activePreset, setActivePreset] = useState<ActivePreset>('default');
   const [teamMembers, setTeamMembers] = useState(DEFAULT_MEMBERS);
-  const [messages, setMessages] = useState<Message[]>(DEMO_MESSAGES);
+  // 🚨 陛下 2026-04-17 亲定：伪证零容忍 — 页面打开不得展示假数据
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [showMentionPicker, setShowMentionPicker] = useState(false);
   const [mentionFilter, setMentionFilter] = useState('');
@@ -314,16 +315,10 @@ export default function GroupPage() {
       if (replyMsgs.length > 0) setMessages(prev => [...prev, ...replyMsgs]);
       setTokenStats(prev => ({ in: prev.in + text.length * 2, out: prev.out + 100, rounds: prev.rounds + 1 }));
     } catch (err) {
+      // 🚨 陛下 2026-04-17 亲定：伪证零容忍 — 严禁 demo fallback 吞错
+      // 真错误必须真显示，才能定位是"后端没启"还是"LLM 超时"还是"网络问题"
       const msg = err instanceof Error ? err.message : '未知错误';
-      setSendError(msg);
-      // Demo fallback
-      const demoReplies = teamMembers.slice(0, 2).map((m, i) => ({
-        id: `demo-${Date.now()}-${i}`, role: 'assistant' as const,
-        content: `[演示] ${m.name}：已收到消息「${text.slice(0, 20)}${text.length > 20 ? '...' : ''}」，后端未连接，显示演示回复。`,
-        agentName: m.name, agentColor: m.color, model: m.model, timestamp: Date.now() + i * 100,
-      }));
-      setMessages(prev => [...prev, ...demoReplies]);
-      setSendError(null);
+      setSendError(`后端调用失败：${msg}。请检查 make dev 是否已启动，Ollama 服务是否可达 http://localhost:11434`);
     } finally {
       setIsSending(false);
     }

@@ -161,7 +161,7 @@ function WelcomeScreen({ onQuickCard }: { onQuickCard: (label: string) => void }
           {getGreeting()}
         </h1>
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          OpenAGI 多核AI就绪，5核协同待命
+          OpenAGI 多核AI就绪，{state.coreCount}核协同待命
         </p>
       </div>
 
@@ -210,7 +210,7 @@ function WelcomeScreen({ onQuickCard }: { onQuickCard: (label: string) => void }
         aria-label="系统状态"
       >
         {[
-          { dot: '#34d399', label: '5核就绪', val: '' },
+          { dot: '#34d399', label: `${state.coreCount}核就绪`, val: '' },
           { dot: '#60a5fa', label: '会话', val: `${state.sessions.length}` },
           { dot: '#a78bfa', label: '心绪', val: state.heartMood.label },
           { dot: '#fbbf24', label: '巡检', val: state.inspectionEnabled ? '开启' : '关闭' },

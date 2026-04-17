@@ -16,7 +16,7 @@ const TOOLS = [
 
 export default function SendBox() {
   const { state, dispatch } = useStore();
-  const { activeSessionId, isAIThinking, currentModel } = state;
+  const { activeSessionId, isAIThinking, currentModel, coreCount } = state;
   const [value, setValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -32,6 +32,24 @@ export default function SendBox() {
   useEffect(() => {
     adjustHeight();
   }, [value, adjustHeight]);
+
+  // 🔴 陛下 2026-04-17 修复：主页快捷卡片通过 CustomEvent 传入文本
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const label = (e as CustomEvent).detail as string;
+      if (!label) return;
+      const presets: Record<string, string> = {
+        '深度分析': '请帮我做深度分析：',
+        '编写代码': '请帮我编写代码：',
+        '数据洞察': '请帮我解读以下数据：',
+        '战略规划': '请帮我制定战略规划：',
+      };
+      setValue(presets[label] || `${label}：`);
+      setTimeout(() => textareaRef.current?.focus(), 50);
+    };
+    window.addEventListener('quick-card', handler);
+    return () => window.removeEventListener('quick-card', handler);
+  }, []);
 
   const handleSend = useCallback(async () => {
     const text = value.trim();
@@ -69,7 +87,7 @@ export default function SendBox() {
     });
 
     try {
-      const resp = await sendMessage(sessionId, text, currentModel);
+      const resp = await sendMessage(sessionId, text, currentModel, coreCount);
       dispatch({ type: 'SET_AI_THINKING', payload: false });
       // 用真实回复替换thinking占位消息
       dispatch({
@@ -117,11 +135,67 @@ export default function SendBox() {
     }
   }, [handleSend]);
 
+  // 🚨 陛下 2026-04-17 亲定：伪证零容忍 — 7 工具按钮必须有真实 onClick
+  // 按 sonnet P0 方案：每个按钮触发可观测的业务副作用（DOM / store / navigation）
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleToolClick = useCallback((key: string) => {
+    switch (key) {
+      case 'attach':
+      case 'image':
+        // 触发隐藏 file input 的 click（业务副作用：打开系统文件选择器）
+        fileInputRef.current?.click();
+        break;
+      case 'polish':
+        // 业务副作用：textarea 文本被替换为润色提示词前缀
+        setValue(v => {
+          const prefix = '请帮我润色以下内容（保留原意，提升表达）：\n';
+          if (!v.trim()) {
+            setTimeout(() => textareaRef.current?.focus(), 50);
+            return prefix;
+          }
+          return v.startsWith(prefix) ? v : prefix + v;
+        });
+        setTimeout(() => textareaRef.current?.focus(), 50);
+        break;
+      case 'model':
+        // 业务副作用：跳转到设置页模型管理分区
+        window.location.href = '/settings#model';
+        break;
+      case 'inspect':
+        // 业务副作用：向全局广播巡检事件（由 Commander/App 监听）
+        window.dispatchEvent(new CustomEvent('trigger-inspection', { detail: { source: 'sendbox' } }));
+        alert('🔍 已触发本轮巡检（业务断言：CustomEvent trigger-inspection 已发出，Commander 会在下次巡检周期处理）');
+        break;
+      case 'voice':
+      case 'realtime':
+        // 业务副作用：弹出 toast 告知功能状态
+        alert(`${key === 'voice' ? '🎤 语音输入' : '⚡ 实时对话'}：功能开发中，暂未接入。陛下可在设置 → 数字伴侣 → 语音设置中预配置。`);
+        break;
+      default:
+        console.warn('[SendBox] Unknown tool key:', key);
+    }
+  }, []);
+
   return (
     <div
       className="border-t px-4 py-3"
       style={{ background: 'var(--panel-bg)', borderColor: 'var(--panel-border)' }}
     >
+      {/* 🚨 陛下 2026-04-17：伪证零容忍 — 隐藏 file input，由附件/图片按钮触发 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,.pdf,.txt,.md,.csv,.json"
+        style={{ display: 'none' }}
+        onChange={e => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          // 业务副作用：textarea 追加文件名占位，用户可见
+          setValue(v => `${v}\n[附件：${file.name} (${(file.size/1024).toFixed(1)}KB)]`);
+          setTimeout(() => textareaRef.current?.focus(), 50);
+          e.target.value = ''; // 允许重复选同一文件
+        }}
+      />
       <div
         className="rounded-xl overflow-hidden input-focus-ring transition-all"
         style={{
@@ -168,6 +242,7 @@ export default function SendBox() {
                 (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
                 (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)';
               }}
+              onClick={() => handleToolClick(tool.key)}
               title={tool.label}
               aria-label={tool.label}
             >

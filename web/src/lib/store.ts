@@ -63,6 +63,7 @@ export interface AppState {
   thinkingSeconds: number;
 
   // 多核状态
+  coreCount: number;
   cores: CoreStatus[];
 
   // 心绪状态
@@ -99,6 +100,7 @@ const INITIAL_STATE: AppState = {
   messages: [],
   isAIThinking: false,
   thinkingSeconds: 0,
+  coreCount: 5,
   cores: INITIAL_CORES,
   heartMood: { label: '专注', emoji: '🎯', color: '#7c3aed', level: 78 },
   currentModel: 'claude-opus-4',
@@ -121,6 +123,7 @@ type Action =
   | { type: 'REMOVE_MESSAGE'; payload: string }
   | { type: 'SET_AI_THINKING'; payload: boolean }
   | { type: 'SET_THINKING_SECONDS'; payload: number }
+  | { type: 'SET_CORE_COUNT'; payload: number }
   | { type: 'UPDATE_CORE'; payload: { id: number; status: CoreStatus['status']; score?: number } }
   | { type: 'SET_HEART_MOOD'; payload: HeartMood }
   | { type: 'SET_MODEL'; payload: string }
@@ -166,6 +169,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, isAIThinking: action.payload, thinkingSeconds: action.payload ? 0 : state.thinkingSeconds };
     case 'SET_THINKING_SECONDS':
       return { ...state, thinkingSeconds: action.payload };
+    case 'SET_CORE_COUNT':
+      return { ...state, coreCount: Math.max(1, Math.min(5, action.payload)) };
     case 'UPDATE_CORE':
       return {
         ...state,
@@ -201,6 +206,27 @@ const StoreContext = createContext<StoreContextValue | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+
+  // 🔴 陛下 2026-04-17 修复：启动时从后端拉取 settings + 主模型，同步到 store
+  // 否则前端一直显示 claude-opus-4 但实际调用 ollama/gemma3:1b
+  React.useEffect(() => {
+    const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8888';
+    fetch(`${base}/api/v1/settings/`)
+      .then(r => r.json())
+      .then(j => {
+        const cc = j?.data?.multicore?.core_count;
+        if (typeof cc === 'number') dispatch({ type: 'SET_CORE_COUNT', payload: cc });
+      })
+      .catch(() => {});
+    fetch(`${base}/api/v1/models`)
+      .then(r => r.json())
+      .then(j => {
+        const primary = (j?.data || []).find((m: { role?: string }) => m?.role === 'primary');
+        if (primary?.id) dispatch({ type: 'SET_MODEL', payload: primary.id });
+      })
+      .catch(() => {});
+  }, []);
+
   return React.createElement(StoreContext.Provider, { value: { state, dispatch } }, children);
 }
 

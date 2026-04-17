@@ -100,7 +100,7 @@ export async function createSession(title?: string) {
   }
 }
 
-export async function sendMessage(sessionId: string, content: string, model: string) {
+export async function sendMessage(sessionId: string, content: string, model: string, coreCount: number = 1) {
   try {
     const res = await request<{
       success: boolean;
@@ -116,8 +116,8 @@ export async function sendMessage(sessionId: string, content: string, model: str
       };
     }>('/api/v1/chat/send', {
       method: 'POST',
-      body: JSON.stringify({ message: content, session_id: sessionId, model }),
-    }, 90000); // LLM推理最长90秒
+      body: JSON.stringify({ message: content, session_id: sessionId, model, core_count: coreCount }),
+    }, 90000 + (coreCount - 1) * 60000); // 1核90秒，每多1核+60秒（2核150秒，5核330秒）
     return {
       id: Date.now().toString(),
       content: res.data.reply,
@@ -130,7 +130,7 @@ export async function sendMessage(sessionId: string, content: string, model: str
     let errorContent: string;
 
     if (msg === 'TIMEOUT') {
-      errorContent = `[请求超时] LLM推理超时（>90秒），请稍后重试。`;
+      errorContent = `[请求超时] LLM推理超时（多核模式需更长时间），请稍后重试。`;
     } else if (msg.includes('Failed to fetch') || msg.includes('ECONNREFUSED') || msg.includes('NetworkError')) {
       errorContent = `[后端不可达] 无法连接到后端服务（${BASE_URL}）。请确认后端已启动：make dev`;
     } else if (msg.startsWith('HTTP_')) {

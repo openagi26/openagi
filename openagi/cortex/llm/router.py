@@ -297,7 +297,7 @@ class LLMRouter:
                         "messages": messages,
                         "temperature": temperature,
                         "max_tokens": max_tokens,
-                        "timeout": 30,
+                        "timeout": 120,
                         **kwargs,
                     }
                     if relay and not model_entry.is_local:

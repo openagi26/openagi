@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from openagi.api.deps import get_heart, get_memory, get_llm
-from openagi.cortex.trinity.orchestrator import run_full_trinity_pipeline
+from openagi.cortex.trinity.orchestrator import run_full_trinity_pipeline, run_governance_pipeline
 from openagi.chat.group.room import (
     Room, create_room, add_member, create_ai_member,
     list_active_members, room_summary,
@@ -91,16 +91,37 @@ async def send_message(
             model_used = llm_result.get("model", "unknown")
             audit = "1核直通，无审计"
         else:
-            # 多核模式：调用 Trinity 治理流水线
-            result = await run_full_trinity_pipeline(
-                task_title="用户对话",
-                task_description=req.message,
+            # 多核模式：走陛下 2026-04-17 亲定的三阶段四核博弈流水线
+            gov = await run_governance_pipeline(
+                user_message=req.message,
+                core_count=effective_cores,
                 llm_router=llm,
             )
-            reply = result.proposal
-            tokens = result.total_tokens
-            model_used = result.model_used if hasattr(result, "model_used") else "unknown"
-            audit = result.audit
+            # 前端 reply 呈现：若有定稿用定稿，否则用 CEO 初稿；暂停时附仲裁提示
+            if gov.conflict_halted:
+                reply = (
+                    f"⚠️ 三路审计分歧过大（>25分），触发强制暂停，请陛下裁决。\n\n"
+                    f"## CEO 初稿\n{gov.ceo_draft}\n\n"
+                    f"## 冲突笔记\n" + "\n".join(gov.conflict_notes)
+                )
+            else:
+                reply = gov.final if gov.final else gov.ceo_draft
+                if gov.execution_plan:
+                    reply += f"\n\n---\n## 执行计划\n{gov.execution_plan}"
+            _tt = gov.total_tokens
+            tokens = (_tt.get("input", 0) + _tt.get("output", 0)) if isinstance(_tt, dict) else (_tt or 0)
+            # 模型名显示第一个启用的核
+            model_used = f"governance-v2/{effective_cores}核/{gov.rules_version}"
+            # 审计文本折叠详情
+            audit_parts = [f"## 规则版本\n{gov.rules_version}",
+                           f"## 启用角色\n{', '.join(gov.roles)}"]
+            for a in gov.audits:
+                audit_parts.append(
+                    f"## 外{a['role_letter']}（{a['model']}，加权 {a['weighted_total']}）\n{a['content']}"
+                )
+            if gov.conflict_notes:
+                audit_parts.append("## 冲突检测\n" + "\n".join(gov.conflict_notes))
+            audit = "\n\n".join(audit_parts)
 
         heart.push_event("llm_call_success")
 

@@ -307,7 +307,10 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
               className="text-xs px-1.5 py-0.5 rounded"
               style={{ background: 'rgba(99,102,241,0.1)', color: '#818cf8' }}
             >
-              {message.tokens} tokens
+              {typeof message.tokens === 'object' && message.tokens !== null
+                ? (((message.tokens as { input?: number; output?: number }).input ?? 0) +
+                   ((message.tokens as { input?: number; output?: number }).output ?? 0))
+                : message.tokens} tokens
             </span>
           )}
           {message.model && !message.agentName && (

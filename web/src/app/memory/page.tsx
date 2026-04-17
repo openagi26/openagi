@@ -71,7 +71,16 @@ const LAYER_LABELS: Record<string, { label: string; badge: string; color: string
 };
 
 function getCount(layer: MemoryLayerStats): number {
-  return (layer.count ?? layer.total ?? layer.size ?? 0) as number;
+  // 🔴 陛下 2026-04-17 修复：后端返回 total_items / total_entries，前端只看 count/total/size 导致 0 显示
+  const l = layer as Record<string, unknown>;
+  return (
+    (typeof l.total_items === 'number' ? l.total_items : undefined) ??
+    (typeof l.total_entries === 'number' ? l.total_entries : undefined) ??
+    (typeof l.count === 'number' ? l.count : undefined) ??
+    (typeof l.total === 'number' ? l.total : undefined) ??
+    (typeof l.size === 'number' ? l.size : undefined) ??
+    0
+  ) as number;
 }
 
 export default function MemoryPage() {

@@ -24,10 +24,12 @@ const STATUS_COLORS: Record<CoreStatus['status'], string> = {
 
 export default function CorePanel({ open, onToggle }: CorePanelProps) {
   const { state } = useStore();
-  const { cores, isAIThinking, thinkingSeconds } = state;
+  const { cores, isAIThinking, thinkingSeconds, coreCount } = state;
 
-  const activeCount = cores.filter(c => c.status === 'thinking').length;
-  const doneCount = cores.filter(c => c.status === 'done').length;
+  // 🔴 陛下 2026-04-17 修复：只显示启用的核数 coreCount 个，不是硬编码 5 个
+  const visibleCores = cores.slice(0, coreCount);
+  const activeCount = visibleCores.filter(c => c.status === 'thinking').length;
+  const doneCount = visibleCores.filter(c => c.status === 'done').length;
 
   return (
     <>
@@ -74,7 +76,7 @@ export default function CorePanel({ open, onToggle }: CorePanelProps) {
               多核状态
             </span>
             <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
-              {activeCount > 0 ? `${activeCount}核活跃` : `${cores.length}核就绪`}
+              {activeCount > 0 ? `${activeCount}核活跃` : `${visibleCores.length}核就绪`}
             </span>
           </div>
           <button
@@ -89,7 +91,7 @@ export default function CorePanel({ open, onToggle }: CorePanelProps) {
 
         {/* 核心列表 */}
         <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
-          {cores.map(core => (
+          {visibleCores.map(core => (
             <CoreCard key={core.id} core={core} isAIThinking={isAIThinking} />
           ))}
         </div>

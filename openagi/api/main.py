@@ -114,6 +114,29 @@ async def lifespan(app: FastAPI):
     # 检测本地Claude
     router.detect_local_claude()
 
+    # 🔴 陛下 2026-04-17：GLM relay 不稳几小时测不通 → 切换为本地 Ollama（qwen2.5:0.5b）主模型
+    # 本地实测 1.2 秒回复，稳定零依赖，多核博弈秒级响应
+    try:
+        from openagi.cortex.llm.router import ModelEntry
+        relay_ollama = router.add_relay("Ollama本地", "http://localhost:11434", "ollama-local")
+        # 🔴 陛下 2026-04-17：0.5b 最快（1.4s/次），多核累积仍 < gemma3:1b 单次
+        # 经实测：gemma3:1b 单次 15-30s，2核累积 70+s；qwen2.5:0.5b 单次 1.4s，2核累积 8s
+        ollama_entry = ModelEntry(
+            model_id="ollama/qwen2.5:0.5b",
+            provider="Ollama",
+            relay_name="Ollama本地",
+            key_suffix="免API",
+            is_available=True,
+            is_local=True,
+        )
+        router._models.insert(0, ollama_entry)
+        router.set_primary("ollama/qwen2.5:0.5b", "Ollama本地")
+        logger.info("✅ 主模型切回 Ollama qwen2.5:0.5b（397MB，极速）")
+    except Exception as e:
+        logger.warning(f"Ollama 接入失败: {e}，回退 GLM")
+    router._max_retries = 2
+    router._base_backoff = 1.0
+
     # 注册巡检AI的信息收集器
     commander.register_info_collector(lambda: {
         "heart_status": {"level": heart.level, "entropy": heart.entropy},

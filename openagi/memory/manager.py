@@ -340,15 +340,26 @@ class MemoryManager:
     # ── 会话管理（API层使用）───────────────────────────────────────────────────
 
     def list_sessions(self) -> list[dict]:
-        """获取所有活跃会话的摘要列表（来自热记忆）。"""
+        """获取所有活跃会话的摘要列表（来自热记忆）。
+
+        🔴 陛下 2026-04-17 修复：working._items 历史数据中偶有 str 类型，做兼容。
+        """
         sessions = {}
         for item in self.working._items:
-            sid = item.session_id
+            # 兼容字符串或对象：str 即 session_id 裸值
+            if isinstance(item, str):
+                sid = item
+                created_at = ""
+            else:
+                sid = getattr(item, "session_id", None)
+                created_at = getattr(item, "created_at", "")
+            if not sid:
+                continue
             if sid not in sessions:
                 sessions[sid] = {
                     "id": sid,
                     "title": f"对话 {sid[:8]}",
-                    "created_at": item.created_at,
+                    "created_at": created_at,
                     "message_count": 0,
                 }
             sessions[sid]["message_count"] += 1

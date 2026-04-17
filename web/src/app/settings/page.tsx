@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useStore } from '@/lib/store';
 import { fetchSettings, saveSettings } from '@/lib/api';
 
@@ -10,6 +10,7 @@ const NAV_GROUPS = [
     group: '基础配置',
     items: [
       { key: 'model', icon: '🤖', label: '模型管理', badge: '核心' },
+      { key: 'ollama', icon: '🦙', label: 'Ollama 本地', badge: '新' },
       { key: 'relay', icon: '🔗', label: '中转站配置' },
       { key: 'api', icon: '🔑', label: 'API密钥' },
     ],
@@ -73,7 +74,8 @@ export default function SettingsPage() {
   const { state, dispatch } = useStore();
   const [activeKey, setActiveKey] = useState('model');
   const [relayUrl, setRelayUrl] = useState('https://api.openagi.ai/v1');
-  const [coreCount, setCoreCount] = useState(5);
+  const [coreCount, _setCoreCount] = useState(state.coreCount);
+  const setCoreCount = (v: number) => { _setCoreCount(v); dispatch({ type: 'SET_CORE_COUNT', payload: v }); };
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'ok' | 'error'>('idle');
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export default function SettingsPage() {
       if (data && typeof data === 'object') {
         const d = data as Record<string, unknown>;
         if (typeof d.relay_url === 'string') setRelayUrl(d.relay_url);
-        if (typeof d.core_count === 'number') setCoreCount(d.core_count);
+        if (typeof d.core_count === 'number') { _setCoreCount(d.core_count); dispatch({ type: 'SET_CORE_COUNT', payload: d.core_count }); }
         if (d.inspection && typeof d.inspection === 'object') {
           const insp = d.inspection as Record<string, unknown>;
           dispatch({
@@ -175,6 +177,7 @@ export default function SettingsPage() {
         </div>
 
         {activeKey === 'model' && <ModelSettings relayUrl={relayUrl} setRelayUrl={setRelayUrl} />}
+        {activeKey === 'ollama' && <OllamaSettings />}
         {activeKey === 'relay' && <RelaySettings relayUrl={relayUrl} setRelayUrl={setRelayUrl} />}
         {activeKey === 'api' && <ApiKeySettings />}
         {activeKey === 'cores' && <CoresSettings coreCount={coreCount} setCoreCount={setCoreCount} />}
@@ -1147,5 +1150,168 @@ function Toggle({ defaultOn, onChange }: { defaultOn?: boolean; onChange?: (v: b
       <span className="absolute top-0.5 rounded-full bg-white transition-transform"
         style={{ width: 18, height: 18, left: 2, transform: on ? 'translateX(18px)' : 'translateX(0)', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
     </button>
+  );
+}
+
+// ======== Ollama 本地模型（陛下 2026-04-17 亲定） ========
+
+type OllamaStatus = {
+  available: boolean;
+  models: Array<{ name: string; size?: string; modified_at?: string }>;
+  recommended?: Array<{ id: string; name: string; size?: string; lang?: string; speed?: string }>;
+};
+
+function OllamaSettings() {
+  const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8888';
+  const [status, setStatus] = useState<OllamaStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [pulling, setPulling] = useState<string | null>(null);
+  const [msg, setMsg] = useState('');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await fetch(`${BASE}/api/v1/ollama/status`);
+      const j = await r.json();
+      setStatus(j.data || null);
+    } catch {
+      setStatus({ available: false, models: [] });
+    } finally {
+      setLoading(false);
+    }
+  }, [BASE]);
+
+  React.useEffect(() => { load(); }, [load]);
+
+  const pull = async (modelId: string) => {
+    setPulling(modelId);
+    setMsg(`正在拉取 ${modelId}...`);
+    try {
+      const r = await fetch(`${BASE}/api/v1/ollama/pull`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ model: modelId }),
+      });
+      if (r.ok) {
+        setMsg(`✅ ${modelId} 拉取完成`);
+        await load();
+      } else {
+        setMsg(`❌ 拉取失败：HTTP ${r.status}`);
+      }
+    } catch (e) {
+      setMsg(`❌ 拉取错误：${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setPulling(null);
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>🦙 Ollama 本地模型</h1>
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          本地推理，零依赖、零费用、极速响应。推荐最小模型 qwen2.5:0.5b（397MB）作日常主模型。
+        </p>
+      </div>
+
+      {/* 状态 */}
+      <div className="p-4 rounded-xl" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="font-medium" style={{ color: 'var(--text-primary)' }}>Ollama 服务状态</div>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+              检测地址 http://localhost:11434
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="text-xs px-2 py-1 rounded-full"
+              style={{
+                background: status?.available ? 'rgba(52,211,153,0.12)' : 'rgba(239,68,68,0.12)',
+                color: status?.available ? '#10b981' : '#ef4444',
+              }}
+            >
+              {loading ? '检测中…' : status?.available ? '已连接' : '未连接'}
+            </span>
+            <button onClick={load} className="text-xs px-2 py-1 rounded hover:opacity-80"
+              style={{ background: 'var(--card-border)', color: 'var(--text-primary)' }}>
+              🔄 重新检测
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 已安装模型 */}
+      <div>
+        <div className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+          已安装模型 <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>（{status?.models?.length ?? 0} 个）</span>
+        </div>
+        {status?.models && status.models.length > 0 ? (
+          <div className="space-y-2">
+            {status.models.map(m => (
+              <div key={m.name} className="p-3 rounded-lg flex items-center justify-between"
+                style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+                <div>
+                  <div className="font-mono text-sm" style={{ color: 'var(--text-primary)' }}>{m.name}</div>
+                  <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    {m.size ? `${m.size} · ` : ''}本地推理 · 免 API
+                  </div>
+                </div>
+                <span className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(124,58,237,0.1)', color: '#7c3aed' }}>已安装</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-3 rounded-lg text-sm" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-secondary)' }}>
+            {loading ? '加载中…' : (status?.available ? '没有已安装模型，请先拉取推荐模型。' : 'Ollama 未启动。请先安装并启动 Ollama 服务。')}
+          </div>
+        )}
+      </div>
+
+      {/* 推荐模型 */}
+      {status?.recommended && status.recommended.length > 0 && (
+        <div>
+          <div className="font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+            推荐模型 <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>（一键拉取）</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {status.recommended.map(m => (
+              <div key={m.id} className="p-3 rounded-lg"
+                style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-mono text-sm" style={{ color: 'var(--text-primary)' }}>{m.id}</div>
+                    <div className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                      {m.name}
+                      {m.size ? ` · ${m.size}` : ''}
+                      {m.lang ? ` · ${m.lang}` : ''}
+                      {m.speed ? ` · ${m.speed}` : ''}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => pull(m.id)}
+                    disabled={pulling === m.id}
+                    className="text-xs px-3 py-1.5 rounded disabled:opacity-50"
+                    style={{ background: '#7c3aed', color: 'white' }}
+                  >
+                    {pulling === m.id ? '拉取中…' : '⬇ 拉取'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {msg && (
+        <div className="p-3 rounded-lg text-sm" style={{ background: 'rgba(124,58,237,0.08)', color: 'var(--text-primary)' }}>
+          {msg}
+        </div>
+      )}
+
+      <div className="text-xs p-3 rounded-lg" style={{ background: 'rgba(251,191,36,0.08)', color: 'var(--text-secondary)', border: '1px solid rgba(251,191,36,0.2)' }}>
+        💡 陛下 2026-04-17 亲定：本地 Ollama 作主模型的优势——稳定、零延迟、免费、无需梯子。推荐 qwen2.5:0.5b 作日常多核博弈主核，多核 LLM 调用累积秒级响应。
+      </div>
+    </div>
   );
 }
