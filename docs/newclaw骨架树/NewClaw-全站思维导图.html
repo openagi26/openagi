@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenAGI 全站骨架树 — 思维导图</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #1a1a2e;
+      color: #e0e0f0;
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #header {
+      background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+      border-bottom: 1px solid #533483;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 16px rgba(83, 52, 131, 0.4);
+    }
+
+    #header .logo {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 1px;
+    }
+
+    #header .divider {
+      width: 1px;
+      height: 28px;
+      background: #533483;
+    }
+
+    #header .subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    #header .subtitle strong {
+      color: #c4b5fd;
+    }
+
+    #header .badge-row {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    #header .badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid;
+      font-weight: 500;
+    }
+
+    .ctrl-btn {
+      font-size: 12px;
+      padding: 5px 14px;
+      border-radius: 8px;
+      border: 1px solid #533483;
+      background: linear-gradient(135deg, #1e1e3f, #2d2b55);
+      color: #c4b5fd;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .ctrl-btn:hover {
+      background: linear-gradient(135deg, #2d2b55, #3d3b75);
+      color: #e0e0f0;
+      border-color: #7c3aed;
+      box-shadow: 0 0 8px rgba(124,58,237,0.3);
+    }
+    .ctrl-btn:active {
+      transform: scale(0.96);
+    }
+
+    .badge-pages   { color: #60a5fa; border-color: #60a5fa44; background: #60a5fa11; }
+    .badge-core    { color: #f472b6; border-color: #f472b644; background: #f472b611; }
+    .badge-version { color: #34d399; border-color: #34d39944; background: #34d39911; }
+
+    #markmap-container {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #markmap-container svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 覆盖 markmap 默认样式以适配深色主题 */
+    .markmap-node circle {
+      stroke-width: 1.5;
+    }
+
+    .markmap-link {
+      fill: none;
+    }
+
+    #hint {
+      position: absolute;
+      bottom: 16px;
+      right: 20px;
+      font-size: 11px;
+      color: #475569;
+      pointer-events: none;
+      text-align: right;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo">OpenAGI</div>
+  <div class="divider"></div>
+  <div class="subtitle">
+    <strong>全站骨架树 — 思维导图</strong><br/>
+    14 个页面模块 · 可交互缩放 · 点击节点展开/折叠
+  </div>
+  <div class="badge-row">
+    <button class="ctrl-btn" id="btn-expand" title="展开全部节点">展开全部</button>
+    <button class="ctrl-btn" id="btn-collapse" title="收缩全部节点">收缩全部</button>
+    <span class="badge badge-pages">14 页面</span>
+    <span class="badge badge-core">Trinity ★★★★</span>
+    <span class="badge badge-version">v4.09A</span>
+  </div>
+</div>
+
+<div id="markmap-container">
+  <svg id="markmap"></svg>
+</div>
+
+<div id="hint">
+  滚轮缩放 · 拖拽平移 · 单击节点折叠/展开
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-view@0.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.17"></script>
+<script>
+(async () => {
+  const { Markmap, loadCSS, loadJS } = window.markmap;
+  const { Transformer } = window.markmap;
+
+  const markdown = `
+# OpenAGI 全站骨架树
+
+## 概览 /overview ★
+### 页面头部
+- 标题："概览"
+- 副标题："系统运行状态一览"
+- [刷新] 按钮
+### 统计卡片（四宫格）
+- 网关状态：运行中/已停止
+- 活跃会话：数量+总数
+- 消息渠道：健康/总数
+- 智能体：运行中数量
+### 渠道健康状态
+- 有渠道：卡片列表（状态+徽章）
+- 空状态："暂无已配置的渠道"
+### 智能体状态
+- 有智能体：卡片列表
+- 空状态："暂无智能体"
+
+## 模型 /models ★★★
+### 页面头部
+- 标题："模型"
+- 副标题："管理AI提供商并监控Token用量"
+### 提供商管理区
+#### 空状态
+- "未配置提供商"
+- [添加您的第一个提供商]
+#### 提供商卡片
+- 查看模式：图标+名称+认证+状态+操作
+- 编辑模式：URL+模型ID+协议+回退+API密钥
+#### 添加提供商对话框
+- 第一步：12种提供商选择
+- 第二步：OAuth流程 / API Key流程
+### Token用量历史
+- 柱状图：按模型/按时间
+- 用量列表：5条/页+分页
+- 详情弹窗（开发者模式）
+### Toast消息（12种）
+
+## 聊天 /chat ★★★
+### 侧边栏
+- Logo + 新对话按钮
+- 会话历史（6个时间桶）
+- 删除确认对话框
+### 工具栏
+- Trinity双核博弈面板（3模式）
+- 刷新 / 思考过程切换
+### 消息区
+- 欢迎屏："我能为你做些什么？"
+- 消息列表（用户+AI）
+- 打字/工具处理指示器
+### 消息组件
+- 思考区块（可折叠）
+- 工具调用卡片
+- 图片灯箱
+- Markdown渲染+流式光标
+### 输入区
+- Agent选择器（@提及）
+- 附件预览（3种状态）
+- 文本输入+发送/停止
+- 网关状态指示灯
+
+## 智能体 /agents ★★
+### Agent卡片列表
+- 名称+默认徽章+模型+频道
+- [删除] / [设置]
+### 添加Agent对话框
+- 名称+继承工作区开关
+### Agent设置弹窗
+- 名称编辑+AgentID+模型覆盖
+- 频道只读列表
+### 模型覆盖弹窗
+- Provider下拉+模型ID
+- [使用默认模型]
+### Toast消息（14种）
+
+## 频道 /channels ★★★
+### 已配置频道区
+- 频道组卡片（连接状态点）
+- 账号行（Agent绑定+编辑+删除）
+### 支持的频道（8种主频道）
+### 频道配置弹窗
+- 类型选择网格
+- 配置表单（15种频道字段）
+- 验证结果 / 二维码流程
+### Toast消息（11种）
+
+## 技能 /skills ★★
+### 控制栏
+- 搜索+来源筛选+批量操作
+### 技能列表
+- 每条：名称+类型+描述+版本+开关
+### 安装面板（Sheet）
+- 市场搜索+安装/卸载
+### 技能详情面板
+- 来源+API密钥+环境变量
+- [保存配置] / [卸载] / [启用/禁用]
+### Toast消息（16种）
+
+## 定时任务 /cron ★★
+### 统计卡片（4格）
+- 总数/运行中/已暂停/失败
+### 任务卡片列表
+- 开关+立即运行+删除
+- 投递通道+上次/下次运行
+### 创建/编辑弹窗
+- 名称+消息+8个调度预设
+- 投递设置（通道+账号+目标）
+### Toast消息（13种）
+
+## 设置 /settings ★★★
+### Tab A：通用设置
+#### 通用（主题+语言+开机启动）
+#### 网关（状态+重启+日志面板）
+#### 开发者（代理+令牌+CLI+Doctor+WS+埋点）
+#### 更新（版本+进度+自动更新）
+#### 关于（版本+外链）
+### Tab B：AI引擎
+#### 引擎状态（5种状态）
+#### 模型选择（4款Claude）
+#### API密钥+工作目录
+#### 高级参数（回合数+Token）
+#### 工具能力（14个工具开关）
+### Toast消息（20种）
+
+## 初始设置 /setup ★★
+### 步骤0：欢迎
+- 语言选择+产品特性
+### 步骤1：环境检查
+- Node.js+OpenAGI包+网关（3项）
+### 步骤2：AI提供商
+- 提供商选择+OAuth/API Key
+### 步骤3：安装中
+- 5个技能自动安装+进度条
+### 步骤4：完成
+- 配置汇总+[开始使用]
+
+## 实例 /instances ★
+### 实例卡片列表
+- 名称+状态徽章+元数据
+- 空状态："暂无运行中的实例"
+### 兜底实例（API失败时）
+- OpenAGI网关+Claude Code引擎
+
+## 会话 /sessions ★
+### 搜索栏（实时过滤）
+### 会话卡片列表
+- 状态：活跃/空闲/已完成
+- [终止]（仅活跃）→ 确认对话框
+### Toast消息（2种）
+
+## 文档 /documents ★
+### 搜索+类型过滤
+- [全部/技能/智能体/配置]
+### 文档卡片列表
+- 名称+类型徽章+路径+大小+时间
+- 空状态（搜索无结果/全局无文档）
+
+## 使用情况 /usage ★
+### 统计总览（4格）
+- 总Token/API调用/预估费用/模型数
+### 模型用量明细
+- 排行列表+占比进度条
+- 空状态："暂无使用数据"
+
+## Trinity /trinity ★★★★
+### 创世序列
+- 密码设置+[激活节点]
+### 控制台仪表板
+- 4格统计+三体角色+经济摘要+交易表
+### 任务目标 /trinity/goal
+- 运行器（自动/手动）
+- 目标管理（创建+子目标+放弃）
+### 治理账本 /trinity/governance
+- 证据链/战略债务/经验库/PoO任务
+### 知识市场 /trinity/market
+- 先知挖矿（预测创建）
+- 知识拍卖（购买流程）
+### 蜂群网络 /trinity/swarm
+- 启停+节点发现+连接+举报
+### 区块链经济 /trinity/blockchain
+- 区块链状态/汇率Oracle/分红
+### Trinity设置
+- AI供应商+自动运行器+PoO+AI人格
+### Toast消息（28种）
+
+## 经济 /economy ★★
+### 说明：空壳页面
+- 功能嵌入Trinity控制台
+- 覆盖：仪表板+区块链+治理+市场
+`;
+
+  const transformer = new Transformer();
+  const { root, features } = transformer.transform(markdown);
+  const { styles, scripts } = transformer.getUsedAssets(features);
+
+  if (styles) loadCSS(styles);
+  if (scripts) await loadJS(scripts, { getMarkmap: () => window.markmap });
+
+  const svg = document.getElementById('markmap');
+
+  // 深色主题颜色配置
+  const colorPalette = [
+    '#a78bfa', // 紫色 - 第一层
+    '#60a5fa', // 蓝色
+    '#34d399', // 绿色
+    '#f472b6', // 粉色
+    '#fb923c', // 橙色
+    '#facc15', // 黄色
+    '#38bdf8', // 天蓝
+    '#e879f9', // 洋红
+    '#4ade80', // 浅绿
+    '#f87171', // 红色
+    '#a3e635', // 黄绿
+    '#818cf8', // 靛蓝
+    '#fb7185', // 玫红
+    '#22d3ee', // 青色
+  ];
+
+  const mm = Markmap.create(svg, {
+    autoFit: true,
+    duration: 500,
+    maxWidth: 300,
+    nodeMinHeight: 20,
+    spacingHorizontal: 80,
+    spacingVertical: 5,
+    paddingX: 12,
+    embedGlobalCSS: true,
+    fitRatio: 0.95,
+    initialExpandLevel: 2,
+    color: (node) => {
+      // 根据节点深度和索引选色
+      const depth = node.depth || 0;
+      if (depth === 0) return '#a78bfa';
+      // 顶层子节点（页面）用不同颜色区分
+      const idx = node.state?.path ? parseInt(node.state.path.split('.')[1] || '0') : 0;
+      return colorPalette[idx % colorPalette.length];
+    },
+  });
+
+  mm.setData(root);
+  mm.fit();
+
+  // 递归折叠：设置所有子节点 fold=1
+  function foldAll(node) {
+    if (node.children && node.children.length > 0) {
+      node.payload = node.payload || {};
+      node.payload.fold = 1;
+      node.children.forEach(child => foldAll(child));
+    }
+  }
+
+  // 递归展开：删除所有节点的 fold 属性
+  function unfoldAll(node) {
+    if (node.payload) delete node.payload.fold;
+    if (node.children) node.children.forEach(child => unfoldAll(child));
+  }
+
+  // 展开全部（所有层级所有分支）
+  document.getElementById('btn-expand').addEventListener('click', () => {
+    unfoldAll(root);
+    mm.setOptions({ initialExpandLevel: -1 });
+    mm.setData(root);
+    setTimeout(() => mm.fit(), 500);
+  });
+
+  // 收缩全部（保留根+第一层展开，第二层及以下折叠）
+  document.getElementById('btn-collapse').addEventListener('click', () => {
+    root.payload = root.payload || {};
+    root.payload.fold = 0;
+    if (root.children) {
+      root.children.forEach(child => {
+        if (child.children && child.children.length > 0) {
+          child.payload = child.payload || {};
+          child.payload.fold = 1;
+          child.children.forEach(grandchild => foldAll(grandchild));
+        }
+      });
+    }
+    mm.setOptions({ initialExpandLevel: 1 });
+    mm.setData(root);
+    setTimeout(() => mm.fit(), 500);
+  });
+
+  // 注入深色主题 CSS
+  const style = document.createElement('style');
+  style.textContent = `
+    .markmap {
+      background: #1a1a2e;
+    }
+    .markmap-node > circle {
+      fill: #1a1a2e !important;
+      stroke-width: 2 !important;
+    }
+    .markmap-node > g > foreignObject > div {
+      color: #e2e8f0 !important;
+      font-size: 14px !important;
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif !important;
+    }
+    .markmap-node.markmap-node-depth-0 > g > foreignObject > div {
+      font-size: 20px !important;
+      font-weight: 700 !important;
+      color: #a78bfa !important;
+    }
+    .markmap-node.markmap-node-depth-1 > g > foreignObject > div {
+      font-size: 15px !important;
+      font-weight: 600 !important;
+    }
+    .markmap-node.markmap-node-depth-2 > g > foreignObject > div {
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      color: #cbd5e1 !important;
+    }
+    .markmap-node.markmap-node-depth-3 > g > foreignObject > div,
+    .markmap-node.markmap-node-depth-4 > g > foreignObject > div {
+      font-size: 12px !important;
+      color: #94a3b8 !important;
+    }
+    .markmap-link {
+      stroke-opacity: 0.5 !important;
+      stroke-width: 1.5 !important;
+    }
+    .markmap-node > g > foreignObject > div:hover {
+      color: #fff !important;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // 窗口大小变化时重新适配
+  window.addEventListener('resize', () => mm.fit());
+})();
+</script>
+</body>
+</html>

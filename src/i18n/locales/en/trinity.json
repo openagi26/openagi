@@ -1,0 +1,331 @@
+{
+  "title": "Trinity Console",
+  "genesis": {
+    "title": "Genesis Sequence",
+    "description": "Initialize your Trinity node. This will generate a cryptographic identity, create a New.B wallet, and activate the governance engine.",
+    "passphrasePlaceholder": "Passphrase (min 8 characters)",
+    "confirmPlaceholder": "Confirm passphrase",
+    "activate": "Activate Node",
+    "activating": "Activating...",
+    "warning": "Your passphrase encrypts the private key (node soul). Store it safely — there is no recovery."
+  },
+  "roles": {
+    "title": "The Trinity",
+    "ai1": { "name": "Expander", "title": "Strategic Expansion Officer" },
+    "ai2": { "name": "Risk Controller", "title": "Chief Audit & Risk Officer" },
+    "ai3": { "name": "CFO", "title": "Chief Financial Officer" }
+  },
+  "economy": {
+    "title": "Economy",
+    "balance": "New.B Balance",
+    "totalEarned": "Total Earned",
+    "totalSpent": "Total Spent",
+    "staked": "Staked",
+    "openDebts": "Open Debts",
+    "transactions": "Recent Transactions"
+  },
+  "dashboard": {
+    "nodeLabel": "Node:",
+    "round": "Round {{round}}",
+    "epochInfo": "Epoch {{epoch}} | Reward: {{reward}}/task",
+    "active": "Active",
+    "inactive": "Inactive",
+    "pooFailed": "{{failed}} failed | {{discarded}} discarded",
+    "taskStats": "{{totalTasks}} tasks | {{earned}} New.B earned",
+    "autoPause": "Auto-paused: confidence below threshold",
+    "storedPlaybooks": "Stored playbooks",
+    "loading": "Loading...",
+    "noData": "No data available",
+    "column": {
+      "time": "Time",
+      "type": "Type",
+      "amount": "Amount",
+      "balance": "Balance"
+    }
+  },
+  "goal": {
+    "title": "Mission Goals",
+    "missionControl": "Mission Control",
+    "noGoal": "No Active Goal",
+    "noGoalHint": "Set a mission objective to activate the Trinity cycle",
+    "setGoal": "Set Goal",
+    "newMission": "New Mission",
+    "goalTitle": "Goal title",
+    "description": "Describe the goal in detail...",
+    "priority": "Priority",
+    "targetMetric": "Target metric",
+    "targetMetricOptional": "Target metric (optional)",
+    "deadline": "Deadline",
+    "activate": "Activate Mission",
+    "subGoals": "Sub-Goals",
+    "addSubGoal": "Add sub-goal...",
+    "history": "History",
+    "runOnce": "Run Once",
+    "startAuto": "Start Auto",
+    "stopAuto": "Stop Auto",
+    "cancel": "Cancel",
+    "error": "Error:",
+    "budgetMode": "{{mode}} mode",
+    "priority_p0": "P0 - Urgent",
+    "priority_p1": "P1 - Important",
+    "priority_p2": "P2 - Optional"
+  },
+  "governance": {
+    "title": "Governance Ledger",
+    "evidence": "Evidence Chain",
+    "debts": "Strategic Debts",
+    "playbooks": "Playbooks",
+    "pooTasks": "PoO Verification Tasks",
+    "federatedClearing": "Federated Clearing",
+    "noRecords": "No records yet",
+    "noEvidence": "No evidence records yet",
+    "noDebts": "No debt records yet",
+    "noPlaybooks": "No playbooks yet — playbooks are generated automatically after successful Trinity cycles",
+    "noPoOTasks": "No PoO tasks yet",
+    "hashLabel": "Hash:",
+    "runClearing": "Run Federated Clearing",
+    "bounty": "Bounty: {{amount}} New.B",
+    "cost": "Cost: {{amount}} New.B",
+    "successRate": "{{rate}}% success rate | {{count}} uses",
+    "score": "Score: {{score}}",
+    "reward": "Reward: +{{amount}} New.B",
+    "statsTotal": "Total Tasks",
+    "statsVerified": "Verified",
+    "statsFailed": "Failed",
+    "statsDiscarded": "Discarded",
+    "statsAvgScore": "Avg Score",
+    "persisted": "Persisted"
+  },
+  "blockchain": {
+    "title": "Blockchain & Economy",
+    "tab": {
+      "chain": "Blockchain",
+      "oracle": "Exchange Rate",
+      "dividend": "Dividend"
+    },
+    "notInitialized": "Blockchain not initialized",
+    "notInitializedHint": "Initialize the blockchain to start mining and processing transactions",
+    "initialize": "Initialize Blockchain",
+    "stats": {
+      "blockHeight": "Block Height",
+      "difficulty": "Difficulty",
+      "totalSupply": "Total Supply",
+      "pendingTx": "Pending Transactions"
+    },
+    "latestBlocks": "Latest Blocks",
+    "noBlocks": "No blocks mined yet",
+    "column": {
+      "block": "Block",
+      "miner": "Miner",
+      "txCount": "Tx Count",
+      "hash": "Hash"
+    },
+    "txCountLabel": "{{count}} transactions",
+    "oracle": {
+      "title": "Exchange Rate",
+      "recalculate": "Recalculate",
+      "oneNewB": "1 New.B =",
+      "oneUSD": "1 USD =",
+      "lastUpdated": "Last updated:",
+      "high24h": "24h High",
+      "low24h": "24h Low",
+      "change24h": "24h Change",
+      "percent24h": "24h %"
+    },
+    "converter": {
+      "title": "Converter",
+      "amount": "Amount",
+      "nbToUsd": "NB -> USD",
+      "usdToNb": "USD -> NB",
+      "convert": "Convert"
+    },
+    "dividend": {
+      "totalAccrued": "Total Accrued",
+      "totalPaid": "Total Paid",
+      "pending": "Pending",
+      "config": "Dividend Config",
+      "saveConfig": "Save Config",
+      "sharePercent": "Share Percentage",
+      "minThreshold": "Min Threshold (New.B)",
+      "processPayout": "Process Payout",
+      "recentRecords": "Recent Records",
+      "noRecords": "No dividend records yet",
+      "column": {
+        "amount": "Amount",
+        "recipient": "Recipient",
+        "date": "Date",
+        "status": "Status"
+      }
+    }
+  },
+  "market": {
+    "title": "Knowledge Market",
+    "tab": {
+      "prophet": "Prophet Mining",
+      "market": "Knowledge Market"
+    },
+    "stats": {
+      "total": "Total",
+      "verified": "Verified",
+      "correct": "Correct",
+      "accuracy": "Accuracy",
+      "staked": "Staked"
+    },
+    "createPrediction": "Create Prediction",
+    "form": {
+      "claim": "Prediction claim...",
+      "category": {
+        "market": "Market",
+        "technology": "Technology",
+        "security": "Security",
+        "performance": "Performance",
+        "social": "Social"
+      },
+      "targetMetric": "Target Metric",
+      "predictedValue": "Predicted Value",
+      "stakeAmount": "Stake Amount (New.B)",
+      "confidence": "Confidence: {{value}}%",
+      "cancel": "Cancel",
+      "submit": "Submit Prediction"
+    },
+    "noPredictions": "No predictions yet",
+    "accuracyBadge": "{{value}}% accuracy",
+    "targetDisplay": "Target: {{metric}} = {{value}}",
+    "confidenceDisplay": "Confidence: {{value}}%",
+    "verifyDate": "Verification date: {{date}}",
+    "auction": {
+      "active": "Active Auctions",
+      "totalSales": "Total Sales",
+      "volume": "Volume",
+      "avgSuccessRate": "Avg Success Rate",
+      "noAuctions": "No active auctions",
+      "purchase": "Purchase"
+    }
+  },
+  "swarm": {
+    "title": "Swarm Network",
+    "discoverNodes": "Discover Nodes",
+    "refresh": "Refresh",
+    "stopSwarm": "Stop Swarm",
+    "startSwarm": "Start Swarm",
+    "status": {
+      "running": "Swarm running",
+      "offline": "Swarm offline"
+    },
+    "stats": {
+      "connected": "Connected",
+      "knownNodes": "Known Nodes",
+      "messagesSent": "Messages Sent",
+      "messagesReceived": "Messages Received",
+      "uptime": "Uptime"
+    },
+    "connectPeer": {
+      "title": "Connect Peer",
+      "addressPlaceholder": "Address (e.g. 192.168.1.100)",
+      "portPlaceholder": "Port",
+      "connect": "Connect"
+    },
+    "connectedPeers": "Connected Peers",
+    "noPeers": "No connected peers",
+    "column": {
+      "nodeId": "Node ID",
+      "address": "Address",
+      "status": "Status",
+      "creditScore": "Credit Score",
+      "latency": "Latency",
+      "lastSeen": "Last Seen"
+    },
+    "federalDefense": "Federal Defense",
+    "report": {
+      "button": "Report Node",
+      "targetId": "Target Node ID",
+      "reason": "Report reason...",
+      "cancel": "Cancel",
+      "submit": "Submit Report"
+    }
+  },
+  "settings": {
+    "title": "Trinity Settings",
+    "aiProvider": "AI Provider",
+    "provider": "Provider",
+    "model": "Model",
+    "baseUrl": "Base URL",
+    "apiKeyHint": "API key is sourced from OpenAGI provider settings. Configure it in Settings > Providers.",
+    "autoRunner": "Auto-Runner",
+    "cycleInterval": "Cycle Interval (minutes)",
+    "maxFailures": "Max Consecutive Failures",
+    "pooVerification": "PoO Verification",
+    "executionThreshold": "Execution Threshold",
+    "execThresholdHint": "Score ≥ {{threshold}} to execute",
+    "sandboxTimeout": "Sandbox Timeout (sec)",
+    "confidencePause": "Confidence Pause",
+    "confidencePauseHint": "Auto-pause below {{value}}%",
+    "constraints": "Constraints",
+    "currentConstraints": "Current Constraints",
+    "noConstraints": "No constraints yet",
+    "save": "Save",
+    "saved": "Saved",
+    "personality": {
+      "title": "Trinity AI Personality Settings",
+      "description": "Customize personality traits and creativity temperature for each of the three AI roles. This affects how each role thinks during the Trinity cycle.",
+      "personalityLabel": "Personality Description",
+      "personalityPlaceholder": "Describe this AI's personality, thinking style, decision preferences...",
+      "temperature": "Creativity Temperature"
+    }
+  },
+  "runner": {
+    "autoRunning": "Auto-Running",
+    "stopped": "Stopped",
+    "cycles": "Cycles",
+    "lastCycle": "Last",
+    "failures": "Failures"
+  },
+  "stats": {
+    "creditScore": "Credit Score",
+    "pooVerified": "PoO Verified",
+    "avgScore": "Avg Score",
+    "confidence": "Confidence"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "status": "Status",
+    "amount": "Amount",
+    "error": "Error"
+  },
+  "toast": {
+    "goalCreated": "Goal created successfully",
+    "goalCompleted": "Goal completed",
+    "goalAbandoned": "Goal abandoned",
+    "subGoalAdded": "Sub-goal added",
+    "runnerStarted": "Auto-runner started",
+    "runnerStopped": "Auto-runner stopped",
+    "runOnceComplete": "Single run completed",
+    "clearingComplete": "Federated clearing completed",
+    "debtResolved": "Debt resolved",
+    "chainInitialized": "Blockchain initialized successfully",
+    "oracleRecalculated": "Exchange rate recalculated",
+    "dividendConfigSaved": "Dividend config saved",
+    "payoutProcessed": "Payout processed",
+    "predictionCreated": "Prediction created successfully",
+    "purchaseComplete": "Purchase successful",
+    "swarmStarted": "Swarm started",
+    "swarmStopped": "Swarm stopped",
+    "peerConnected": "Peer connected successfully",
+    "discoveryTriggered": "Node discovery triggered",
+    "reportSubmitted": "Report submitted",
+    "settingsSaved": "Settings saved",
+    "loadFailed": "Failed to load data",
+    "operationFailed": "Operation failed",
+    "invalidPort": "Port must be between 1-65535",
+    "invalidStake": "Stake amount must be greater than 0",
+    "confirmAbandonTitle": "Confirm Abandon Goal",
+    "confirmAbandonMessage": "Abandoning the goal cannot be undone. Are you sure?",
+    "confirmClearingTitle": "Confirm Federated Clearing",
+    "confirmClearingMessage": "This will process all pending debt clearing. Continue?",
+    "confirmPurchaseTitle": "Confirm Purchase",
+    "confirmPurchaseMessage": "This will spend New.B to purchase a knowledge asset. Continue?",
+    "confirmPayoutTitle": "Confirm Dividend Payout",
+    "confirmPayoutMessage": "This will execute the dividend payout. Continue?"
+  }
+}

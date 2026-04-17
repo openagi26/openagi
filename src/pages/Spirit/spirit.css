@@ -1,0 +1,238 @@
+/* 小星（Spirit）桌面伴侣样式 */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: transparent;
+  overflow: hidden;
+  width: 120px;
+  height: 160px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.spirit-container {
+  width: 120px;
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  cursor: pointer;
+  position: relative;
+}
+
+/* 小星主体 */
+.spirit-body {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spirit-svg {
+  width: 80px;
+  height: 80px;
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.5));
+}
+
+/* ===================== */
+/* 待机状态：呼吸 + 眨眼 */
+/* ===================== */
+.spirit-container.idle .spirit-svg {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1.0); }
+  50% { transform: scale(0.93); }
+}
+
+/* 眨眼：用 CSS 动画控制左眼盖 */
+.spirit-container.idle #leftEyeLid,
+.spirit-container.idle #rightEyeLid {
+  animation: blink 4s ease-in-out infinite;
+  transform-origin: center center;
+  transform-box: fill-box;
+}
+
+@keyframes blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  93%, 97% { transform: scaleY(0.05); }
+}
+
+/* ===================== */
+/* 聆听状态：左右轻摆   */
+/* ===================== */
+.spirit-container.listening .spirit-svg {
+  animation: sway 0.8s ease-in-out infinite;
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-5deg) scale(0.98); }
+  50% { transform: rotate(5deg) scale(1.02); }
+}
+
+.spirit-container.listening .spirit-body::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 3px;
+  background: rgba(124, 58, 237, 0.4);
+  border-radius: 50%;
+  animation: listenShadow 0.8s ease-in-out infinite;
+}
+
+@keyframes listenShadow {
+  0%, 100% { transform: translateX(-60%) scaleX(0.8); }
+  50% { transform: translateX(-40%) scaleX(1.2); }
+}
+
+/* ===================== */
+/* 思考状态：点点动画   */
+/* ===================== */
+.spirit-container.thinking .spirit-svg {
+  animation: think 2s ease-in-out infinite;
+}
+
+@keyframes think {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* 思考时头顶的三个点 */
+.thinking-dots {
+  display: flex;
+  gap: 4px;
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.thinking-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a78bfa;
+  opacity: 0;
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+
+.thinking-dot:nth-child(1) { animation-delay: 0s; }
+.thinking-dot:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotPulse {
+  0%, 80%, 100% { opacity: 0; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-4px); }
+}
+
+/* ===================== */
+/* 回复状态：眼睛发光跳动 */
+/* ===================== */
+.spirit-container.replying .spirit-svg {
+  animation: jump 0.5s ease-in-out 3;
+  filter: drop-shadow(0 0 16px rgba(167, 139, 250, 0.9));
+}
+
+@keyframes jump {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.08); }
+}
+
+/* 回复时的光环 */
+.spirit-container.replying .spirit-body::after {
+  content: '';
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid rgba(167, 139, 250, 0.6);
+  animation: replyRing 0.6s ease-out 3;
+}
+
+@keyframes replyRing {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* ===================== */
+/* 名字标签               */
+/* ===================== */
+.spirit-name {
+  font-size: 11px;
+  color: rgba(196, 181, 253, 0.9);
+  text-align: center;
+  margin-top: 4px;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  text-shadow: 0 0 8px rgba(124, 58, 237, 0.8);
+  letter-spacing: 2px;
+}
+
+/* ===================== */
+/* 状态提示气泡           */
+/* ===================== */
+.spirit-bubble {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 10, 60, 0.9);
+  border: 1px solid rgba(124, 58, 237, 0.5);
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 10px;
+  color: #c4b5fd;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+}
+
+.spirit-container:hover .spirit-bubble {
+  opacity: 1;
+}
+
+/* ========================== */
+/* W10 重逢问候气泡            */
+/* ========================== */
+.spirit-greeting-bubble {
+  position: absolute;
+  /* 覆盖在 spirit-bubble 上方，主动展示（不需要 hover） */
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(245, 240, 255, 0.98);
+  border: 1.5px solid rgba(124, 58, 237, 0.7);
+  border-radius: 12px;
+  padding: 5px 8px;
+  font-size: 10px;
+  color: #3b0764;
+  width: 112px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.4;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.3);
+  z-index: 200;
+}
+
+.spirit-greeting-bubble.visible {
+  opacity: 1;
+}

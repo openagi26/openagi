@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trinity 管理页面 - 交互原型 (线框图)</title>
+<style>
+  :root {
+    --bg-deep: #0c0a14;
+    --bg-surface: rgba(20, 16, 36, 0.85);
+    --bg-card: rgba(30, 24, 56, 0.6);
+    --bg-card-hover: rgba(40, 32, 72, 0.7);
+    --border: rgba(139, 92, 246, 0.15);
+    --border-hover: rgba(139, 92, 246, 0.3);
+    --text-primary: #f0ecf9;
+    --text-secondary: rgba(240, 236, 249, 0.6);
+    --text-muted: rgba(240, 236, 249, 0.35);
+    --purple-400: #c084fc;
+    --purple-500: #a855f7;
+    --purple-600: #9333ea;
+    --purple-700: #7c3aed;
+    --red-400: #f87171;
+    --red-500: #ef4444;
+    --cyan-400: #22d3ee;
+    --amber-400: #fbbf24;
+    --green-400: #4ade80;
+    --green-500: #22c55e;
+    --yellow-400: #facc15;
+    --blue-400: #60a5fa;
+    --orange-400: #fb923c;
+    --pink-400: #f472b6;
+    --radius-lg: 12px;
+    --radius-md: 8px;
+    --radius-sm: 6px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* === 背景氛围 === */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(139, 92, 246, 0.08), transparent),
+      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(168, 85, 247, 0.05), transparent),
+      radial-gradient(ellipse 40% 30% at 60% 30%, rgba(124, 58, 237, 0.04), transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* === 玻璃卡片 === */
+  .glass-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .glass-card:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-card-hover);
+  }
+
+  /* === 页面布局 === */
+  .page-wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* === 页面头部 === */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .page-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .page-header .header-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border: 1px solid transparent;
+  }
+  .badge-phase {
+    background: rgba(168, 85, 247, 0.15);
+    color: var(--purple-400);
+    border-color: rgba(168, 85, 247, 0.25);
+  }
+  .badge-round {
+    background: rgba(96, 165, 250, 0.1);
+    color: var(--blue-400);
+    border-color: rgba(96, 165, 250, 0.2);
+  }
+  .badge-mode {
+    font-size: 11px;
+  }
+  .badge-mode.debate {
+    background: rgba(248, 113, 113, 0.15);
+    color: var(--red-400);
+    border-color: rgba(248, 113, 113, 0.2);
+  }
+  .badge-mode.competition {
+    background: rgba(250, 204, 21, 0.12);
+    color: var(--yellow-400);
+    border-color: rgba(250, 204, 21, 0.2);
+  }
+  .badge-mode.refinement {
+    background: rgba(74, 222, 128, 0.12);
+    color: var(--green-400);
+    border-color: rgba(74, 222, 128, 0.2);
+  }
+  .badge-identity {
+    background: rgba(34, 211, 238, 0.1);
+    color: var(--cyan-400);
+    border-color: rgba(34, 211, 238, 0.2);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .btn-icon:hover {
+    background: rgba(168, 85, 247, 0.1);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+  }
+  .btn-icon svg { width: 16px; height: 16px; }
+
+  /* === 三栏主布局 === */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* === 左栏：身份信息 === */
+  .identity-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .identity-hero {
+    padding: 24px;
+    text-align: center;
+  }
+  .identity-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple-500), var(--pink-400));
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.25);
+    position: relative;
+  }
+  .identity-avatar svg { width: 32px; height: 32px; color: white; }
+  .identity-avatar .status-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--green-400);
+    border: 3px solid var(--bg-deep);
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+  }
+  .identity-hero .node-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .identity-hero .node-id {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .label {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .info-row .value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .credit-score-visual {
+    padding: 20px;
+    text-align: center;
+  }
+  .credit-ring {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 12px;
+    position: relative;
+  }
+  .credit-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .credit-ring .ring-bg {
+    fill: none;
+    stroke: rgba(139, 92, 246, 0.12);
+    stroke-width: 8;
+  }
+  .credit-ring .ring-fill {
+    fill: none;
+    stroke: var(--purple-400);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 251;
+    stroke-dashoffset: 50;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+  .credit-ring .score-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+  .credit-score-visual .score-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .action-buttons {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+  .btn svg { width: 14px; height: 14px; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--purple-600), var(--purple-700));
+    color: white;
+    border-color: rgba(168, 85, 247, 0.3);
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-outline {
+    background: transparent;
+    color: var(--text-secondary);
+    border-color: var(--border);
+  }
+  .btn-outline:hover {
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+    background: rgba(168, 85, 247, 0.06);
+  }
+  .btn-danger {
+    background: transparent;
+    color: var(--red-400);
+    border-color: rgba(248, 113, 113, 0.2);
+  }
+  .btn-danger:hover {
+    background: rgba(248, 113, 113, 0.08);
+    border-color: rgba(248, 113, 113, 0.3);
+  }
+
+  /* === 中栏：三体协作 === */
+  .trinity-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .ai-trio-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .ai-card {
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ai-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+  .ai-card.ai1::before { background: linear-gradient(90deg, var(--red-400), var(--orange-400)); }
+  .ai-card.ai2::before { background: linear-gradient(90deg, var(--cyan-400), var(--blue-400)); }
+  .ai-card.ai3::before { background: linear-gradient(90deg, var(--amber-400), var(--yellow-400)); }
+
+  .ai-card .ai-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .ai-card .ai-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ai-card .ai-icon svg { width: 20px; height: 20px; }
+  .ai-card.ai1 .ai-icon { background: rgba(248, 113, 113, 0.15); color: var(--red-400); }
+  .ai-card.ai2 .ai-icon { background: rgba(34, 211, 238, 0.15); color: var(--cyan-400); }
+  .ai-card.ai3 .ai-icon { background: rgba(251, 191, 36, 0.15); color: var(--amber-400); }
+
+  .ai-card .ai-name { font-size: 15px; font-weight: 700; }
+  .ai-card .ai-title { font-size: 11px; color: var(--text-muted); }
+  .ai-card .ai-status {
+    margin-top: 8px;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ai-card .ai-status .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .ai-card .ai-status.active { background: rgba(74, 222, 128, 0.12); color: var(--green-400); }
+  .ai-card .ai-status.active .dot { background: var(--green-400); }
+  .ai-card .ai-status.thinking { background: rgba(168, 85, 247, 0.12); color: var(--purple-400); }
+  .ai-card .ai-status.thinking .dot { background: var(--purple-400); animation: pulse-dot 1.5s infinite; }
+  .ai-card .ai-status.waiting { background: rgba(240, 236, 249, 0.06); color: var(--text-muted); }
+  .ai-card .ai-status.waiting .dot { background: var(--text-muted); }
+
+  .ai-card .ai-output {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.2);
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    min-height: 48px;
+    border: 1px solid rgba(255,255,255,0.03);
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* 协作流程 */
+  .flow-section {
+    padding: 20px;
+  }
+  .flow-section .section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .flow-section .section-title svg { width: 16px; height: 16px; color: var(--purple-400); }
+
+  .flow-pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+  }
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 80px;
+    position: relative;
+  }
+  .flow-step .step-node {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--border);
+    transition: all 0.2s;
+  }
+  .flow-step .step-node svg { width: 18px; height: 18px; }
+  .flow-step.completed .step-node {
+    border-color: var(--green-400);
+    background: rgba(74, 222, 128, 0.1);
+    color: var(--green-400);
+  }
+  .flow-step.active .step-node {
+    border-color: var(--purple-400);
+    background: rgba(168, 85, 247, 0.12);
+    color: var(--purple-400);
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);
+  }
+  .flow-step.pending .step-node {
+    border-color: var(--text-muted);
+    color: var(--text-muted);
+  }
+  .flow-step .step-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .flow-step.completed .step-label { color: var(--green-400); }
+  .flow-step.active .step-label { color: var(--purple-400); font-weight: 600; }
+
+  .flow-arrow {
+    flex: 1;
+    min-width: 30px;
+    height: 2px;
+    background: var(--border);
+    position: relative;
+    margin: 0 -4px;
+    margin-bottom: 20px;
+  }
+  .flow-arrow.completed { background: var(--green-400); opacity: 0.5; }
+  .flow-arrow.active {
+    background: linear-gradient(90deg, var(--purple-400), transparent);
+    animation: flow-glow 2s infinite;
+  }
+  @keyframes flow-glow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* 模式选择 */
+  .mode-selector {
+    padding: 16px 20px;
+  }
+  .mode-selector .section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+  .mode-options {
+    display: flex;
+    gap: 10px;
+  }
+  .mode-option {
+    flex: 1;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    background: transparent;
+    color: var(--text-secondary);
+  }
+  .mode-option:hover {
+    border-color: var(--border-hover);
+    background: rgba(168, 85, 247, 0.04);
+  }
+  .mode-option.selected {
+    border-color: var(--purple-500);
+    background: rgba(168, 85, 247, 0.1);
+    color: var(--text-primary);
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.1);
+  }
+  .mode-option .mode-icon { font-size: 20px; margin-bottom: 4px; }
+  .mode-option .mode-name { font-size: 13px; font-weight: 600; }
+  .mode-option .mode-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* === 右栏：治理账本 === */
+  .governance-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .ledger-section {
+    padding: 16px;
+  }
+  .ledger-section .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .ledger-section .section-title {
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ledger-section .section-title svg { width: 16px; height: 16px; }
+  .count-badge {
+    background: rgba(168, 85, 247, 0.15);
+    color: var(--purple-400);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  /* 证据链 */
+  .evidence-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .evidence-item:last-child { border-bottom: none; }
+  .evidence-level {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .evidence-level.H1 { background: rgba(248,113,113,0.15); color: var(--red-400); }
+  .evidence-level.H2 { background: rgba(250,204,21,0.12); color: var(--yellow-400); }
+  .evidence-level.H3 { background: rgba(96,165,250,0.12); color: var(--blue-400); }
+  .evidence-level.H4 { background: rgba(74,222,128,0.12); color: var(--green-400); }
+  .evidence-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    flex: 1;
+  }
+  .evidence-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* 债务卡片 */
+  .debt-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(0,0,0,0.15);
+    margin-bottom: 6px;
+  }
+  .debt-item:last-child { margin-bottom: 0; }
+  .debt-info { flex: 1; }
+  .debt-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 3px;
+  }
+  .debt-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .severity-badge {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .severity-badge.critical { background: rgba(248,113,113,0.15); color: var(--red-400); }
+  .severity-badge.medium { background: rgba(251,191,36,0.12); color: var(--amber-400); }
+  .severity-badge.low { background: rgba(96,165,250,0.12); color: var(--blue-400); }
+  .debt-cost {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'SF Mono', monospace;
+  }
+  .btn-resolve {
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(74,222,128,0.2);
+    background: transparent;
+    color: var(--green-400);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-resolve:hover {
+    background: rgba(74,222,128,0.08);
+    border-color: rgba(74,222,128,0.35);
+  }
+
+  /* PoO 统计 */
+  .poo-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .poo-stat {
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(0,0,0,0.15);
+    text-align: center;
+  }
+  .poo-stat .poo-value {
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .poo-stat .poo-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .poo-stat .poo-value.green { color: var(--green-400); }
+  .poo-stat .poo-value.red { color: var(--red-400); }
+  .poo-stat .poo-value.yellow { color: var(--yellow-400); }
+  .poo-stat .poo-value.purple { color: var(--purple-400); }
+
+  /* 时间线 */
+  .timeline {
+    padding: 0;
+  }
+  .timeline-item {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    position: relative;
+  }
+  .timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 28px;
+    bottom: -4px;
+    width: 1px;
+    background: var(--border);
+  }
+  .timeline-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 2px solid var(--border);
+  }
+  .timeline-dot svg { width: 10px; height: 10px; }
+  .timeline-dot.green { border-color: var(--green-400); color: var(--green-400); background: rgba(74,222,128,0.08); }
+  .timeline-dot.purple { border-color: var(--purple-400); color: var(--purple-400); background: rgba(168,85,247,0.08); }
+  .timeline-dot.orange { border-color: var(--orange-400); color: var(--orange-400); background: rgba(251,146,60,0.08); }
+  .timeline-content { flex: 1; }
+  .timeline-text { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+  .timeline-time { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* === 经济概览条 === */
+  .economy-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .eco-stat {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .eco-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .eco-icon svg { width: 18px; height: 18px; }
+  .eco-icon.balance { background: rgba(251,191,36,0.12); color: var(--amber-400); }
+  .eco-icon.earned { background: rgba(74,222,128,0.12); color: var(--green-400); }
+  .eco-icon.spent { background: rgba(248,113,113,0.12); color: var(--red-400); }
+  .eco-icon.staked { background: rgba(96,165,250,0.12); color: var(--blue-400); }
+  .eco-label { font-size: 11px; color: var(--text-muted); }
+  .eco-value { font-size: 20px; font-weight: 800; line-height: 1; margin-top: 2px; }
+  .eco-value.green { color: var(--green-400); }
+  .eco-value.amber { color: var(--amber-400); }
+  .eco-value.red { color: var(--red-400); }
+  .eco-value.blue { color: var(--blue-400); }
+  .eco-sub { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+  /* === Section 标签 === */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+  }
+  .section-divider .line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .section-divider .label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+
+  /* === Tab 组件 === */
+  .tab-bar {
+    display: flex;
+    gap: 2px;
+    background: rgba(0,0,0,0.2);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    margin-bottom: 16px;
+  }
+  .tab-item {
+    flex: 1;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .tab-item:hover { color: var(--text-secondary); }
+  .tab-item.active {
+    background: rgba(168, 85, 247, 0.15);
+    color: var(--purple-400);
+    font-weight: 600;
+  }
+
+  /* === 置信度进度条 === */
+  .confidence-bar-wrap {
+    padding: 16px 20px;
+  }
+  .confidence-bar-wrap .bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .confidence-bar-wrap .bar-label span { font-size: 12px; color: var(--text-secondary); }
+  .confidence-bar-wrap .bar-label .bar-value { font-weight: 700; color: var(--text-primary); }
+  .confidence-track {
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.05);
+    overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .confidence-fill.high { background: linear-gradient(90deg, var(--green-400), var(--green-500)); }
+  .confidence-fill.medium { background: linear-gradient(90deg, var(--yellow-400), var(--amber-400)); }
+  .confidence-fill.low { background: linear-gradient(90deg, var(--red-400), var(--red-500)); }
+
+  /* === 注释标签 === */
+  .wireframe-note {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 16px;
+    background: rgba(168, 85, 247, 0.15);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--purple-400);
+    font-weight: 500;
+    z-index: 100;
+  }
+
+  /* === 响应式 === */
+  @media (max-width: 1200px) {
+    .main-grid {
+      grid-template-columns: 260px 1fr;
+    }
+    .governance-panel {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+  }
+  @media (max-width: 900px) {
+    .main-grid {
+      grid-template-columns: 1fr;
+    }
+    .governance-panel {
+      grid-template-columns: 1fr;
+    }
+    .ai-trio-grid {
+      grid-template-columns: 1fr;
+    }
+    .economy-bar {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- ═══ 页面头部 ═══ -->
+  <div class="page-header">
+    <div>
+      <h1>Trinity 控制台</h1>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+        <span class="badge badge-identity">节点: nc_0x7f3a...e9b2d1</span>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-phase">DELIBERATE</span>
+      <span class="badge badge-round">第 42 轮</span>
+      <span class="badge badge-mode debate">辩论模式</span>
+      <button class="btn-icon" title="刷新">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ 经济概览条 ═══ -->
+  <div class="economy-bar">
+    <div class="glass-card eco-stat">
+      <div class="eco-icon balance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M8 10h8M9 14h6"/></svg>
+      </div>
+      <div>
+        <div class="eco-label">New.B 余额</div>
+        <div class="eco-value amber">128.50</div>
+        <div class="eco-sub">纪元 3 | 奖励: 2.0/任务</div>
+      </div>
+    </div>
+    <div class="glass-card eco-stat">
+      <div class="eco-icon earned">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </div>
+      <div>
+        <div class="eco-label">总收入</div>
+        <div class="eco-value green">256.30</div>
+      </div>
+    </div>
+    <div class="glass-card eco-stat">
+      <div class="eco-icon spent">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+      </div>
+      <div>
+        <div class="eco-label">总支出</div>
+        <div class="eco-value red">127.80</div>
+      </div>
+    </div>
+    <div class="glass-card eco-stat">
+      <div class="eco-icon staked">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/></svg>
+      </div>
+      <div>
+        <div class="eco-label">已质押</div>
+        <div class="eco-value blue">45.00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 三栏主布局 ═══ -->
+  <div class="main-grid">
+
+    <!-- ══ 左栏：身份信息面板 ══ -->
+    <div class="identity-panel">
+
+      <!-- 身份头像卡片 -->
+      <div class="glass-card identity-hero">
+        <div class="identity-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div class="status-dot"></div>
+        </div>
+        <div class="node-name">本地节点</div>
+        <div class="node-id">nc_0x7f3a9c2e...b2d1e4f8</div>
+      </div>
+
+      <!-- 身份详情 -->
+      <div class="glass-card">
+        <div class="info-row">
+          <span class="label">状态</span>
+          <span class="value" style="color:var(--green-400)">● 已激活</span>
+        </div>
+        <div class="info-row">
+          <span class="label">创建时间</span>
+          <span class="value">2026-03-15</span>
+        </div>
+        <div class="info-row">
+          <span class="label">总轮次</span>
+          <span class="value">42</span>
+        </div>
+        <div class="info-row">
+          <span class="label">待处理债务</span>
+          <span class="value" style="color:var(--orange-400)">3 项</span>
+        </div>
+      </div>
+
+      <!-- 信用分数 -->
+      <div class="glass-card credit-score-visual">
+        <div class="credit-ring">
+          <svg viewBox="0 0 100 100">
+            <circle class="ring-bg" cx="50" cy="50" r="40" />
+            <circle class="ring-fill" cx="50" cy="50" r="40" />
+          </svg>
+          <div class="score-text">82</div>
+        </div>
+        <div class="score-label">信用分数</div>
+      </div>
+
+      <!-- 置信度 -->
+      <div class="glass-card confidence-bar-wrap">
+        <div class="bar-label">
+          <span>系统置信度</span>
+          <span class="bar-value">78%</span>
+        </div>
+        <div class="confidence-track">
+          <div class="confidence-fill medium" style="width: 78%"></div>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="glass-card action-buttons">
+        <button class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          解锁身份
+        </button>
+        <button class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          AI 人格设置
+        </button>
+        <button class="btn btn-danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          锁定身份
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ══ 中栏：三体协作面板 ══ -->
+    <div class="trinity-panel">
+
+      <!-- 三AI角色卡 -->
+      <div class="ai-trio-grid">
+        <!-- AI-1 扩张者 -->
+        <div class="glass-card ai-card ai1">
+          <div class="ai-header">
+            <div class="ai-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div>
+              <div class="ai-name">AI-1: 扩张者</div>
+              <div class="ai-title">战略扩张官</div>
+            </div>
+          </div>
+          <div class="ai-status active"><span class="dot"></span> 提案中</div>
+          <div class="ai-output">
+            建议采用微服务架构重构认证模块，预计可降低延迟 40%...
+          </div>
+        </div>
+
+        <!-- AI-2 风控员 -->
+        <div class="glass-card ai-card ai2">
+          <div class="ai-header">
+            <div class="ai-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div>
+              <div class="ai-name">AI-2: 风控员</div>
+              <div class="ai-title">首席审计官</div>
+            </div>
+          </div>
+          <div class="ai-status thinking"><span class="dot"></span> 审计中</div>
+          <div class="ai-output">
+            该方案缺乏 H3 级性能测试证据，迁移风险未评估...
+          </div>
+        </div>
+
+        <!-- AI-3 财务官 -->
+        <div class="glass-card ai-card ai3">
+          <div class="ai-header">
+            <div class="ai-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
+            </div>
+            <div>
+              <div class="ai-name">AI-3: 财务官</div>
+              <div class="ai-title">首席财务决策官</div>
+            </div>
+          </div>
+          <div class="ai-status waiting"><span class="dot"></span> 等待中</div>
+          <div class="ai-output" style="color:var(--text-muted); font-style:italic;">
+            等待风控审计完成，准备进行成本效益分析...
+          </div>
+        </div>
+      </div>
+
+      <!-- 协作流程管道 -->
+      <div class="glass-card flow-section">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          当前循环流程
+        </div>
+        <div class="flow-pipeline">
+          <div class="flow-step completed">
+            <div class="step-node">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="step-label">目标解析</span>
+          </div>
+          <div class="flow-arrow completed"></div>
+          <div class="flow-step completed">
+            <div class="step-node">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <span class="step-label">扩张提案</span>
+          </div>
+          <div class="flow-arrow active"></div>
+          <div class="flow-step active">
+            <div class="step-node">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <span class="step-label">风控审计</span>
+          </div>
+          <div class="flow-arrow"></div>
+          <div class="flow-step pending">
+            <div class="step-node">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
+            </div>
+            <span class="step-label">财务裁决</span>
+          </div>
+          <div class="flow-arrow"></div>
+          <div class="flow-step pending">
+            <div class="step-node">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <span class="step-label">PoO 验证</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 模式选择 -->
+      <div class="glass-card mode-selector">
+        <div class="section-title">游戏模式</div>
+        <div class="mode-options">
+          <div class="mode-option selected">
+            <div class="mode-icon">&#9876;</div>
+            <div class="mode-name">辩论模式</div>
+            <div class="mode-desc">三方辩论达成共识</div>
+          </div>
+          <div class="mode-option">
+            <div class="mode-icon">&#9812;</div>
+            <div class="mode-name">竞争模式</div>
+            <div class="mode-desc">独立方案择优</div>
+          </div>
+          <div class="mode-option">
+            <div class="mode-icon">&#9874;</div>
+            <div class="mode-name">精炼模式</div>
+            <div class="mode-desc">迭代优化方案</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 最近循环历史 -->
+      <div class="glass-card flow-section">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          最近循环结果
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:8px;">
+          <div style="text-align:center; padding:10px; border-radius:var(--radius-sm); background:rgba(74,222,128,0.06); border:1px solid rgba(74,222,128,0.1);">
+            <div style="font-size:11px; color:var(--text-muted);">第 38 轮</div>
+            <div style="font-size:18px; font-weight:800; color:var(--green-400);">92</div>
+          </div>
+          <div style="text-align:center; padding:10px; border-radius:var(--radius-sm); background:rgba(74,222,128,0.06); border:1px solid rgba(74,222,128,0.1);">
+            <div style="font-size:11px; color:var(--text-muted);">第 39 轮</div>
+            <div style="font-size:18px; font-weight:800; color:var(--green-400);">87</div>
+          </div>
+          <div style="text-align:center; padding:10px; border-radius:var(--radius-sm); background:rgba(250,204,21,0.06); border:1px solid rgba(250,204,21,0.1);">
+            <div style="font-size:11px; color:var(--text-muted);">第 40 轮</div>
+            <div style="font-size:18px; font-weight:800; color:var(--yellow-400);">65</div>
+          </div>
+          <div style="text-align:center; padding:10px; border-radius:var(--radius-sm); background:rgba(74,222,128,0.06); border:1px solid rgba(74,222,128,0.1);">
+            <div style="font-size:11px; color:var(--text-muted);">第 41 轮</div>
+            <div style="font-size:18px; font-weight:800; color:var(--green-400);">89</div>
+          </div>
+          <div style="text-align:center; padding:10px; border-radius:var(--radius-sm); background:rgba(168,85,247,0.06); border:1px solid rgba(168,85,247,0.1);">
+            <div style="font-size:11px; color:var(--text-muted);">第 42 轮</div>
+            <div style="font-size:18px; font-weight:800; color:var(--purple-400);">...</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ 右栏：治理账本面板 ══ -->
+    <div class="governance-panel">
+
+      <!-- 证据链摘要 -->
+      <div class="glass-card ledger-section">
+        <div class="section-header">
+          <div class="section-title" style="color:var(--blue-400);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            证据链
+          </div>
+          <span class="count-badge">12 条</span>
+        </div>
+        <div class="evidence-item">
+          <span class="evidence-level H3">H3</span>
+          <div>
+            <div class="evidence-text">微服务架构可将认证延迟降低 35-45%</div>
+            <div class="evidence-time">2 分钟前 · 扩张者提供</div>
+          </div>
+        </div>
+        <div class="evidence-item">
+          <span class="evidence-level H2">H2</span>
+          <div>
+            <div class="evidence-text">现有单体架构 P99 延迟 = 320ms</div>
+            <div class="evidence-time">5 分钟前 · 系统监控</div>
+          </div>
+        </div>
+        <div class="evidence-item">
+          <span class="evidence-level H4">H4</span>
+          <div>
+            <div class="evidence-text">类似迁移项目成功率 92%（n=24）</div>
+            <div class="evidence-time">8 分钟前 · 先知挖矿</div>
+          </div>
+        </div>
+        <div class="evidence-item">
+          <span class="evidence-level H1">H1</span>
+          <div>
+            <div class="evidence-text">风控员标记：缺少回滚方案测试数据</div>
+            <div class="evidence-time">10 分钟前 · 风控审计</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 战略债务 -->
+      <div class="glass-card ledger-section">
+        <div class="section-header">
+          <div class="section-title" style="color:var(--orange-400);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            战略债务
+          </div>
+          <span class="count-badge">3 项</span>
+        </div>
+        <div class="debt-item">
+          <div class="debt-info">
+            <div class="debt-desc">缺少灾难恢复测试</div>
+            <div class="debt-meta">
+              <span class="severity-badge critical">严重</span>
+              <span class="debt-cost">5.0 New.B</span>
+            </div>
+          </div>
+          <button class="btn-resolve">解决</button>
+        </div>
+        <div class="debt-item">
+          <div class="debt-info">
+            <div class="debt-desc">API 文档未更新至 v2.1</div>
+            <div class="debt-meta">
+              <span class="severity-badge medium">中等</span>
+              <span class="debt-cost">2.0 New.B</span>
+            </div>
+          </div>
+          <button class="btn-resolve">解决</button>
+        </div>
+        <div class="debt-item">
+          <div class="debt-info">
+            <div class="debt-desc">监控仪表盘缺少告警阈值</div>
+            <div class="debt-meta">
+              <span class="severity-badge low">低</span>
+              <span class="debt-cost">1.0 New.B</span>
+            </div>
+          </div>
+          <button class="btn-resolve">解决</button>
+        </div>
+      </div>
+
+      <!-- PoO 统计 -->
+      <div class="glass-card ledger-section">
+        <div class="section-header">
+          <div class="section-title" style="color:var(--green-400);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            PoO 验证统计
+          </div>
+        </div>
+        <div class="poo-stats-grid">
+          <div class="poo-stat">
+            <div class="poo-value">47</div>
+            <div class="poo-label">总任务</div>
+          </div>
+          <div class="poo-stat">
+            <div class="poo-value green">38</div>
+            <div class="poo-label">已验证</div>
+          </div>
+          <div class="poo-stat">
+            <div class="poo-value red">5</div>
+            <div class="poo-label">失败</div>
+          </div>
+          <div class="poo-stat">
+            <div class="poo-value purple">8.2</div>
+            <div class="poo-label">平均分</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 最近操作时间线 -->
+      <div class="glass-card ledger-section">
+        <div class="section-header">
+          <div class="section-title" style="color:var(--purple-400);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            操作时间线
+          </div>
+        </div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot purple">
+              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-text">第 42 轮循环启动 — 辩论模式</div>
+              <div class="timeline-time">刚刚</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot green">
+              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-text">PoO 验证通过 — 得分 89</div>
+              <div class="timeline-time">3 分钟前</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot orange">
+              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-text">新增战略债务：缺少灾难恢复测试</div>
+              <div class="timeline-time">15 分钟前</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot green">
+              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-text">债务已解决：日志轮转缺失（风控员）</div>
+              <div class="timeline-time">1 小时前</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 成功经验 -->
+      <div class="glass-card ledger-section">
+        <div class="section-header">
+          <div class="section-title" style="color:var(--amber-400);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            成功经验库
+          </div>
+          <span class="count-badge">5 条</span>
+        </div>
+        <div style="padding:6px 10px; background:rgba(0,0,0,0.15); border-radius:var(--radius-sm); margin-bottom:6px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; color:var(--text-secondary);">渐进式数据库迁移策略</span>
+            <span style="font-size:10px; color:var(--green-400);">92% 成功率</span>
+          </div>
+        </div>
+        <div style="padding:6px 10px; background:rgba(0,0,0,0.15); border-radius:var(--radius-sm); margin-bottom:6px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; color:var(--text-secondary);">蓝绿部署模式</span>
+            <span style="font-size:10px; color:var(--green-400);">88% 成功率</span>
+          </div>
+        </div>
+        <div style="padding:6px 10px; background:rgba(0,0,0,0.15); border-radius:var(--radius-sm);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; color:var(--text-secondary);">API 版本兼容性测试</span>
+            <span style="font-size:10px; color:var(--green-400);">85% 成功率</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- 原型注释 -->
+<div class="wireframe-note">Trinity 管理页面 · M1-B1 交互原型（线框图） · 用浏览器直接打开预览</div>
+
+<!-- 交互脚本 -->
+<script>
+  document.querySelectorAll('.mode-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.mode-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+
+  document.querySelectorAll('.btn-resolve').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.debt-item');
+      item.style.opacity = '0.5';
+      item.style.transform = 'translateX(20px)';
+      item.style.transition = 'all 0.3s';
+      btn.textContent = '已解决';
+      btn.disabled = true;
+      btn.style.color = 'var(--green-400)';
+      btn.style.borderColor = 'rgba(74,222,128,0.3)';
+    });
+  });
+</script>
+
+</body>
+</html>

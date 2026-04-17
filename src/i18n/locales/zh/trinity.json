@@ -1,0 +1,331 @@
+{
+  "title": "Trinity 控制台",
+  "genesis": {
+    "title": "创世序列",
+    "description": "初始化你的 Trinity 节点。这将生成加密身份、创建 New.B 钱包并激活治理引擎。",
+    "passphrasePlaceholder": "密码短语（至少8位）",
+    "confirmPlaceholder": "确认密码短语",
+    "activate": "激活节点",
+    "activating": "正在激活...",
+    "warning": "密码短语用于加密私钥（节点灵魂）。请安全保存——无法恢复。"
+  },
+  "roles": {
+    "title": "三体治理",
+    "ai1": { "name": "扩张者", "title": "战略扩张官" },
+    "ai2": { "name": "风控员", "title": "首席审计官" },
+    "ai3": { "name": "财务官", "title": "首席财务决策官" }
+  },
+  "economy": {
+    "title": "经济",
+    "balance": "New.B 余额",
+    "totalEarned": "总收入",
+    "totalSpent": "总支出",
+    "staked": "已质押",
+    "openDebts": "待处理债务",
+    "transactions": "最近交易"
+  },
+  "dashboard": {
+    "nodeLabel": "节点:",
+    "round": "第 {{round}} 轮",
+    "epochInfo": "纪元 {{epoch}} | 奖励: {{reward}}/任务",
+    "active": "活跃",
+    "inactive": "未激活",
+    "pooFailed": "{{failed}} 失败 | {{discarded}} 已丢弃",
+    "taskStats": "{{totalTasks}} 任务 | {{earned}} New.B 已赚取",
+    "autoPause": "自动暂停：置信度低于阈值",
+    "storedPlaybooks": "已存储的成功经验",
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "column": {
+      "time": "时间",
+      "type": "类型",
+      "amount": "金额",
+      "balance": "余额"
+    }
+  },
+  "goal": {
+    "title": "任务目标",
+    "missionControl": "任务控制",
+    "noGoal": "无活跃目标",
+    "noGoalHint": "设置任务目标以激活 Trinity 循环",
+    "setGoal": "设定目标",
+    "newMission": "新任务",
+    "goalTitle": "目标标题",
+    "description": "详细描述目标...",
+    "priority": "优先级",
+    "targetMetric": "目标指标",
+    "targetMetricOptional": "目标指标（可选）",
+    "deadline": "截止日期",
+    "activate": "激活任务",
+    "subGoals": "子目标",
+    "addSubGoal": "添加子目标...",
+    "history": "历史记录",
+    "runOnce": "运行一次",
+    "startAuto": "启动自动",
+    "stopAuto": "停止自动",
+    "cancel": "取消",
+    "error": "错误:",
+    "budgetMode": "{{mode}} mode",
+    "priority_p0": "P0 - 紧急",
+    "priority_p1": "P1 - 重要",
+    "priority_p2": "P2 - 可选"
+  },
+  "governance": {
+    "title": "治理账本",
+    "evidence": "证据链",
+    "debts": "战略债务",
+    "playbooks": "成功经验库",
+    "pooTasks": "PoO 验证任务",
+    "federatedClearing": "联邦清算",
+    "noRecords": "暂无记录",
+    "noEvidence": "暂无证据记录",
+    "noDebts": "暂无债务记录",
+    "noPlaybooks": "暂无经验记录 — 经验将在 Trinity 循环成功后自动生成",
+    "noPoOTasks": "暂无 PoO 任务",
+    "hashLabel": "哈希:",
+    "runClearing": "运行联邦清算",
+    "bounty": "赏金: {{amount}} New.B",
+    "cost": "成本: {{amount}} New.B",
+    "successRate": "{{rate}}% 成功率 | {{count}} 使用次数",
+    "score": "分数: {{score}}",
+    "reward": "奖励: +{{amount}} New.B",
+    "statsTotal": "总任务",
+    "statsVerified": "已验证",
+    "statsFailed": "失败",
+    "statsDiscarded": "已丢弃",
+    "statsAvgScore": "平均分",
+    "persisted": "已持久化"
+  },
+  "blockchain": {
+    "title": "区块链 & 经济",
+    "tab": {
+      "chain": "区块链",
+      "oracle": "汇率",
+      "dividend": "分红"
+    },
+    "notInitialized": "区块链未初始化",
+    "notInitializedHint": "初始化区块链以开始挖矿和处理交易",
+    "initialize": "初始化区块链",
+    "stats": {
+      "blockHeight": "区块高度",
+      "difficulty": "难度",
+      "totalSupply": "总供给",
+      "pendingTx": "待处理交易"
+    },
+    "latestBlocks": "最新区块",
+    "noBlocks": "暂无已挖区块",
+    "column": {
+      "block": "区块",
+      "miner": "矿工",
+      "txCount": "交易数",
+      "hash": "哈希"
+    },
+    "txCountLabel": "{{count}} 笔交易",
+    "oracle": {
+      "title": "汇率",
+      "recalculate": "重新计算",
+      "oneNewB": "1 New.B =",
+      "oneUSD": "1 USD =",
+      "lastUpdated": "最后更新:",
+      "high24h": "24h 最高",
+      "low24h": "24h 最低",
+      "change24h": "24h 变化",
+      "percent24h": "24h %"
+    },
+    "converter": {
+      "title": "转换",
+      "amount": "金额",
+      "nbToUsd": "NB -> USD",
+      "usdToNb": "USD -> NB",
+      "convert": "转换"
+    },
+    "dividend": {
+      "totalAccrued": "累计应付",
+      "totalPaid": "已支付",
+      "pending": "待支付",
+      "config": "分红配置",
+      "saveConfig": "保存配置",
+      "sharePercent": "分成比例",
+      "minThreshold": "最低阈值 (New.B)",
+      "processPayout": "执行支付",
+      "recentRecords": "最近记录",
+      "noRecords": "暂无分红记录",
+      "column": {
+        "amount": "金额",
+        "recipient": "接收方",
+        "date": "日期",
+        "status": "状态"
+      }
+    }
+  },
+  "market": {
+    "title": "知识市场",
+    "tab": {
+      "prophet": "先知挖矿",
+      "market": "知识市场"
+    },
+    "stats": {
+      "total": "总计",
+      "verified": "已验证",
+      "correct": "正确",
+      "accuracy": "准确率",
+      "staked": "已质押"
+    },
+    "createPrediction": "创建预测",
+    "form": {
+      "claim": "预测声明...",
+      "category": {
+        "market": "市场",
+        "technology": "技术",
+        "security": "安全",
+        "performance": "性能",
+        "social": "社交"
+      },
+      "targetMetric": "目标指标",
+      "predictedValue": "预测值",
+      "stakeAmount": "质押金额 (New.B)",
+      "confidence": "置信度: {{value}}%",
+      "cancel": "取消",
+      "submit": "提交预测"
+    },
+    "noPredictions": "暂无预测记录",
+    "accuracyBadge": "{{value}}% 准确率",
+    "targetDisplay": "目标指标: {{metric}} = {{value}}",
+    "confidenceDisplay": "置信度: {{value}}%",
+    "verifyDate": "验证日期: {{date}}",
+    "auction": {
+      "active": "活跃拍卖",
+      "totalSales": "总销售",
+      "volume": "交易量",
+      "avgSuccessRate": "平均成功率",
+      "noAuctions": "暂无活跃拍卖",
+      "purchase": "购买"
+    }
+  },
+  "swarm": {
+    "title": "蜂群网络",
+    "discoverNodes": "发现节点",
+    "refresh": "刷新",
+    "stopSwarm": "停止蜂群",
+    "startSwarm": "启动蜂群",
+    "status": {
+      "running": "蜂群运行中",
+      "offline": "蜂群离线"
+    },
+    "stats": {
+      "connected": "已连接",
+      "knownNodes": "已知节点",
+      "messagesSent": "已发消息",
+      "messagesReceived": "已收消息",
+      "uptime": "运行时长"
+    },
+    "connectPeer": {
+      "title": "连接节点",
+      "addressPlaceholder": "地址（如 192.168.1.100）",
+      "portPlaceholder": "端口",
+      "connect": "连接"
+    },
+    "connectedPeers": "已连接节点",
+    "noPeers": "暂无连接节点",
+    "column": {
+      "nodeId": "节点 ID",
+      "address": "地址",
+      "status": "状态",
+      "creditScore": "信用分",
+      "latency": "延迟",
+      "lastSeen": "最后在线"
+    },
+    "federalDefense": "联邦防御",
+    "report": {
+      "button": "举报节点",
+      "targetId": "目标节点 ID",
+      "reason": "举报原因...",
+      "cancel": "取消",
+      "submit": "提交举报"
+    }
+  },
+  "settings": {
+    "title": "Trinity 设置",
+    "aiProvider": "AI 供应商",
+    "provider": "供应商",
+    "model": "模型",
+    "baseUrl": "基础 URL",
+    "apiKeyHint": "API 密钥从 OpenAGI 供应商设置中获取。请在 设置 > 供应商 中配置。",
+    "autoRunner": "自动运行器",
+    "cycleInterval": "循环间隔（分钟）",
+    "maxFailures": "最大连续失败次数",
+    "pooVerification": "PoO 验证",
+    "executionThreshold": "执行阈值",
+    "execThresholdHint": "分数 ≥ {{threshold}} 才执行",
+    "sandboxTimeout": "沙盒超时（秒）",
+    "confidencePause": "置信度暂停线",
+    "confidencePauseHint": "低于 {{value}}% 自动暂停",
+    "constraints": "约束条件",
+    "currentConstraints": "当前约束条件",
+    "noConstraints": "暂无约束条件",
+    "save": "保存",
+    "saved": "已保存",
+    "personality": {
+      "title": "三体 AI 人格设置",
+      "description": "自定义三个 AI 角色的人格特征、创造性温度。影响 Trinity 循环中每个角色的思维方式。",
+      "personalityLabel": "人格描述",
+      "personalityPlaceholder": "描述该 AI 的性格、思维方式、决策偏好...",
+      "temperature": "创造性温度"
+    }
+  },
+  "runner": {
+    "autoRunning": "自动运行中",
+    "stopped": "已停止",
+    "cycles": "循环次数",
+    "lastCycle": "上次运行",
+    "failures": "失败次数"
+  },
+  "stats": {
+    "creditScore": "信用分",
+    "pooVerified": "PoO 已验证",
+    "avgScore": "平均分数",
+    "confidence": "置信度"
+  },
+  "common": {
+    "cancel": "取消",
+    "save": "保存",
+    "status": "状态",
+    "amount": "金额",
+    "error": "错误"
+  },
+  "toast": {
+    "goalCreated": "目标创建成功",
+    "goalCompleted": "目标已完成",
+    "goalAbandoned": "目标已放弃",
+    "subGoalAdded": "子目标已添加",
+    "runnerStarted": "自动运行器已启动",
+    "runnerStopped": "自动运行器已停止",
+    "runOnceComplete": "单次运行完成",
+    "clearingComplete": "联邦清算执行完成",
+    "debtResolved": "债务已解决",
+    "chainInitialized": "区块链初始化成功",
+    "oracleRecalculated": "汇率重新计算完成",
+    "dividendConfigSaved": "分红配置已保存",
+    "payoutProcessed": "分红支付已执行",
+    "predictionCreated": "预测创建成功",
+    "purchaseComplete": "购买成功",
+    "swarmStarted": "蜂群已启动",
+    "swarmStopped": "蜂群已停止",
+    "peerConnected": "节点连接成功",
+    "discoveryTriggered": "节点发现已触发",
+    "reportSubmitted": "举报已提交",
+    "settingsSaved": "设置已保存",
+    "loadFailed": "数据加载失败",
+    "operationFailed": "操作失败",
+    "invalidPort": "端口范围需在1-65535之间",
+    "invalidStake": "质押金额必须大于0",
+    "confirmAbandonTitle": "确认放弃目标",
+    "confirmAbandonMessage": "放弃目标后无法恢复，确定要继续吗？",
+    "confirmClearingTitle": "确认联邦清算",
+    "confirmClearingMessage": "联邦清算将处理所有待清算债务，确定要执行吗？",
+    "confirmPurchaseTitle": "确认购买",
+    "confirmPurchaseMessage": "此操作将花费 New.B 购买知识资产，确定要继续吗？",
+    "confirmPayoutTitle": "确认分红支付",
+    "confirmPayoutMessage": "此操作将执行分红支付，确定要继续吗？"
+  }
+}

@@ -1,0 +1,331 @@
+{
+  "title": "Trinity コンソール",
+  "genesis": {
+    "title": "ジェネシスシーケンス",
+    "description": "Trinityノードを初期化します。暗号鍵IDの生成、New.Bウォレットの作成、ガバナンスエンジンの起動を行います。",
+    "passphrasePlaceholder": "パスフレーズ（8文字以上）",
+    "confirmPlaceholder": "パスフレーズを確認",
+    "activate": "ノードを起動",
+    "activating": "起動中...",
+    "warning": "パスフレーズは秘密鍵（ノードの魂）を暗号化します。安全に保管してください — 復元はできません。"
+  },
+  "roles": {
+    "title": "トリニティ",
+    "ai1": { "name": "エクスパンダー", "title": "戦略拡張担当" },
+    "ai2": { "name": "リスク管理者", "title": "最高監査・リスク担当" },
+    "ai3": { "name": "CFO", "title": "最高財務責任者" }
+  },
+  "economy": {
+    "title": "エコノミー",
+    "balance": "New.B 残高",
+    "totalEarned": "総収入",
+    "totalSpent": "総支出",
+    "staked": "ステーキング",
+    "openDebts": "未解決の負債",
+    "transactions": "最近の取引"
+  },
+  "dashboard": {
+    "nodeLabel": "ノード:",
+    "round": "ラウンド {{round}}",
+    "epochInfo": "エポック {{epoch}} | 報酬: {{reward}}/タスク",
+    "active": "アクティブ",
+    "inactive": "非アクティブ",
+    "pooFailed": "{{failed}} 失敗 | {{discarded}} 破棄",
+    "taskStats": "{{totalTasks}} タスク | {{earned}} New.B 獲得",
+    "autoPause": "自動一時停止：信頼度がしきい値未満",
+    "storedPlaybooks": "保存済みプレイブック",
+    "loading": "読み込み中...",
+    "noData": "データなし",
+    "column": {
+      "time": "時間",
+      "type": "タイプ",
+      "amount": "金額",
+      "balance": "残高"
+    }
+  },
+  "goal": {
+    "title": "ミッション目標",
+    "missionControl": "ミッションコントロール",
+    "noGoal": "アクティブな目標なし",
+    "noGoalHint": "Trinityサイクルを起動するにはミッション目標を設定してください",
+    "setGoal": "目標を設定",
+    "newMission": "新しいミッション",
+    "goalTitle": "目標タイトル",
+    "description": "目標を詳しく説明...",
+    "priority": "優先度",
+    "targetMetric": "目標指標",
+    "targetMetricOptional": "目標指標（任意）",
+    "deadline": "期限",
+    "activate": "ミッションを起動",
+    "subGoals": "サブ目標",
+    "addSubGoal": "サブ目標を追加...",
+    "history": "履歴",
+    "runOnce": "1回実行",
+    "startAuto": "自動開始",
+    "stopAuto": "自動停止",
+    "cancel": "キャンセル",
+    "error": "エラー:",
+    "budgetMode": "{{mode}} モード",
+    "priority_p0": "P0 - 緊急",
+    "priority_p1": "P1 - 重要",
+    "priority_p2": "P2 - 任意"
+  },
+  "governance": {
+    "title": "ガバナンス台帳",
+    "evidence": "エビデンスチェーン",
+    "debts": "戦略的負債",
+    "playbooks": "プレイブック",
+    "pooTasks": "PoO 検証タスク",
+    "federatedClearing": "連邦クリアリング",
+    "noRecords": "レコードなし",
+    "noEvidence": "エビデンスレコードなし",
+    "noDebts": "負債レコードなし",
+    "noPlaybooks": "プレイブックなし — Trinityサイクル成功後に自動生成されます",
+    "noPoOTasks": "PoO タスクなし",
+    "hashLabel": "ハッシュ:",
+    "runClearing": "連邦クリアリングを実行",
+    "bounty": "報奨金: {{amount}} New.B",
+    "cost": "コスト: {{amount}} New.B",
+    "successRate": "{{rate}}% 成功率 | {{count}} 回使用",
+    "score": "スコア: {{score}}",
+    "reward": "報酬: +{{amount}} New.B",
+    "statsTotal": "タスク合計",
+    "statsVerified": "検証済み",
+    "statsFailed": "失敗",
+    "statsDiscarded": "破棄",
+    "statsAvgScore": "平均スコア",
+    "persisted": "永続化済み"
+  },
+  "blockchain": {
+    "title": "ブロックチェーン & エコノミー",
+    "tab": {
+      "chain": "ブロックチェーン",
+      "oracle": "為替レート",
+      "dividend": "配当"
+    },
+    "notInitialized": "ブロックチェーン未初期化",
+    "notInitializedHint": "ブロックチェーンを初期化してマイニングとトランザクション処理を開始",
+    "initialize": "ブロックチェーンを初期化",
+    "stats": {
+      "blockHeight": "ブロック高",
+      "difficulty": "難易度",
+      "totalSupply": "総供給量",
+      "pendingTx": "保留中のトランザクション"
+    },
+    "latestBlocks": "最新ブロック",
+    "noBlocks": "マイニング済みブロックなし",
+    "column": {
+      "block": "ブロック",
+      "miner": "マイナー",
+      "txCount": "取引数",
+      "hash": "ハッシュ"
+    },
+    "txCountLabel": "{{count}} 件のトランザクション",
+    "oracle": {
+      "title": "為替レート",
+      "recalculate": "再計算",
+      "oneNewB": "1 New.B =",
+      "oneUSD": "1 USD =",
+      "lastUpdated": "最終更新:",
+      "high24h": "24h 最高値",
+      "low24h": "24h 最安値",
+      "change24h": "24h 変動",
+      "percent24h": "24h %"
+    },
+    "converter": {
+      "title": "コンバーター",
+      "amount": "金額",
+      "nbToUsd": "NB -> USD",
+      "usdToNb": "USD -> NB",
+      "convert": "変換"
+    },
+    "dividend": {
+      "totalAccrued": "累計発生額",
+      "totalPaid": "支払済み",
+      "pending": "未払い",
+      "config": "配当設定",
+      "saveConfig": "設定を保存",
+      "sharePercent": "分配比率",
+      "minThreshold": "最低閾値 (New.B)",
+      "processPayout": "支払いを実行",
+      "recentRecords": "最近の記録",
+      "noRecords": "配当記録なし",
+      "column": {
+        "amount": "金額",
+        "recipient": "受取人",
+        "date": "日付",
+        "status": "ステータス"
+      }
+    }
+  },
+  "market": {
+    "title": "ナレッジマーケット",
+    "tab": {
+      "prophet": "プロフェットマイニング",
+      "market": "ナレッジマーケット"
+    },
+    "stats": {
+      "total": "合計",
+      "verified": "検証済み",
+      "correct": "正解",
+      "accuracy": "正確率",
+      "staked": "ステーキング"
+    },
+    "createPrediction": "予測を作成",
+    "form": {
+      "claim": "予測内容...",
+      "category": {
+        "market": "マーケット",
+        "technology": "テクノロジー",
+        "security": "セキュリティ",
+        "performance": "パフォーマンス",
+        "social": "ソーシャル"
+      },
+      "targetMetric": "目標指標",
+      "predictedValue": "予測値",
+      "stakeAmount": "ステーク金額 (New.B)",
+      "confidence": "信頼度: {{value}}%",
+      "cancel": "キャンセル",
+      "submit": "予測を送信"
+    },
+    "noPredictions": "予測レコードなし",
+    "accuracyBadge": "{{value}}% 正確率",
+    "targetDisplay": "目標指標: {{metric}} = {{value}}",
+    "confidenceDisplay": "信頼度: {{value}}%",
+    "verifyDate": "検証日: {{date}}",
+    "auction": {
+      "active": "アクティブなオークション",
+      "totalSales": "総売上",
+      "volume": "取引量",
+      "avgSuccessRate": "平均成功率",
+      "noAuctions": "アクティブなオークションなし",
+      "purchase": "購入"
+    }
+  },
+  "swarm": {
+    "title": "スウォームネットワーク",
+    "discoverNodes": "ノードを検出",
+    "refresh": "更新",
+    "stopSwarm": "スウォームを停止",
+    "startSwarm": "スウォームを開始",
+    "status": {
+      "running": "スウォーム稼働中",
+      "offline": "スウォームオフライン"
+    },
+    "stats": {
+      "connected": "接続中",
+      "knownNodes": "既知ノード",
+      "messagesSent": "送信メッセージ",
+      "messagesReceived": "受信メッセージ",
+      "uptime": "稼働時間"
+    },
+    "connectPeer": {
+      "title": "ピアに接続",
+      "addressPlaceholder": "アドレス（例: 192.168.1.100）",
+      "portPlaceholder": "ポート",
+      "connect": "接続"
+    },
+    "connectedPeers": "接続中のピア",
+    "noPeers": "接続中のピアなし",
+    "column": {
+      "nodeId": "ノード ID",
+      "address": "アドレス",
+      "status": "ステータス",
+      "creditScore": "信用スコア",
+      "latency": "レイテンシー",
+      "lastSeen": "最終確認"
+    },
+    "federalDefense": "連邦防衛",
+    "report": {
+      "button": "ノードを通報",
+      "targetId": "対象ノード ID",
+      "reason": "通報理由...",
+      "cancel": "キャンセル",
+      "submit": "通報を送信"
+    }
+  },
+  "settings": {
+    "title": "Trinity 設定",
+    "aiProvider": "AIプロバイダー",
+    "provider": "プロバイダー",
+    "model": "モデル",
+    "baseUrl": "ベース URL",
+    "apiKeyHint": "APIキーはOpenAGIのプロバイダー設定から取得されます。設定 > プロバイダーで構成してください。",
+    "autoRunner": "オートランナー",
+    "cycleInterval": "サイクル間隔（分）",
+    "maxFailures": "最大連続失敗回数",
+    "pooVerification": "PoO 検証",
+    "executionThreshold": "実行閾値",
+    "execThresholdHint": "スコア ≥ {{threshold}} で実行",
+    "sandboxTimeout": "サンドボックスタイムアウト（秒）",
+    "confidencePause": "信頼度一時停止",
+    "confidencePauseHint": "{{value}}% 未満で自動一時停止",
+    "constraints": "制約条件",
+    "currentConstraints": "現在の制約条件",
+    "noConstraints": "制約条件なし",
+    "save": "保存",
+    "saved": "保存済み",
+    "personality": {
+      "title": "Trinity AI パーソナリティ設定",
+      "description": "3つのAIロールのパーソナリティ特性と創造性温度をカスタマイズします。Trinityサイクル中の各ロールの思考方法に影響します。",
+      "personalityLabel": "パーソナリティの説明",
+      "personalityPlaceholder": "このAIの性格、思考スタイル、意思決定の傾向を記述...",
+      "temperature": "創造性温度"
+    }
+  },
+  "runner": {
+    "autoRunning": "自動実行中",
+    "stopped": "停止済み",
+    "cycles": "サイクル",
+    "lastCycle": "前回",
+    "failures": "失敗"
+  },
+  "stats": {
+    "creditScore": "信用スコア",
+    "pooVerified": "PoO 検証済み",
+    "avgScore": "平均スコア",
+    "confidence": "信頼度"
+  },
+  "common": {
+    "cancel": "キャンセル",
+    "save": "保存",
+    "status": "ステータス",
+    "amount": "金額",
+    "error": "エラー"
+  },
+  "toast": {
+    "goalCreated": "目標が作成されました",
+    "goalCompleted": "目標が完了しました",
+    "goalAbandoned": "目標が放棄されました",
+    "subGoalAdded": "サブ目標が追加されました",
+    "runnerStarted": "オートランナーが開始しました",
+    "runnerStopped": "オートランナーが停止しました",
+    "runOnceComplete": "単回実行が完了しました",
+    "clearingComplete": "連邦クリアリングが完了しました",
+    "debtResolved": "負債が解決されました",
+    "chainInitialized": "ブロックチェーンが初期化されました",
+    "oracleRecalculated": "為替レートが再計算されました",
+    "dividendConfigSaved": "配当設定が保存されました",
+    "payoutProcessed": "配当支払いが実行されました",
+    "predictionCreated": "予測が作成されました",
+    "purchaseComplete": "購入が完了しました",
+    "swarmStarted": "スウォームが開始しました",
+    "swarmStopped": "スウォームが停止しました",
+    "peerConnected": "ピアに接続しました",
+    "discoveryTriggered": "ノード検出がトリガーされました",
+    "reportSubmitted": "通報が送信されました",
+    "settingsSaved": "設定が保存されました",
+    "loadFailed": "データの読み込みに失敗しました",
+    "operationFailed": "操作に失敗しました",
+    "invalidPort": "ポートは1-65535の範囲で指定してください",
+    "invalidStake": "ステーク金額は0より大きい必要があります",
+    "confirmAbandonTitle": "目標放棄の確認",
+    "confirmAbandonMessage": "目標を放棄すると元に戻せません。続行しますか？",
+    "confirmClearingTitle": "連邦クリアリングの確認",
+    "confirmClearingMessage": "全ての保留中の債務クリアリングを処理します。続行しますか？",
+    "confirmPurchaseTitle": "購入の確認",
+    "confirmPurchaseMessage": "New.Bを使用してナレッジ資産を購入します。続行しますか？",
+    "confirmPayoutTitle": "配当支払いの確認",
+    "confirmPayoutMessage": "配当支払いを実行します。続行しますか？"
+  }
+}

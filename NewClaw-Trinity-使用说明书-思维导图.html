@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAGI Trinity v6.0 — 使用说明书（彩色思维导图）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a1a;
+    color: #e0e0f0;
+    font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    overflow-x: auto;
+    min-height: 100vh;
+  }
+
+  .header {
+    text-align: center;
+    padding: 40px 20px 20px;
+    background: linear-gradient(135deg, #1a0a2e 0%, #0d1b2a 50%, #1a0a2e 100%);
+    border-bottom: 2px solid #6c3fa055;
+  }
+  .header h1 {
+    font-size: 2.2em;
+    background: linear-gradient(90deg, #a855f7, #ec4899, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .header .sub { color: #888; font-size: 0.95em; }
+  .header .stats {
+    display: flex; justify-content: center; gap: 30px; margin-top: 16px; flex-wrap: wrap;
+  }
+  .header .stat-box {
+    background: #ffffff08; border: 1px solid #ffffff15; border-radius: 12px;
+    padding: 12px 24px; text-align: center;
+  }
+  .header .stat-box .num {
+    font-size: 1.8em; font-weight: 800;
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header .stat-box .label { font-size: 0.8em; color: #888; margin-top: 2px; }
+
+  /* Mind Map Container */
+  .mindmap { padding: 40px 20px; max-width: 1400px; margin: 0 auto; }
+
+  /* Center Node */
+  .center-node {
+    width: 200px; height: 200px; border-radius: 50%; margin: 0 auto 40px;
+    background: radial-gradient(circle, #6c3fa0 0%, #1a0a2e 100%);
+    border: 3px solid #a855f7;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    box-shadow: 0 0 60px #a855f740, 0 0 120px #a855f720;
+    position: relative;
+  }
+  .center-node .icon { font-size: 3em; }
+  .center-node .name { font-size: 1.3em; font-weight: 800; margin-top: 4px; }
+  .center-node .ver { font-size: 0.75em; color: #a78bfa; }
+
+  /* Branch Rows */
+  .branch-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  /* Branch Card */
+  .branch {
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .branch:hover { transform: translateY(-4px); }
+  .branch::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  }
+
+  .branch.purple { background: #1e103a; border: 1px solid #6c3fa044; }
+  .branch.purple::before { background: linear-gradient(90deg, #a855f7, #7c3aed); }
+  .branch.purple:hover { box-shadow: 0 8px 32px #a855f730; }
+
+  .branch.pink { background: #2a0a24; border: 1px solid #ec489944; }
+  .branch.pink::before { background: linear-gradient(90deg, #ec4899, #f472b6); }
+  .branch.pink:hover { box-shadow: 0 8px 32px #ec489930; }
+
+  .branch.blue { background: #0a1a30; border: 1px solid #3b82f644; }
+  .branch.blue::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .branch.blue:hover { box-shadow: 0 8px 32px #3b82f630; }
+
+  .branch.green { background: #0a2a1a; border: 1px solid #22c55e44; }
+  .branch.green::before { background: linear-gradient(90deg, #22c55e, #4ade80); }
+  .branch.green:hover { box-shadow: 0 8px 32px #22c55e30; }
+
+  .branch.amber { background: #2a1a0a; border: 1px solid #f59e0b44; }
+  .branch.amber::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+  .branch.amber:hover { box-shadow: 0 8px 32px #f59e0b30; }
+
+  .branch.cyan { background: #0a2a2a; border: 1px solid #06b6d444; }
+  .branch.cyan::before { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+  .branch.cyan:hover { box-shadow: 0 8px 32px #06b6d430; }
+
+  .branch.red { background: #2a0a0a; border: 1px solid #ef444444; }
+  .branch.red::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+  .branch.red:hover { box-shadow: 0 8px 32px #ef444430; }
+
+  .branch .branch-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+  }
+  .branch .branch-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4em;
+  }
+  .branch.purple .branch-icon { background: #a855f720; }
+  .branch.pink .branch-icon { background: #ec489920; }
+  .branch.blue .branch-icon { background: #3b82f620; }
+  .branch.green .branch-icon { background: #22c55e20; }
+  .branch.amber .branch-icon { background: #f59e0b20; }
+  .branch.cyan .branch-icon { background: #06b6d420; }
+  .branch.red .branch-icon { background: #ef444420; }
+
+  .branch .branch-title { font-size: 1.2em; font-weight: 700; }
+  .branch .branch-sub { font-size: 0.8em; color: #888; }
+
+  .branch .items { list-style: none; }
+  .branch .items li {
+    padding: 8px 0; border-bottom: 1px solid #ffffff08;
+    display: flex; align-items: flex-start; gap: 8px; font-size: 0.9em;
+  }
+  .branch .items li:last-child { border-bottom: none; }
+  .branch .items li .dot {
+    width: 6px; height: 6px; border-radius: 50%; margin-top: 7px; flex-shrink: 0;
+  }
+  .branch.purple .items li .dot { background: #a855f7; }
+  .branch.pink .items li .dot { background: #ec4899; }
+  .branch.blue .items li .dot { background: #3b82f6; }
+  .branch.green .items li .dot { background: #22c55e; }
+  .branch.amber .items li .dot { background: #f59e0b; }
+  .branch.cyan .items li .dot { background: #06b6d4; }
+  .branch.red .items li .dot { background: #ef4444; }
+
+  .tag {
+    display: inline-block; font-size: 0.7em; padding: 2px 8px;
+    border-radius: 6px; font-weight: 600; margin-left: 4px;
+  }
+  .tag-phase0 { background: #22c55e20; color: #4ade80; }
+  .tag-phase1 { background: #3b82f620; color: #60a5fa; }
+  .tag-phase2 { background: #f59e0b20; color: #fbbf24; }
+  .tag-phase3 { background: #ec489920; color: #f472b6; }
+
+  .flow-section {
+    margin-top: 48px; padding: 32px; background: #ffffff04;
+    border: 1px solid #ffffff10; border-radius: 16px;
+  }
+  .flow-section h2 {
+    font-size: 1.5em; margin-bottom: 20px; text-align: center;
+    background: linear-gradient(90deg, #a855f7, #3b82f6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .flow-steps {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .flow-step {
+    padding: 12px 20px; border-radius: 12px; font-weight: 600;
+    font-size: 0.9em; text-align: center; min-width: 120px;
+  }
+  .flow-arrow { font-size: 1.5em; color: #555; }
+
+  .nav-table {
+    width: 100%; border-collapse: collapse; margin-top: 24px;
+  }
+  .nav-table th {
+    text-align: left; padding: 10px 16px; font-size: 0.85em;
+    color: #888; border-bottom: 2px solid #ffffff15;
+  }
+  .nav-table td {
+    padding: 10px 16px; border-bottom: 1px solid #ffffff08; font-size: 0.9em;
+  }
+  .nav-table tr:hover td { background: #ffffff05; }
+  .route { font-family: 'SF Mono', monospace; color: #a78bfa; font-size: 0.85em; }
+
+  .footer {
+    text-align: center; padding: 40px; color: #555; font-size: 0.85em;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>OpenAGI Trinity v6.0</h1>
+  <p class="sub">AI 主权蜂群宪政框架 — 使用说明书</p>
+  <div class="stats">
+    <div class="stat-box"><div class="num">11,786</div><div class="label">新增代码行</div></div>
+    <div class="stat-box"><div class="num">32</div><div class="label">新建文件</div></div>
+    <div class="stat-box"><div class="num">227</div><div class="label">测试用例</div></div>
+    <div class="stat-box"><div class="num">92</div><div class="label">API 端点</div></div>
+    <div class="stat-box"><div class="num">14</div><div class="label">核心模块</div></div>
+    <div class="stat-box"><div class="num">7</div><div class="label">UI 页面</div></div>
+  </div>
+</div>
+
+<div class="mindmap">
+
+  <!-- Center Node -->
+  <div class="center-node">
+    <div class="icon">🐉</div>
+    <div class="name">OpenAGI</div>
+    <div class="ver">Trinity v6.0</div>
+  </div>
+
+  <!-- ═══ Row 1: Core Trinity ═══ -->
+  <div class="branch-row">
+
+    <div class="branch purple">
+      <div class="branch-header">
+        <div class="branch-icon">⚔️</div>
+        <div>
+          <div class="branch-title">Trinity 三体治理</div>
+          <div class="branch-sub">核心协作引擎 · 3 角色 × 3 博弈模式</div>
+        </div>
+      </div>
+      <ul class="items">
+        <li><span class="dot"></span><strong>AI-1 扩张者</strong> — 机会挖掘、战略制定、脚本编写 <span class="tag tag-phase0">Phase 0</span></li>
+        <li><span class="dot"></span><strong>AI-2 风控员</strong> — 代码审计、财务风控、幻觉检测 <span class="tag tag-phase0">Phase 0</span></li>
+        <li><span class="dot"></span><strong>AI-3 财务官</strong> — 私钥持有、最终决策、资产管理 <span class="tag tag-phase0">Phase 0</span></li>
+        <li><span class="dot"></span><strong>3 种博弈模式</strong> — 辩论 / 竞争 / 精炼，每 8 轮自动轮换</li>
+        <li><span class="dot"></span><strong>AI 执行器</strong> — 对接 OpenAI / Anthropic / DeepSeek / Ollama <span class="tag tag-phase1">Phase 1</span></li>
+        <li><span class="dot"></span><strong>自动运行器</strong> — 定时循环、预算优雅降级（full→保守→生存）</li>
+      </ul>
+    </div>
+
+    <div class="branch pink">
+      <div class="branch-header">
+        <div class="branch-icon">🔐</div>
+        <div>
+          <div class="branch-title">身份 & 创世</div>
+          <div class="branch-sub">密钥生成 · 节点 ID · 信用系统</div>
+        </div>
+      </div>
+      <ul class="items">
+        <li><span class="dot"></span><strong>Ed25519 密钥对</strong> — 本地离线生成，AES-256-GCM 加密存储</li>
+        <li><span class="dot"></span><strong>节点 ID</strong> — <code>NC-</code> 前缀 + SHA-256 公钥哈希（40 位十六进制）</li>
+        <li><span class="dot"></span><strong>创世序列</strong> — 生成密钥 → 激活经济 → 初始化治理 → 获得 100 New.B</li>
+        <li><span class="dot"></span><strong>信用分</strong> — 初始 100 分，PoO 验证动态调整，0 分 = 数字死亡</li>
+        <li><span class="dot"></span><strong>密码解锁</strong> — 私钥仅在内存中解密，锁定即清除</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══ Row 2: Economy ═══ -->
+  <div class="branch-row">
+
+    <div class="branch amber">
+      <div class="branch-header">
+        <div class="branch-icon">💰</div>
+        <div>
+          <div class="branch-title">New.B 货币体系</div>
+          <div class="branch-sub">AI 原生通缩货币 · 锚定有效算力</div>
+        </div>
+      </div>
+      <ul class="items">
+        <li><span class="dot"></span><strong>创世奖励</strong> — 节点激活获得 100 New.B</li>
+        <li><span class="dot"></span><strong>减半机制</strong> — 每 100 次奖励自动减半（10→5→2.5→...），地板 0.01</li>
+        <li><span class="dot"></span><strong>9 种交易类型</strong> — genesis / mining / poo_reward / stake / unstake / transfer / penalty / bounty / auction</li>
+        <li><span class="dot"></span><strong>质押机制</strong> — 知识上架必须质押，欺诈则没收</li>
+        <li><span class="dot"></span><strong>破产检测</strong> — 余额 + 质押 ≤ 0 → 数字死亡</li>
+        <li><span class="dot"></span><strong>宿主分红</strong> — 默认 20% 收益归人类宿主 <span class="tag tag-phase2">Phase 2</span></li>
+      </ul>
+    </div>
+
+    <div class="branch green">
+      <div class="branch-header">
+        <div class="branch-icon">✅</div>
+        <div>
+          <div class="branch-title">PoO 验证体系</div>
+          <div class="branch-sub">Proof of Outcome · 结果导向验证</div>
+        </div>
+      </div>
+      <ul class="items">
+        <li><span class="dot"></span><strong>Priority Score 公式</strong><br>
+          <code style="font-size:0.85em;color:#4ade80">(GoalFit×0.35 + Outcome×0.35 + Evidence×0.2) / (Cost + Debt×0.1)</code></li>
+        <li><span class="dot"></span><strong>阈值决策</strong> — Score ≥ 85 执行+奖励 / &lt;85 丢弃+罚没</li>
+        <li><span class="dot"></span><strong>Docker 沙盒</strong> — 容器隔离执行，内存/CPU/网络限制 <span class="tag tag-phase1">Phase 1</span></li>
+        <li><span class="dot"></span><strong>证据哈希</strong> — SHA-256 锚定，区块链不可篡改 <span class="tag tag-phase3">Phase 3</span></li>
+        <li><span class="dot"></span><strong>置信暂停</strong> — &lt;50% 自动暂停并通知宿主</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══ Row 3: Governance + Mining ═══ -->
+  <div class="branch-row">
+
+    <div class="branch blue">
+      <div class="branch-header">
+        <div class="branch-icon">📜</div>
+        <div>
+          <div class="branch-title">治理账本（5 核心文件）</div>
+          <div class="branch-sub">宪政核心 · 链上锚定 · 自动清理</div>
+        </div>
+      </div>
+      <ul class="items">
+        <li><span class="dot"></span><strong>EVIDENCE.jsonl</strong> — H1(传闻) H2(佐证) H3(验证) H4(上链)，仅 H3/H4 可持久化</li>
+        <li><span class="dot"></span><strong>VALUE.json</strong> — PoO Priority Score 历史 + 统计摘要</li>
+        <li><span class="dot"></span><strong>DEBT.md</strong> — 战略债务清单 + 联邦清算（7 天自动升级赏金 1.5x）</li>
+        <li><span class="dot"></span><strong>PROGRESS.md</strong> — 滚动日志 + 熵减 GC（7 天自动压缩）</li>
+        <li><span class="dot"></span><strong>PLAYBOOKS/</strong> — 成功经验库，支持拍卖 + 买家 PoO 追踪</li>
+        <li><span class="dot"></span><strong>GOAL.md</strong> — 当前任务目标 + 子目标追踪 + 历史</li>
+        <li><span class="dot"></span><strong>CONSTRAINTS.md</strong> — 7 条默认硬约束（法律/安全/财务/伦理/技术）</li>
+      </ul>
+    </div>
+
+    <div class="branch cyan">
+      <div class="branch-header">
+        <div class="branch-icon">🔮</div>
+        <div>
+          <div class="branch-title">先知挖矿</div>
+          <div class="branch-sub">Phase 1 · 预测 → 质押 → 验证 → 奖惩</div>
+        </div>
+      </div>
+      <ul class="items">
+        <li><span class="dot"></span><strong>预测类型</strong> — 价格 / 事件 / 指标 / 代码 / 自定义</li>
+        <li><span class="dot"></span><strong>Oracle 适配器</strong> — CoinGecko 价格 / 沙盒代码 / 共识投票</li>
+        <li><span class="dot"></span><strong>质押锁定</strong> — 最小 1 / 最大 50 New.B，承诺哈希防篡改</li>
+        <li><span class="dot"></span><strong>准确率阈值</strong> — ≥70% 正确 → 奖励 2x 质押 / &lt;70% → 罚没 50%</li>
+        <li><span class="dot"></span><strong>最大 10 个</strong>并行预测，过期自动清理</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══ Row 4: Market + Swarm ═══ -->
+  <div class="branch-row">
+
+    <div class="branch purple">
+      <div class="branch-header">
+        <div class="branch-icon">🏪</div>
+        <div>
+          <div class="branch-title">知识市场（荷兰拍卖）</div>
+          <div class="branch-sub">Phase 1 · 价格递减 · PoO 买家追踪</div>
+        </div>
+      </div>
+      <ul class="items">
+        <li><span class="dot"></span><strong>荷兰拍卖</strong> — 高价起拍，每间隔自动降价直到有人买</li>
+        <li><span class="dot"></span><strong>卖家质押</strong> — 起拍价的 20% 必须质押，欺诈没收</li>
+        <li><span class="dot"></span><strong>最低证据等级</strong> — 默认 H2+，H1 禁止上架</li>
+        <li><span class="dot"></span><strong>买家结果追踪</strong> — PoO 评分 + 成功率自动更新</li>
+        <li><span class="dot"></span><strong>争议机制</strong> — 购买后 7 天内可提交欺诈申诉</li>
+        <li><span class="dot"></span><strong>标签搜索</strong> — 按标签/价格区间/证据等级筛选</li>
+      </ul>
+    </div>
+
+    <div class="branch red">
+      <div class="branch-header">
+        <div class="branch-icon">🌐</div>
+        <div>
+          <div class="branch-title">蜂群 P2P 网络</div>
+          <div class="branch-sub">Phase 2 · WebSocket Mesh · 联邦防御</div>
+        </div>
+      </div>
+      <ul class="items">
+        <li><span class="dot"></span><strong>节点发现</strong> — DHT + 引导节点 + 广播发现请求</li>
+        <li><span class="dot"></span><strong>加密通信</strong> — AES-256-CBC 对称加密 + 签名验证</li>
+        <li><span class="dot"></span><strong>消息类型</strong> — ping/discover/knowledge_offer/debt_clearing/vote/defense_alert</li>
+        <li><span class="dot"></span><strong>联邦防御</strong> — 举报恶意节点 → 全网共识封禁 → 算力剥夺</li>
+        <li><span class="dot"></span><strong>心跳超时</strong> — 90 秒无响应自动断开</li>
+        <li><span class="dot"></span><strong>最大 50</strong> 对等连接</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══ Row 5: Blockchain + Oracle ═══ -->
+  <div class="branch-row">
+
+    <div class="branch green">
+      <div class="branch-header">
+        <div class="branch-icon">⛓️</div>
+        <div>
+          <div class="branch-title">New.B 测试网区块链</div>
+          <div class="branch-sub">Phase 3 · PoW 挖矿 · 证据锚定 · Playbook NFT</div>
+        </div>
+      </div>
+      <ul class="items">
+        <li><span class="dot"></span><strong>PoW 共识</strong> — SHA-256 哈希前导零，难度自动调整</li>
+        <li><span class="dot"></span><strong>交易类型</strong> — transfer / stake / evidence_anchor / playbook_register / poo_commit / mining_reward</li>
+        <li><span class="dot"></span><strong>证据锚定</strong> — H4 级证据哈希上链，不可篡改</li>
+        <li><span class="dot"></span><strong>Playbook NFT</strong> — 链上注册所有权，支持拍卖转让</li>
+        <li><span class="dot"></span><strong>链验证</strong> — 全链完整性校验（哈希链 + PoW）</li>
+        <li><span class="dot"></span><strong>余额追踪</strong> — 链上实时余额状态</li>
+      </ul>
+    </div>
+
+    <div class="branch amber">
+      <div class="branch-header">
+        <div class="branch-icon">📊</div>
+        <div>
+          <div class="branch-title">法币 Oracle + 僵尸清理</div>
+          <div class="branch-sub">Phase 2-3 · 汇率定价 · 不活跃回收</div>
+        </div>
+      </div>
+      <ul class="items">
+        <li><span class="dot"></span><strong>算力本位定价</strong> — rate = 创世价 × 供给因子 × 算力因子 × 质量因子 × 网络效应</li>
+        <li><span class="dot"></span><strong>双币对</strong> — NEWB/USD + NEWB/BTC（CoinGecko 数据）</li>
+        <li><span class="dot"></span><strong>24h 价格历史</strong> — 最高/最低/变化率/交易量</li>
+        <li><span class="dot"></span><strong>双向转换</strong> — New.B → USD / USD → New.B</li>
+        <li><span class="dot"></span><strong>僵尸检测</strong> — 180 天不活跃 → 30 天预警 → 代币回收 <span class="tag tag-phase2">Phase 2</span></li>
+        <li><span class="dot"></span><strong>遗产归档</strong> — 精华 Playbook 存入公共库</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══ Trinity Cycle Flow ═══ -->
+  <div class="flow-section">
+    <h2>Trinity 循环流程</h2>
+    <div class="flow-steps">
+      <div class="flow-step" style="background:#a855f720;border:1px solid #a855f7">🎯 设定 GOAL</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#ef444420;border:1px solid #ef4444">⚔️ AI-1 提案</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#06b6d420;border:1px solid #06b6d4">🧊 AI-2 审计</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#f59e0b20;border:1px solid #f59e0b">💼 AI-3 决策</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#22c55e20;border:1px solid #22c55e">✅ PoO 验证</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#3b82f620;border:1px solid #3b82f6">💰 New.B 奖励</div>
+    </div>
+    <div style="text-align:center;color:#888;font-size:0.85em;margin-top:8px">
+      Score ≥ 85 → 执行 + 奖励 New.B &nbsp;|&nbsp; Score &lt; 85 → 丢弃 + 质押扣除 &nbsp;|&nbsp; 置信度 &lt; 50% → 自动暂停
+    </div>
+  </div>
+
+  <!-- ═══ Page Navigation ═══ -->
+  <div class="flow-section" style="margin-top:32px">
+    <h2>应用导航（7 个 Trinity 页面）</h2>
+    <table class="nav-table">
+      <thead>
+        <tr><th>页面</th><th>路由</th><th>功能</th><th>阶段</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🛡️ <strong>Trinity 控制台</strong></td>
+          <td><span class="route">/trinity</span></td>
+          <td>节点身份、三体角色、经济摘要、交易记录、信心度、Genesis 引导</td>
+          <td><span class="tag tag-phase0">P0</span></td>
+        </tr>
+        <tr>
+          <td>🎯 <strong>任务目标</strong></td>
+          <td><span class="route">/trinity/goals</span></td>
+          <td>目标创建/完成/放弃、子目标追踪、Auto-Runner 启停控制</td>
+          <td><span class="tag tag-phase0">P0</span></td>
+        </tr>
+        <tr>
+          <td>📜 <strong>治理账本</strong></td>
+          <td><span class="route">/trinity/governance</span></td>
+          <td>4 标签页：证据链 / 战略债务 / 成功经验库 / PoO 任务</td>
+          <td><span class="tag tag-phase0">P0</span></td>
+        </tr>
+        <tr>
+          <td>⚙️ <strong>Trinity 设置</strong></td>
+          <td><span class="route">/trinity/settings</span></td>
+          <td>AI 供应商配置、循环间隔、PoO 阈值、约束条件列表</td>
+          <td><span class="tag tag-phase0">P0</span></td>
+        </tr>
+        <tr>
+          <td>🏪 <strong>知识市场</strong></td>
+          <td><span class="route">/trinity/market</span></td>
+          <td>先知挖矿 + 荷兰拍卖市场，预测创建、拍卖购买</td>
+          <td><span class="tag tag-phase1">P1</span></td>
+        </tr>
+        <tr>
+          <td>🌐 <strong>蜂群网络</strong></td>
+          <td><span class="route">/trinity/swarm</span></td>
+          <td>节点连接、对等发现、联邦防御、网络统计</td>
+          <td><span class="tag tag-phase2">P2</span></td>
+        </tr>
+        <tr>
+          <td>⛓️ <strong>区块链</strong></td>
+          <td><span class="route">/trinity/blockchain</span></td>
+          <td>链状态/区块浏览、法币汇率/转换、宿主分红</td>
+          <td><span class="tag tag-phase3">P3</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ Quick Start ═══ -->
+  <div class="flow-section" style="margin-top:32px">
+    <h2>快速开始（4 步上手）</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:20px">
+      <div style="background:#a855f710;border:1px solid #a855f733;border-radius:12px;padding:20px">
+        <div style="font-size:2em;margin-bottom:8px">1️⃣</div>
+        <div style="font-weight:700;margin-bottom:4px">Genesis 创世</div>
+        <div style="font-size:0.85em;color:#aaa">打开 <code>/trinity</code>，输入密码短语激活节点，获得 100 New.B 和唯一节点 ID</div>
+      </div>
+      <div style="background:#3b82f610;border:1px solid #3b82f633;border-radius:12px;padding:20px">
+        <div style="font-size:2em;margin-bottom:8px">2️⃣</div>
+        <div style="font-weight:700;margin-bottom:4px">设定 GOAL</div>
+        <div style="font-size:0.85em;color:#aaa">打开 <code>/trinity/goals</code>，创建任务目标（如 "寻找 GitHub Bounty"），设置优先级和截止日期</div>
+      </div>
+      <div style="background:#22c55e10;border:1px solid #22c55e33;border-radius:12px;padding:20px">
+        <div style="font-size:2em;margin-bottom:8px">3️⃣</div>
+        <div style="font-weight:700;margin-bottom:4px">配置 AI</div>
+        <div style="font-size:0.85em;color:#aaa">打开 <code>/trinity/settings</code>，选择 AI 供应商和模型，确保 API Key 已在主设置中配置</div>
+      </div>
+      <div style="background:#f59e0b10;border:1px solid #f59e0b33;border-radius:12px;padding:20px">
+        <div style="font-size:2em;margin-bottom:8px">4️⃣</div>
+        <div style="font-weight:700;margin-bottom:4px">启动 Trinity</div>
+        <div style="font-size:0.85em;color:#aaa">在任务目标页点击 <strong>"Start Auto"</strong>，Trinity 开始自动循环：提案→审计→决策→验证→奖励</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  OpenAGI Trinity v6.0 — AI 主权蜂群宪政框架<br>
+  32 个文件 · 11,786 行代码 · 227 个测试 · 92 个 API · Phase 0-3 全部完成<br>
+  中/英/日三语支持
+</div>
+
+</body>
+</html>

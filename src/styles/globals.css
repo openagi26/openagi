@@ -1,0 +1,411 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ═══ 🟣 星空紫 Galaxy Purple 透明玻璃主题（浅色模式）═══ */
+    --background: 270 40% 98% / 0.55;
+    --foreground: 263 84% 12%;
+    --card: 270 50% 98% / 0.45;
+    --card-foreground: 263 84% 12%;
+    --popover: 270 50% 99% / 0.78;
+    --popover-foreground: 263 84% 12%;
+    --primary: 263 70% 50%;
+    --primary-foreground: 270 100% 99%;
+    --secondary: 270 45% 94% / 0.55;
+    --secondary-foreground: 263 47% 18%;
+    --muted: 270 30% 94% / 0.45;
+    --muted-foreground: 260 10% 44%;
+    --accent: 280 60% 60%;
+    --accent-foreground: 270 100% 99%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 270 100% 99%;
+    --border: 270 30% 88% / 0.6;
+    --input: 270 30% 88% / 0.5;
+    --ring: 263 70% 50%;
+    --radius: 0.75rem;
+
+    /* 星空紫玻璃效果 */
+    --glass-bg: rgba(237, 233, 254, 0.45);
+    --glass-bg-hover: rgba(237, 233, 254, 0.6);
+    --glass-border: rgba(168, 85, 247, 0.2);
+    --glass-shadow: 0 8px 32px rgba(124, 58, 237, 0.1);
+    --glass-blur: 22px;
+    --sidebar-bg: rgba(245, 243, 255, 0.55);
+    --sidebar-hover: rgba(124, 58, 237, 0.08);
+    --titlebar-bg: rgba(245, 243, 255, 0.35);
+
+    /* 紫色霓虹高光 */
+    --neon-glow: 0 0 20px rgba(168, 85, 247, 0.3), 0 0 60px rgba(124, 58, 237, 0.1);
+    --neon-text: rgba(124, 58, 237, 1);
+    --gradient-primary: linear-gradient(135deg, #7C3AED, #A855F7, #C084FC);
+    --gradient-sidebar: linear-gradient(180deg, rgba(124, 58, 237, 0.08), rgba(168, 85, 247, 0.04));
+  }
+
+  /* ═══ 🟣 星空紫 Galaxy Purple 透明玻璃主题（深色模式）═══ */
+  .dark {
+    --background: 270 20% 8% / 0.6;
+    --foreground: 270 30% 94%;
+    --card: 270 15% 12% / 0.5;
+    --card-foreground: 270 30% 94%;
+    --popover: 270 15% 10% / 0.8;
+    --popover-foreground: 270 30% 94%;
+    --primary: 263 70% 58%;
+    --primary-foreground: 270 100% 99%;
+    --secondary: 270 15% 18% / 0.55;
+    --secondary-foreground: 270 30% 94%;
+    --muted: 270 10% 18% / 0.45;
+    --muted-foreground: 270 15% 68%;
+    --accent: 280 65% 55%;
+    --accent-foreground: 270 100% 99%;
+    --destructive: 0 65% 48%;
+    --destructive-foreground: 270 100% 99%;
+    --border: 270 15% 22% / 0.55;
+    --input: 270 10% 18% / 0.5;
+    --ring: 263 70% 58%;
+
+    /* 深色星空紫玻璃 */
+    --glass-bg: rgba(30, 20, 50, 0.55);
+    --glass-bg-hover: rgba(45, 30, 70, 0.65);
+    --glass-border: rgba(168, 85, 247, 0.15);
+    --glass-shadow: 0 8px 32px rgba(76, 29, 149, 0.3);
+    --glass-blur: 26px;
+    --sidebar-bg: rgba(22, 14, 42, 0.6);
+    --sidebar-hover: rgba(168, 85, 247, 0.1);
+    --titlebar-bg: rgba(20, 12, 38, 0.4);
+
+    /* 深色霓虹高光 */
+    --neon-glow: 0 0 20px rgba(168, 85, 247, 0.4), 0 0 80px rgba(124, 58, 237, 0.15);
+    --neon-text: rgba(196, 132, 252, 1);
+    --gradient-primary: linear-gradient(135deg, #7C3AED, #A855F7, #C084FC);
+    --gradient-sidebar: linear-gradient(180deg, rgba(124, 58, 237, 0.12), rgba(168, 85, 247, 0.04));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body {
+    background: transparent !important;
+  }
+
+  body {
+    @apply text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* ═══ 玻璃态（Glassmorphism）工具类 ═══ */
+
+/* 基础玻璃容器 — 星空紫 */
+.glass {
+  background: var(--glass-bg);
+  background-image: var(--gradient-sidebar);
+  backdrop-filter: blur(var(--glass-blur)) saturate(200%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(200%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* 侧边栏专用玻璃 — 深紫渐变 */
+.glass-sidebar {
+  background: var(--sidebar-bg);
+  background-image: var(--gradient-sidebar);
+  backdrop-filter: blur(30px) saturate(220%);
+  -webkit-backdrop-filter: blur(30px) saturate(220%);
+  border-right: 1px solid var(--glass-border);
+  box-shadow: inset -1px 0 0 rgba(168, 85, 247, 0.08);
+}
+
+/* 标题栏专用玻璃 — 微紫光晕 */
+.glass-titlebar {
+  background: var(--titlebar-bg);
+  background-image: linear-gradient(90deg, rgba(124, 58, 237, 0.06), transparent 50%, rgba(168, 85, 247, 0.04));
+  backdrop-filter: blur(34px) saturate(200%);
+  -webkit-backdrop-filter: blur(34px) saturate(200%);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* 卡片玻璃 — 悬停紫光 */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px) saturate(200%);
+  -webkit-backdrop-filter: blur(18px) saturate(200%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-shadow);
+  transition: all 0.25s ease;
+}
+
+.glass-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: var(--neon-glow);
+}
+
+/* 弹出层玻璃 — 强模糊+紫边 */
+.glass-popover {
+  background: var(--glass-bg);
+  backdrop-filter: blur(44px) saturate(220%);
+  -webkit-backdrop-filter: blur(44px) saturate(220%);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: 0 16px 48px rgba(76, 29, 149, 0.2), var(--neon-glow);
+}
+
+/* 输入框玻璃 — 聚焦紫色光环 */
+.glass-input {
+  background: rgba(237, 233, 254, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  transition: all 0.2s ease;
+}
+
+.dark .glass-input {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.glass-input:focus {
+  background: rgba(237, 233, 254, 0.4);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15), var(--neon-glow);
+}
+
+.dark .glass-input:focus {
+  background: rgba(124, 58, 237, 0.15);
+  border-color: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1), var(--neon-glow);
+}
+
+/* ═══ 霓虹紫色按钮 ═══ */
+.neon-button {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+  transition: all 0.2s ease;
+}
+
+.neon-button:hover {
+  box-shadow: var(--neon-glow);
+  transform: translateY(-1px);
+}
+
+/* 紫色发光文字 */
+.neon-text {
+  color: var(--neon-text);
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+}
+
+/* ═══ 自定义滚动条（玻璃态适配）═══ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.2);
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.25);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.35);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.4);
+}
+
+/* macOS 红绿灯间距 */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* 平滑过渡 */
+.transition-theme {
+  @apply transition-colors duration-200;
+}
+
+/* 焦点环 */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+}
+
+/* ═══ Markdown 排版 ═══ */
+.prose {
+  line-height: 1.6;
+}
+
+.prose p {
+  margin-bottom: 0.75em;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.prose ul,
+.prose ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin-bottom: 0.25em;
+}
+
+.prose pre {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  @apply glass-card;
+  padding: 1em;
+}
+
+.prose blockquote {
+  border-left: 3px solid var(--glass-border);
+  padding-left: 1em;
+  margin: 0.5em 0;
+  color: hsl(var(--muted-foreground));
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid var(--glass-border);
+  padding: 0.5em;
+  text-align: left;
+}
+
+.prose th {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+}
+
+/* 打字指示器动画 */
+@keyframes bounce {
+
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+
+  30% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ═══ 微妙的光晕动画（macOS 26 风格）═══ */
+@keyframes glass-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.glass-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(168, 85, 247, 0.06) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: glass-shimmer 8s ease-in-out infinite;
+}
+
+/* ═══ 星空紫专属动画 ═══ */
+
+/* 紫色脉冲光晕 */
+@keyframes purple-pulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(168, 85, 247, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(124, 58, 237, 0.1); }
+}
+
+.purple-pulse {
+  animation: purple-pulse 3s ease-in-out infinite;
+}
+
+/* 星空微粒背景 */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* 紫色专用玻璃卡片 — 用于 AI 引擎设置等 */
+.glass-card-purple {
+  background: rgba(124, 58, 237, 0.06);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid rgba(168, 85, 247, 0.12);
+  transition: all 0.25s ease;
+}
+
+.dark .glass-card-purple {
+  background: rgba(124, 58, 237, 0.08);
+  border-color: rgba(168, 85, 247, 0.15);
+}
+
+.glass-card-purple:hover {
+  background: rgba(124, 58, 237, 0.1);
+  border-color: rgba(168, 85, 247, 0.25);
+}
+
+.dark .glass-card-purple:hover {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+/* ═══ RunningAgentPlaceholder 旋转光晕动画 ═══ */
+@keyframes shimmer-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 紫色渐变边框 */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--gradient-primary);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.5;
+  pointer-events: none;
+}
