@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useStore, Message } from '@/lib/store';
-import { sendMessage } from '@/lib/api';
+import { sendMessageStream } from '@/lib/api';
 
 const TOOLS = [
   { icon: '📎', label: '附件', key: 'attach' },
@@ -91,58 +91,82 @@ export default function SendBox() {
       },
     });
 
-    try {
-      const resp = await sendMessage(sessionId, text, currentModel, coreCount);
-      dispatch({ type: 'SET_AI_THINKING', payload: false });
+    // 流式累积文本（通过闭包在 onDelta 中追加）
+    let streamedContent = '';
 
-      // 多核面板：API 返回后所有激活核心改为 done
-      for (let i = 1; i <= coreCount; i++) {
-        dispatch({ type: 'UPDATE_CORE', payload: { id: i, status: 'done' } });
-      }
-
-      // 用真实回复替换thinking占位消息
-      dispatch({
-        type: 'REPLACE_MESSAGE',
-        payload: {
-          id: thinkingId,
-          message: {
+    await sendMessageStream(
+      sessionId,
+      text,
+      currentModel,
+      coreCount,
+      'xiaoxing', // 人格默认 xiaoxing，后续可从 state 读取
+      // onDelta：每收到一段文字，追加到占位消息并 dispatch
+      (delta: string) => {
+        streamedContent += delta;
+        dispatch({
+          type: 'REPLACE_MESSAGE',
+          payload: {
             id: thinkingId,
-            role: 'assistant',
-            content: resp.content,
-            agentName: 'OpenAGI',
-            model: resp.model || currentModel,
-            agentColor: '#7c3aed',
-            timestamp: Date.now(),
-            thinking: false,
-            ...(resp.tokens !== undefined ? { tokens: resp.tokens } : {}),
-            ...(resp.audit !== undefined ? { audit: resp.audit } : {}),
+            message: {
+              id: thinkingId,
+              role: 'assistant',
+              content: streamedContent,
+              agentName: 'OpenAGI',
+              model: currentModel,
+              agentColor: '#7c3aed',
+              timestamp: Date.now(),
+              thinking: false,
+            },
           },
-        },
-      });
-    } catch {
-      dispatch({ type: 'SET_AI_THINKING', payload: false });
-
-      // 多核面板：出错时所有激活核心改为 error
-      for (let i = 1; i <= coreCount; i++) {
-        dispatch({ type: 'UPDATE_CORE', payload: { id: i, status: 'error' } });
-      }
-
-      dispatch({
-        type: 'REPLACE_MESSAGE',
-        payload: {
-          id: thinkingId,
-          message: {
+        });
+      },
+      // onDone：流结束，更新最终元数据（token 数、模型名等）
+      (meta) => {
+        dispatch({ type: 'SET_AI_THINKING', payload: false });
+        for (let i = 1; i <= coreCount; i++) {
+          dispatch({ type: 'UPDATE_CORE', payload: { id: i, status: 'done' } });
+        }
+        dispatch({
+          type: 'REPLACE_MESSAGE',
+          payload: {
             id: thinkingId,
-            role: 'assistant',
-            content: '抱歉，发生了错误，请稍后重试。',
-            agentName: 'OpenAGI',
-            model: currentModel,
-            agentColor: '#dc2626',
-            timestamp: Date.now(),
+            message: {
+              id: thinkingId,
+              role: 'assistant',
+              content: streamedContent || '（无回复内容）',
+              agentName: 'OpenAGI',
+              model: meta.model || currentModel,
+              agentColor: '#7c3aed',
+              timestamp: Date.now(),
+              thinking: false,
+              ...(meta.total_tokens !== undefined ? { tokens: meta.total_tokens } : {}),
+            },
           },
-        },
-      });
-    }
+        });
+      },
+      // onError：出错
+      (err: string) => {
+        dispatch({ type: 'SET_AI_THINKING', payload: false });
+        for (let i = 1; i <= coreCount; i++) {
+          dispatch({ type: 'UPDATE_CORE', payload: { id: i, status: 'error' } });
+        }
+        dispatch({
+          type: 'REPLACE_MESSAGE',
+          payload: {
+            id: thinkingId,
+            message: {
+              id: thinkingId,
+              role: 'assistant',
+              content: `抱歉，发生了错误：${err}`,
+              agentName: 'OpenAGI',
+              model: currentModel,
+              agentColor: '#dc2626',
+              timestamp: Date.now(),
+            },
+          },
+        });
+      },
+    );
   }, [value, isAIThinking, activeSessionId, currentModel, coreCount, dispatch]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {

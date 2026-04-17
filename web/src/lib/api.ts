@@ -170,6 +170,113 @@ export async function saveSettings(settings: Record<string, unknown>) {
   }
 }
 
+// ======== 流式聊天（SSE via fetch+ReadableStream） ========
+
+/**
+ * 流式发送消息，逐字回调。
+ *
+ * @param sessionId   会话 ID
+ * @param content     用户消息内容
+ * @param model       模型 ID（传给后端做选择参考）
+ * @param coreCount   核心数
+ * @param persona     人格 key（如 'xiaoxing'）
+ * @param onDelta     每收到一段文字时调用
+ * @param onDone      流结束时调用（含 total_tokens / model / duration_ms）
+ * @param onError     出错时调用
+ */
+export async function sendMessageStream(
+  sessionId: string,
+  content: string,
+  model: string,
+  coreCount: number = 1,
+  persona: string = 'xiaoxing',
+  onDelta: (delta: string) => void,
+  onDone: (meta: { total_tokens?: number; model?: string; duration_ms?: number }) => void,
+  onError: (err: string) => void,
+): Promise<void> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 120000); // 2分钟总超时
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/v1/chat/send/stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: content,
+        session_id: sessionId,
+        model,
+        core_count: coreCount,
+        persona,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      let body = '';
+      try { body = await res.text(); } catch { /* ignore */ }
+      onError(`HTTP_${res.status}: ${body}`);
+      return;
+    }
+
+    if (!res.body) {
+      onError('浏览器不支持 ReadableStream');
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      // SSE 每条消息以 \n\n 结束
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() ?? ''; // 最后可能是不完整的块，留到下次
+
+      for (const part of parts) {
+        const line = part.trim();
+        if (!line.startsWith('data: ')) continue;
+        const jsonStr = line.slice(6).trim();
+        if (!jsonStr) continue;
+
+        try {
+          const data = JSON.parse(jsonStr);
+          if (data.error) {
+            onError(data.error);
+            return;
+          } else if (data.done) {
+            onDone({
+              total_tokens: data.total_tokens,
+              model: data.model,
+              duration_ms: data.duration_ms,
+            });
+            return;
+          } else if (typeof data.delta === 'string') {
+            onDelta(data.delta);
+          }
+        } catch {
+          // 忽略解析错误，继续读下一块
+        }
+      }
+    }
+
+    // 如果流正常关闭但没收到 done 事件，也触发 onDone
+    onDone({});
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      onError('流式请求超时（> 120 秒）');
+    } else {
+      onError(err instanceof Error ? err.message : String(err));
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // ======== WebSocket聊天客户端 ========
 
 export class ChatWebSocket {

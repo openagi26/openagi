@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 import uuid
 from datetime import datetime, timezone
+from typing import AsyncGenerator, Optional
 
+import litellm
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Optional
 
 from openagi.api.deps import get_heart, get_memory, get_llm
 
@@ -193,6 +196,151 @@ async def send_message(
         except Exception:
             pass
         raise HTTPException(status_code=500, detail=f"LLM调用失败（在线+本地均不可用）: {str(e)}")
+
+
+@router.post("/send/stream")
+async def send_message_stream(
+    req: SendMessageRequest,
+    heart=Depends(get_heart),
+    memory=Depends(get_memory),
+    llm=Depends(get_llm),
+):
+    """流式深度聊天（SSE格式）— TTFB（首字节时间）< 3秒。
+
+    每条 SSE 事件格式：
+      data: {"delta": "文字片段"}
+
+    最后一条：
+      data: {"done": true, "total_tokens": 123, "model": "xxx", "duration_ms": 456}
+
+    错误：
+      data: {"error": "错误信息"}
+    """
+    start_ts = time.time()
+    memory.add_message(req.session_id, "user", req.message)
+
+    persona_key = req.persona if req.persona in PERSONAS else "xiaoxing"
+    system_prompt = PERSONAS[persona_key]
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": req.message},
+    ]
+
+    async def _sse_generator() -> AsyncGenerator[str, None]:
+        """生成 SSE（服务器推送事件）数据流。"""
+        full_reply = []
+        total_tokens = 0
+        model_used = "unknown"
+
+        # ─── 优先尝试 litellm 流式（接通真实模型） ────────────────────────
+        primary = llm.get_primary()
+        relay = None
+        if primary:
+            relay = next((r for r in llm.list_relays() if r.name == primary.relay_name), None)
+
+        if primary:
+            try:
+                call_kwargs: dict = {
+                    "model": primary.model_id,
+                    "messages": messages,
+                    "temperature": 0.7,
+                    "max_tokens": 2048,
+                    "stream": True,
+                    "timeout": 120,
+                }
+                if relay and not primary.is_local:
+                    call_kwargs["api_base"] = relay.base_url
+                    call_kwargs["api_key"] = relay.api_key
+
+                stream = await litellm.acompletion(**call_kwargs)
+                async for chunk in stream:
+                    delta = chunk.choices[0].delta.content or ""
+                    if delta:
+                        full_reply.append(delta)
+                        yield f"data: {json.dumps({'delta': delta}, ensure_ascii=False)}\n\n"
+                    # 收集 token 用量（最后一个 chunk 带 usage）
+                    if chunk.usage:
+                        total_tokens = (chunk.usage.prompt_tokens or 0) + (chunk.usage.completion_tokens or 0)
+
+                heart.push_event("llm_call_success")
+                model_used = primary.model_id
+
+            except Exception as e:
+                logger.warning(f"流式模型 {primary.model_id} 失败: {e}，降级到 Ollama 本地…")
+                full_reply = []  # 重置，走 Ollama 降级
+                yield f"data: {json.dumps({'delta': '（在线模型不可用，已切换到本地模型…）'}, ensure_ascii=False)}\n\n"
+                primary = None  # 标记降级
+
+        # ─── 降级：Ollama 流式（stream=True） ─────────────────────────────
+        if not primary or not full_reply:
+            try:
+                from openagi.cortex.llm.ollama import get_ollama
+                import httpx
+
+                ollama = get_ollama()
+                if not await ollama.is_available():
+                    raise RuntimeError("Ollama 服务未运行")
+
+                # 选择实际可用的模型：优先 ollama.model，否则取已安装列表第一个
+                available_models = await ollama.list_models()
+                ollama_model = ollama.model
+                if available_models:
+                    installed_names = [m["name"] for m in available_models]
+                    if ollama_model not in installed_names:
+                        ollama_model = installed_names[0]
+                        logger.info(f"Ollama 流式降级：{ollama.model} 未安装，改用 {ollama_model}")
+
+                body = {
+                    "model": ollama_model,
+                    "messages": messages,
+                    "stream": True,
+                    "options": {"num_predict": 2048, "temperature": 0.7},
+                }
+                async with httpx.AsyncClient(base_url=ollama.base_url, timeout=120.0) as client:
+                    async with client.stream("POST", "/api/chat", json=body) as resp:
+                        resp.raise_for_status()
+                        async for line in resp.aiter_lines():
+                            if not line.strip():
+                                continue
+                            try:
+                                data = json.loads(line)
+                            except json.JSONDecodeError:
+                                continue
+                            delta = data.get("message", {}).get("content", "")
+                            if delta:
+                                full_reply.append(delta)
+                                yield f"data: {json.dumps({'delta': delta}, ensure_ascii=False)}\n\n"
+                            if data.get("done"):
+                                total_tokens = (
+                                    data.get("prompt_eval_count", 0)
+                                    + data.get("eval_count", 0)
+                                )
+                                break
+
+                heart.push_event("llm_call_success")
+                model_used = f"ollama/{ollama_model}"
+
+            except Exception as e:
+                heart.push_event("llm_call_failed")
+                logger.error(f"Ollama 流式失败: {e}")
+                yield f"data: {json.dumps({'error': f'LLM 调用失败（在线+本地均不可用）: {str(e)}'}, ensure_ascii=False)}\n\n"
+                return
+
+        # ─── 保存完整回复到记忆 ──────────────────────────────────────────
+        complete_reply = "".join(full_reply)
+        memory.add_message(req.session_id, "assistant", complete_reply)
+
+        duration_ms = int((time.time() - start_ts) * 1000)
+        yield f"data: {json.dumps({'done': True, 'total_tokens': total_tokens, 'model': model_used, 'duration_ms': duration_ms}, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        _sse_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # 禁止 nginx 缓冲，确保逐块发送
+        },
+    )
 
 
 @router.get("/sessions")
