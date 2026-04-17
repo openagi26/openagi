@@ -33,7 +33,7 @@ export default function SendBox() {
     adjustHeight();
   }, [value, adjustHeight]);
 
-  // 🔴 陛下 2026-04-17 修复：主页快捷卡片通过 CustomEvent 传入文本
+  // 🔴 2026-04-17 修复：主页快捷卡片通过 CustomEvent 传入文本
   useEffect(() => {
     const handler = (e: Event) => {
       const label = (e as CustomEvent).detail as string;
@@ -71,6 +71,11 @@ export default function SendBox() {
     // 开始思考
     dispatch({ type: 'SET_AI_THINKING', payload: true });
 
+    // 多核面板：激活的每一核状态改为 thinking（id 从 1 开始，共 coreCount 个）
+    for (let i = 1; i <= coreCount; i++) {
+      dispatch({ type: 'UPDATE_CORE', payload: { id: i, status: 'thinking' } });
+    }
+
     // 占位thinking消息
     const thinkingId = (Date.now() + 1).toString();
     dispatch({
@@ -89,6 +94,12 @@ export default function SendBox() {
     try {
       const resp = await sendMessage(sessionId, text, currentModel, coreCount);
       dispatch({ type: 'SET_AI_THINKING', payload: false });
+
+      // 多核面板：API 返回后所有激活核心改为 done
+      for (let i = 1; i <= coreCount; i++) {
+        dispatch({ type: 'UPDATE_CORE', payload: { id: i, status: 'done' } });
+      }
+
       // 用真实回复替换thinking占位消息
       dispatch({
         type: 'REPLACE_MESSAGE',
@@ -110,6 +121,12 @@ export default function SendBox() {
       });
     } catch {
       dispatch({ type: 'SET_AI_THINKING', payload: false });
+
+      // 多核面板：出错时所有激活核心改为 error
+      for (let i = 1; i <= coreCount; i++) {
+        dispatch({ type: 'UPDATE_CORE', payload: { id: i, status: 'error' } });
+      }
+
       dispatch({
         type: 'REPLACE_MESSAGE',
         payload: {
@@ -126,7 +143,7 @@ export default function SendBox() {
         },
       });
     }
-  }, [value, isAIThinking, activeSessionId, currentModel, dispatch]);
+  }, [value, isAIThinking, activeSessionId, currentModel, coreCount, dispatch]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -135,7 +152,7 @@ export default function SendBox() {
     }
   }, [handleSend]);
 
-  // 🚨 陛下 2026-04-17 亲定：伪证零容忍 — 7 工具按钮必须有真实 onClick
+  // 🚨 2026-04-17：伪证零容忍 — 7 工具按钮必须有真实 onClick
   // 按 sonnet P0 方案：每个按钮触发可观测的业务副作用（DOM / store / navigation）
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleToolClick = useCallback((key: string) => {
@@ -169,7 +186,7 @@ export default function SendBox() {
       case 'voice':
       case 'realtime':
         // 业务副作用：弹出 toast 告知功能状态
-        alert(`${key === 'voice' ? '🎤 语音输入' : '⚡ 实时对话'}：功能开发中，暂未接入。陛下可在设置 → 数字伴侣 → 语音设置中预配置。`);
+        alert(`${key === 'voice' ? '🎤 语音输入' : '⚡ 实时对话'}：功能开发中，暂未接入。可在设置 → 数字伴侣 → 语音设置中预配置。`);
         break;
       default:
         console.warn('[SendBox] Unknown tool key:', key);
@@ -181,7 +198,7 @@ export default function SendBox() {
       className="border-t px-4 py-3"
       style={{ background: 'var(--panel-bg)', borderColor: 'var(--panel-border)' }}
     >
-      {/* 🚨 陛下 2026-04-17：伪证零容忍 — 隐藏 file input，由附件/图片按钮触发 */}
+      {/* 🚨 2026-04-17：伪证零容忍 — 隐藏 file input，由附件/图片按钮触发 */}
       <input
         ref={fileInputRef}
         type="file"

@@ -1,12 +1,12 @@
-"""用户人格镜像系统 — 学习陛下的说话风格。
+"""用户人格镜像系统 — 学习用户的说话风格。
 
-小星通过分析对话历史，学习陛下的：
+小星通过分析对话历史，学习用户的：
 1. 常用词汇和表达方式
 2. 语气偏好（正式/随意/幽默）
 3. 话题兴趣分布
 4. 对话节奏（长句/短句）
 
-目的：让小星越来越像"另一个陛下"，
+目的：让小星越来越了解用户，
 提供更个性化、更贴心的回应。
 """
 
@@ -132,26 +132,26 @@ class PersonalityMirror:
         # 消息长度偏好
         avg_len = self.data["avg_msg_length"]
         if avg_len < 20:
-            parts.append("陛下喜欢简短回复")
+            parts.append("用户喜欢简短回复")
         elif avg_len > 60:
-            parts.append("陛下喜欢详细的回答")
+            parts.append("用户喜欢详细的回答")
 
         # 提问习惯
         if style["question_ratio"] > 0.5:
-            parts.append("陛下经常以提问方式交流")
+            parts.append("用户经常以提问方式交流")
 
         # 话题偏好
         topics = sorted(self.data["topic_interests"].items(), key=lambda x: x[1], reverse=True)
         if topics:
             top_topics = [t[0] for t in topics[:3]]
-            parts.append(f"陛下最关注的话题：{'/'.join(top_topics)}")
+            parts.append(f"用户最关注的话题：{'/'.join(top_topics)}")
 
         # 常用词
         top_words = Counter(self.data["vocab_freq"]).most_common(5)
         if top_words:
             words = [w[0] for w in top_words if len(w[0]) >= 2]
             if words:
-                parts.append(f"陛下常用的词：{'、'.join(words[:5])}")
+                parts.append(f"用户常用的词：{'、'.join(words[:5])}")
 
         return "。".join(parts) + "。" if parts else ""
 

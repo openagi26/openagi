@@ -71,7 +71,7 @@ const LAYER_LABELS: Record<string, { label: string; badge: string; color: string
 };
 
 function getCount(layer: MemoryLayerStats): number {
-  // 🔴 陛下 2026-04-17 修复：后端返回 total_items / total_entries，前端只看 count/total/size 导致 0 显示
+  // 🔴 2026-04-17 修复：后端返回 total_items / total_entries，前端只看 count/total/size 导致 0 显示
   const l = layer as Record<string, unknown>;
   return (
     (typeof l.total_items === 'number' ? l.total_items : undefined) ??

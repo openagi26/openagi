@@ -58,7 +58,7 @@ KNOWLEDGE_PATTERNS = {
         r"技巧|方法|技能|skill|technique|method",
     ],
     "relationship": [
-        r"用户|陛下|朋友|同事|合作",
+        r"用户|朋友|同事|合作",
         r"user|friend|colleague|partner",
     ],
 }

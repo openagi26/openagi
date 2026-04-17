@@ -26,7 +26,7 @@ from openagi.cortex.trinity.types import (
     _uuid,
 )
 
-# ─── 四核博弈 v2（陛下 2026-04-17 亲定规则） ────────────────────────────────
+# ─── 四核博弈 v2（2026-04-17 定稿规则） ──────────────────────────────────────
 from openagi.cortex.trinity.rules import (
     CoreRole,
     cores_for,
@@ -258,7 +258,7 @@ async def run_full_trinity_pipeline(
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# Trinity v2 — 三阶段四核博弈（陛下 2026-04-17 亲定）
+# Trinity v2 — 三阶段四核博弈（2026-04-17）
 #
 # core_count 映射：
 #   1核 → 单独 CEO（chat.py 内早已走直通，不会进入此函数）
@@ -294,7 +294,7 @@ async def _call_role(
 ) -> dict:
     """按角色调用 LLM，返回 {content, tokens, model, duration_ms}。
 
-    🔴 陛下 2026-04-17 审计修复：按 ROLE_DEFAULT_MODEL 指定模型，让外A/外B/外C 真正分化。
+    🔴 2026-04-17 审计修复：按 ROLE_DEFAULT_MODEL 指定模型，让外A/外B/外C 真正分化。
     若 router 不支持指定模型（回退模式），也记录希望的模型名供观察。
     """
     system_prompt = prompt_for(role)
@@ -304,7 +304,7 @@ async def _call_role(
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
-    # 🔴 陛下 2026-04-17 修正：desired_model 仅作观察与未来路由；当前 router 主模型绑定
+    # 🔴 2026-04-17 修正：desired_model 仅作观察与未来路由；当前 router 主模型绑定
     # relay 的 api_base/api_key，强制换 model 会导致 litellm 缺 provider 前缀而崩溃。
     # MVP 阶段：不同 persona（系统 prompt）+ 不同 temperature + 并行，已是真正的博弈。
     result = await llm_router.call(
@@ -325,7 +325,7 @@ async def _call_role(
 def _parse_audit_scores(content: str) -> dict[str, int]:
     """从外审文本中提取六维分数。
 
-    🔴 陛下 2026-04-17 审计修复：
+    🔴 2026-04-17 审计修复：
     - 支持表格格式 `| 任务完成度 | 82 |` 和冒号格式 `任务完成度：82`
     - 剔除 `**加粗**` 和 `加权总分` 行
     - 全零时记录警告，避免静默触发冲突暂停
@@ -439,7 +439,7 @@ async def run_governance_pipeline(
         total_tokens["output"] += t.get("output", 0)
 
     # ─── 阶段一：CEO 初稿 ────────────────────────────────────────────────
-    ceo_user_prompt = f"【陛下本轮输入】\n{user_message}\n\n请按 CEO 输出格式给出方案 + 7项自查清单 + 下三轮规划。"
+    ceo_user_prompt = f"【用户本轮输入】\n{user_message}\n\n请按 CEO 输出格式给出方案 + 7项自查清单 + 下三轮规划。"
     ceo_res = await _call_role("ceo", ceo_user_prompt, llm_router, max_tokens=2500, temperature=0.7)
     _acc(ceo_res["tokens"])
     ceo_draft = ceo_res["content"]
@@ -460,10 +460,10 @@ async def run_governance_pipeline(
         # 🔴 审计修复 #4：控制摘要规模，中文约 1.5 字符/token，目标 ≤500 token 即 ≤750 字
         audit_input = (
             f"【CEO 本轮产出摘要】\n{ceo_draft[:1200]}\n\n"
-            f"【陛下原始输入】{user_message[:400]}\n\n"
+            f"【用户原始输入】{user_message[:400]}\n\n"
             "请按六维评分 + 问题清单独立审计。"
         )
-        # 🔴 陛下 2026-04-17：GLM relay 承压差，外审改串行（0.3s 间隔）防打爆
+        # 🔴 2026-04-17：GLM relay 承压差，外审改串行（0.3s 间隔）防打爆
         results = []
         for r in auditor_roles:
             try:
@@ -537,7 +537,7 @@ async def run_governance_pipeline(
     # 🔴 审计修复 #2：若 final 为 None（单核/暂停/无审计），显式填充有语义的占位
     if final_content is None:
         if conflict_halted:
-            final_content = "⚠️ 三路审计分歧过大，已触发强制暂停。请陛下查阅 ceo_draft 和 conflict_notes 后裁决。"
+            final_content = "⚠️ 三路审计分歧过大，已触发强制暂停。请查阅 ceo_draft 和 conflict_notes 后裁决。"
         elif not audits_raw:
             final_content = ceo_draft  # 单核直通
         else:

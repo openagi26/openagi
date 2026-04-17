@@ -105,8 +105,9 @@ export default function TopNavWrapper() {
             color: '#93c5fd',
             borderColor: 'rgba(96,165,250,0.3)',
           }}
-          title="当前模型"
-          aria-label={`当前模型：${currentModel}`}
+          title="当前模型，点击前往模型设置"
+          aria-label={`当前模型：${currentModel}，点击前往设置`}
+          onClick={() => { window.location.href = '/settings'; }}
         >
           {currentModel}
         </button>
@@ -147,6 +148,7 @@ export default function TopNavWrapper() {
           style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)' }}
           title="用户菜单"
           aria-label="用户头像"
+          onClick={() => { window.location.href = '/settings'; }}
         >
           陛
         </button>

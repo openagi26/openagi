@@ -172,7 +172,7 @@ type ActivePreset = string;
 
 const DEMO_MESSAGES: Message[] = [
   {
-    id: '1', role: 'assistant', content: '陛下，我是CEO主核。团队已就位，请指示工作方向。',
+    id: '1', role: 'assistant', content: '您好，我是CEO主核。团队已就位，请指示工作方向。',
     agentName: 'CEO主核', agentColor: '#7c3aed', model: 'claude-opus-4', timestamp: Date.now() - 60000,
   },
   {
@@ -211,7 +211,7 @@ export default function GroupPage() {
   const [workMode, setWorkMode] = useState<WorkMode>('discuss');
   const [activePreset, setActivePreset] = useState<ActivePreset>('default');
   const [teamMembers, setTeamMembers] = useState(DEFAULT_MEMBERS);
-  // 🚨 陛下 2026-04-17 亲定：伪证零容忍 — 页面打开不得展示假数据
+  // 🚨 2026-04-17：伪证零容忍 — 页面打开不得展示假数据
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [showMentionPicker, setShowMentionPicker] = useState(false);
@@ -315,7 +315,7 @@ export default function GroupPage() {
       if (replyMsgs.length > 0) setMessages(prev => [...prev, ...replyMsgs]);
       setTokenStats(prev => ({ in: prev.in + text.length * 2, out: prev.out + 100, rounds: prev.rounds + 1 }));
     } catch (err) {
-      // 🚨 陛下 2026-04-17 亲定：伪证零容忍 — 严禁 demo fallback 吞错
+      // 🚨 2026-04-17：伪证零容忍 — 严禁 demo fallback 吞错
       // 真错误必须真显示，才能定位是"后端没启"还是"LLM 超时"还是"网络问题"
       const msg = err instanceof Error ? err.message : '未知错误';
       setSendError(`后端调用失败：${msg}。请检查 make dev 是否已启动，Ollama 服务是否可达 http://localhost:11434`);
@@ -640,11 +640,13 @@ function TeamPanel({
         </button>
         <div className="flex gap-1.5 mt-1.5">
           <button className="flex-1 text-xs py-1 rounded-md transition-all"
-            style={{ background: 'var(--center-bg)', color: 'var(--text-muted)', border: '1px solid var(--card-border)' }}>
+            style={{ background: 'var(--center-bg)', color: 'var(--text-muted)', border: '1px solid var(--card-border)' }}
+            onClick={() => alert('162专家市场功能开发中')}>
             162专家
           </button>
           <button className="flex-1 text-xs py-1 rounded-md transition-all"
-            style={{ background: 'var(--center-bg)', color: 'var(--text-muted)', border: '1px solid var(--card-border)' }}>
+            style={{ background: 'var(--center-bg)', color: 'var(--text-muted)', border: '1px solid var(--card-border)' }}
+            onClick={() => alert('技能市场功能开发中')}>
             技能市场
           </button>
         </div>

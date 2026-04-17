@@ -1,43 +1,100 @@
-# Python
+# ── Python ────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
+*.pyo
 *.egg-info/
+*.egg
 dist/
 build/
 .venv/
 venv/
+env/
+.Python
 
-# Data (运行时生成)
+# ── Pytest / Ruff / mypy ──────────────────────────────────
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ── Runtime data ──────────────────────────────────────────
 data/
 *.db
 *.sqlite
+*.sqlite3
 
-# Env
+# ── Environment / secrets ─────────────────────────────────
 .env
-.env.*
+.env.local
+.env.*.local
+*.key
+*.pem
+secrets.json
+credentials.json
+service_account*.json
 
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Node (前端)
+# ── Node / pnpm ───────────────────────────────────────────
+node_modules/
 web/node_modules/
 web/.next/
 web/out/
+web/dist/
+web/build/
+.pnpm-store/
 
-# Desktop (Tauri)
+# ── Next.js cache ─────────────────────────────────────────
+.next/
+out/
+
+# ── Desktop (Tauri) ───────────────────────────────────────
 desktop/node_modules/
 desktop/dist/
 desktop/src-tauri/target/
 
-# Logs
-*.log
+# ── IDE ───────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Cache
-.pytest_cache/
-.ruff_cache/
+# ── OS ────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Logs ──────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── TypeScript build artifacts ────────────────────────────
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ── OpenAGI specific ──────────────────────────────────────
+docs/screenshots-*/
+docs/test-runs/
+/tmp/*openagi*
+
+# ── Large files / archives ────────────────────────────────
+*.zip
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
+
+# ── Docker ────────────────────────────────────────────────
+.docker/
+
+# ── Misc ──────────────────────────────────────────────────
+*.bak
+*.orig

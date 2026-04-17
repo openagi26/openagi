@@ -18,10 +18,10 @@ const QUICK_CARDS = [
 
 function getGreeting() {
   const h = new Date().getHours();
-  if (h < 6) return '夜深了，陛下还在奋斗';
-  if (h < 12) return '早上好，陛下';
-  if (h < 18) return '下午好，陛下';
-  return '晚上好，陛下';
+  if (h < 6) return '夜深了，还在奋斗';
+  if (h < 12) return '早上好';
+  if (h < 18) return '下午好';
+  return '晚上好';
 }
 
 export default function HomePage() {

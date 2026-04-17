@@ -1,0 +1,2147 @@
+{
+  "version": "2.0",
+  "last_completed": 0,
+  "total": 100,
+  "cases": [
+    {
+      "test_id": "tc_P1_001_chat_send_default",
+      "name": "主页默认人格聊天发送",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "你好，请介绍一下自己",
+        "core_count": 1,
+        "session_id": "tc_P1_001"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "演示",
+        "[错误",
+        "placeholder",
+        "DEMO_MESSAGES"
+      ],
+      "dom_min_length": 20,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_002_chat_send_persona_xiaoxing",
+      "name": "主页小星人格聊天发送",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "你是谁？",
+        "core_count": 1,
+        "session_id": "tc_P1_002",
+        "persona": "xiaoxing"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "演示",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 10,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_003_chat_send_persona_assistant",
+      "name": "主页助手人格聊天发送",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "帮我总结今天的工作",
+        "core_count": 1,
+        "session_id": "tc_P1_003",
+        "persona": "assistant"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "演示",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 15,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_004_chat_send_persona_teacher",
+      "name": "主页教师人格聊天发送",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "解释一下量子纠缠",
+        "core_count": 1,
+        "session_id": "tc_P1_004",
+        "persona": "teacher"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "演示",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 20,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_005_chat_send_persona_friend",
+      "name": "主页朋友人格聊天发送",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "今天天气怎么样",
+        "core_count": 1,
+        "session_id": "tc_P1_005",
+        "persona": "friend"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "演示",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 10,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_006_shortcut_card_1",
+      "name": "主页快捷卡1 — 写代码",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "帮我写一个Python排序函数",
+        "core_count": 1,
+        "session_id": "tc_P1_006"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 20,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_007_shortcut_card_2",
+      "name": "主页快捷卡2 — 翻译",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "请把这句话翻译成英文：人工智能正在改变世界",
+        "core_count": 1,
+        "session_id": "tc_P1_007"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 10,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_008_shortcut_card_3",
+      "name": "主页快捷卡3 — 总结",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "用三句话总结：大数据时代，数据是核心资产，企业需要建立完善的数据治理体系来保障数据安全和合规使用",
+        "core_count": 1,
+        "session_id": "tc_P1_008"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 15,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_009_shortcut_card_4",
+      "name": "主页快捷卡4 — 头脑风暴",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "给我5个创业点子",
+        "core_count": 1,
+        "session_id": "tc_P1_009"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_010_tool_health_check",
+      "name": "主页工具按钮 — 健康检查",
+      "page": "P1_home",
+      "endpoint": "GET /health",
+      "payload": {},
+      "dom_must_not_contain": [
+        "error",
+        "failed",
+        "500"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/health",
+      "network_response_must_contain": [
+        "status"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P1_011_tool_models_list",
+      "name": "主页工具按钮 — 模型列表",
+      "page": "P1_home",
+      "endpoint": "GET /api/v1/models",
+      "payload": {},
+      "dom_must_not_contain": [
+        "error",
+        "undefined",
+        "null"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/models",
+      "network_response_must_contain": [
+        "data"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P1_012_tool_ollama_status",
+      "name": "主页工具按钮 — Ollama状态",
+      "page": "P1_home",
+      "endpoint": "GET /api/v1/ollama/status",
+      "payload": {},
+      "dom_must_not_contain": [
+        "error",
+        "500"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/ollama/status",
+      "network_response_must_contain": [
+        "available"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P1_013_tool_ollama_models",
+      "name": "主页工具按钮 — 本地模型列表",
+      "page": "P1_home",
+      "endpoint": "GET /api/v1/ollama/models",
+      "payload": {},
+      "dom_must_not_contain": [
+        "error",
+        "500"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/ollama/models",
+      "network_response_must_contain": [
+        "data"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P1_014_tool_audit_verify",
+      "name": "主页工具按钮 — 断言验证",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/audit/verify",
+      "payload": {
+        "test_id": "tc_P1_014",
+        "dom_actual_text": "测试文本reply成功",
+        "dom_min_length": 5,
+        "network_response_must_contain": [
+          "reply"
+        ]
+      },
+      "dom_must_not_contain": [
+        "error",
+        "500"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/audit/verify",
+      "network_response_must_contain": [
+        "all_pass"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P1_015_tool_settings_get",
+      "name": "主页工具按钮 — 获取设置",
+      "page": "P1_home",
+      "endpoint": "GET /api/v1/settings",
+      "payload": {},
+      "dom_must_not_contain": [
+        "error",
+        "500",
+        "undefined"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/settings",
+      "network_response_must_contain": [
+        "model"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P1_016_tool_skills_list",
+      "name": "主页工具按钮 — 技能列表",
+      "page": "P1_home",
+      "endpoint": "GET /api/v1/skills",
+      "payload": {},
+      "dom_must_not_contain": [
+        "error",
+        "500"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/skills",
+      "network_response_must_contain": [
+        "data"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P1_017_mode_switch_single",
+      "name": "主页模式切换 — 单核模式",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "测试单核",
+        "core_count": 1,
+        "session_id": "tc_P1_017"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_018_mode_switch_dual",
+      "name": "主页模式切换 — 双核模式",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "测试双核",
+        "core_count": 2,
+        "session_id": "tc_P1_018"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_019_mode_switch_triple",
+      "name": "主页模式切换 — 三核模式",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "测试三核博弈",
+        "core_count": 3,
+        "session_id": "tc_P1_019"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 10,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P1_020_mode_switch_ollama",
+      "name": "主页模式切换 — 本地Ollama模式",
+      "page": "P1_home",
+      "endpoint": "POST /api/v1/ollama/chat",
+      "payload": {
+        "message": "你好",
+        "model": "qwen2.5:0.5b"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/ollama/chat",
+      "network_response_must_contain": [
+        "data"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P2_021_group_create_standard",
+      "name": "群聊创建 — 标准模式",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/create",
+      "payload": {
+        "name": "测试群组标准",
+        "mode": "standard",
+        "members": [
+          "xiaoxing",
+          "assistant"
+        ]
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "创建失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/create",
+      "network_response_must_contain": [
+        "group_id"
+      ],
+      "store_action_expected": "GROUP_CREATED"
+    },
+    {
+      "test_id": "tc_P2_022_group_create_debate",
+      "name": "群聊创建 — 辩论模式",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/create",
+      "payload": {
+        "name": "辩论小组",
+        "mode": "debate",
+        "members": [
+          "pro_agent",
+          "con_agent"
+        ]
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "创建失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/create",
+      "network_response_must_contain": [
+        "group_id"
+      ],
+      "store_action_expected": "GROUP_CREATED"
+    },
+    {
+      "test_id": "tc_P2_023_group_create_brainstorm",
+      "name": "群聊创建 — 头脑风暴模式",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/create",
+      "payload": {
+        "name": "头脑风暴",
+        "mode": "brainstorm",
+        "members": [
+          "creative",
+          "critic",
+          "executor"
+        ]
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "创建失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/create",
+      "network_response_must_contain": [
+        "group_id"
+      ],
+      "store_action_expected": "GROUP_CREATED"
+    },
+    {
+      "test_id": "tc_P2_024_group_create_review",
+      "name": "群聊创建 — 评审模式",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/create",
+      "payload": {
+        "name": "代码评审",
+        "mode": "review",
+        "members": [
+          "senior_dev",
+          "qa_agent"
+        ]
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "创建失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/create",
+      "network_response_must_contain": [
+        "group_id"
+      ],
+      "store_action_expected": "GROUP_CREATED"
+    },
+    {
+      "test_id": "tc_P2_025_group_send_mention_member1",
+      "name": "群聊发送 — @成员1",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/send",
+      "payload": {
+        "group_id": "test_group_001",
+        "message": "@xiaoxing 你好",
+        "sender": "user"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "发送失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "GROUP_MESSAGE_RECEIVED"
+    },
+    {
+      "test_id": "tc_P2_026_group_send_mention_member2",
+      "name": "群聊发送 — @成员2",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/send",
+      "payload": {
+        "group_id": "test_group_001",
+        "message": "@assistant 帮我分析这个问题",
+        "sender": "user"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "发送失败"
+      ],
+      "dom_min_length": 10,
+      "network_url_pattern": "/api/v1/chat/group/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "GROUP_MESSAGE_RECEIVED"
+    },
+    {
+      "test_id": "tc_P2_027_group_send_mention_member3",
+      "name": "群聊发送 — @成员3",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/send",
+      "payload": {
+        "group_id": "test_group_002",
+        "message": "@teacher 请教一个问题",
+        "sender": "user"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "发送失败"
+      ],
+      "dom_min_length": 10,
+      "network_url_pattern": "/api/v1/chat/group/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "GROUP_MESSAGE_RECEIVED"
+    },
+    {
+      "test_id": "tc_P2_028_group_send_mention_member4",
+      "name": "群聊发送 — @成员4",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/send",
+      "payload": {
+        "group_id": "test_group_002",
+        "message": "@critic 批评一下这段代码",
+        "sender": "user"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "发送失败"
+      ],
+      "dom_min_length": 10,
+      "network_url_pattern": "/api/v1/chat/group/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "GROUP_MESSAGE_RECEIVED"
+    },
+    {
+      "test_id": "tc_P2_029_group_send_broadcast",
+      "name": "群聊发送 — 广播给所有成员",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/send",
+      "payload": {
+        "group_id": "test_group_001",
+        "message": "大家好，请介绍自己",
+        "sender": "user"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "发送失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "GROUP_MESSAGE_RECEIVED"
+    },
+    {
+      "test_id": "tc_P2_030_group_send_question",
+      "name": "群聊发送 — 提问",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/send",
+      "payload": {
+        "group_id": "test_group_003",
+        "message": "AI未来会取代人类吗？",
+        "sender": "user"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "发送失败"
+      ],
+      "dom_min_length": 15,
+      "network_url_pattern": "/api/v1/chat/group/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "GROUP_MESSAGE_RECEIVED"
+    },
+    {
+      "test_id": "tc_P2_031_group_send_task",
+      "name": "群聊发送 — 任务分配",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/send",
+      "payload": {
+        "group_id": "test_group_001",
+        "message": "请帮我完成市场分析报告",
+        "sender": "user"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "发送失败"
+      ],
+      "dom_min_length": 20,
+      "network_url_pattern": "/api/v1/chat/group/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "GROUP_MESSAGE_RECEIVED"
+    },
+    {
+      "test_id": "tc_P2_032_group_send_code_review",
+      "name": "群聊发送 — 代码评审请求",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/send",
+      "payload": {
+        "group_id": "test_group_004",
+        "message": "def hello(): print('world')  请帮我评审",
+        "sender": "user"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "发送失败"
+      ],
+      "dom_min_length": 10,
+      "network_url_pattern": "/api/v1/chat/group/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "GROUP_MESSAGE_RECEIVED"
+    },
+    {
+      "test_id": "tc_P2_033_group_send_creative",
+      "name": "群聊发送 — 创意征集",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/send",
+      "payload": {
+        "group_id": "test_group_002",
+        "message": "给我们的产品取个名字",
+        "sender": "user"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "发送失败"
+      ],
+      "dom_min_length": 10,
+      "network_url_pattern": "/api/v1/chat/group/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "GROUP_MESSAGE_RECEIVED"
+    },
+    {
+      "test_id": "tc_P2_034_group_send_decision",
+      "name": "群聊发送 — 决策讨论",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/send",
+      "payload": {
+        "group_id": "test_group_003",
+        "message": "我们应该用React还是Vue？",
+        "sender": "user"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "发送失败"
+      ],
+      "dom_min_length": 10,
+      "network_url_pattern": "/api/v1/chat/group/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "GROUP_MESSAGE_RECEIVED"
+    },
+    {
+      "test_id": "tc_P2_035_preset_team_dev",
+      "name": "群聊预设团队 — 开发团队",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/create",
+      "payload": {
+        "preset": "dev_team",
+        "session_id": "tc_P2_035"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "加载失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/create",
+      "network_response_must_contain": [
+        "group_id"
+      ],
+      "store_action_expected": "GROUP_CREATED"
+    },
+    {
+      "test_id": "tc_P2_036_preset_team_marketing",
+      "name": "群聊预设团队 — 营销团队",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/create",
+      "payload": {
+        "preset": "marketing_team",
+        "session_id": "tc_P2_036"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "加载失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/create",
+      "network_response_must_contain": [
+        "group_id"
+      ],
+      "store_action_expected": "GROUP_CREATED"
+    },
+    {
+      "test_id": "tc_P2_037_preset_team_research",
+      "name": "群聊预设团队 — 研究团队",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/create",
+      "payload": {
+        "preset": "research_team",
+        "session_id": "tc_P2_037"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "加载失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/create",
+      "network_response_must_contain": [
+        "group_id"
+      ],
+      "store_action_expected": "GROUP_CREATED"
+    },
+    {
+      "test_id": "tc_P2_038_preset_team_audit",
+      "name": "群聊预设团队 — 审计团队",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/create",
+      "payload": {
+        "preset": "audit_team",
+        "session_id": "tc_P2_038"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "加载失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/create",
+      "network_response_must_contain": [
+        "group_id"
+      ],
+      "store_action_expected": "GROUP_CREATED"
+    },
+    {
+      "test_id": "tc_P2_039_preset_team_product",
+      "name": "群聊预设团队 — 产品团队",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/create",
+      "payload": {
+        "preset": "product_team",
+        "session_id": "tc_P2_039"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "加载失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/create",
+      "network_response_must_contain": [
+        "group_id"
+      ],
+      "store_action_expected": "GROUP_CREATED"
+    },
+    {
+      "test_id": "tc_P2_040_preset_team_support",
+      "name": "群聊预设团队 — 客服团队",
+      "page": "P2_group",
+      "endpoint": "POST /api/v1/chat/group/create",
+      "payload": {
+        "preset": "support_team",
+        "session_id": "tc_P2_040"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "加载失败"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/chat/group/create",
+      "network_response_must_contain": [
+        "group_id"
+      ],
+      "store_action_expected": "GROUP_CREATED"
+    },
+    {
+      "test_id": "tc_P3_041_memory_search_kw_project",
+      "name": "记忆搜索 — 关键词：项目",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "项目",
+        "limit": 10
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "搜索失败",
+        "undefined"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_042_memory_search_kw_meeting",
+      "name": "记忆搜索 — 关键词：会议",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "会议",
+        "limit": 10
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "搜索失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_043_memory_search_kw_code",
+      "name": "记忆搜索 — 关键词：代码",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "代码",
+        "limit": 10
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "搜索失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_044_memory_search_kw_decision",
+      "name": "记忆搜索 — 关键词：决策",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "决策",
+        "limit": 10
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "搜索失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_045_memory_search_kw_user",
+      "name": "记忆搜索 — 关键词：用户",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "用户",
+        "limit": 10
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "搜索失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_046_memory_search_kw_goal",
+      "name": "记忆搜索 — 关键词：目标",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "目标",
+        "limit": 10
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "搜索失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_047_memory_search_kw_plan",
+      "name": "记忆搜索 — 关键词：计划",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "计划",
+        "limit": 10
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "搜索失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_048_memory_search_kw_product",
+      "name": "记忆搜索 — 关键词：产品",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "产品",
+        "limit": 10
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "搜索失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_049_memory_search_kw_revenue",
+      "name": "记忆搜索 — 关键词：营收",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "营收",
+        "limit": 10
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "搜索失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_050_memory_search_kw_milestone",
+      "name": "记忆搜索 — 关键词：里程碑",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "里程碑",
+        "limit": 10
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "搜索失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_051_memory_write_fact",
+      "name": "记忆写入 — 事实型记忆",
+      "page": "P3_memory",
+      "endpoint": "POST /api/v1/memory/store",
+      "payload": {
+        "content": "陛下喜欢使用三核博弈机制",
+        "layer": "L1",
+        "tags": [
+          "preference",
+          "workflow"
+        ]
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "写入失败"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/memory/store",
+      "network_response_must_contain": [
+        "memory_id"
+      ],
+      "store_action_expected": "MEMORY_STORED"
+    },
+    {
+      "test_id": "tc_P3_052_memory_write_event",
+      "name": "记忆写入 — 事件型记忆",
+      "page": "P3_memory",
+      "endpoint": "POST /api/v1/memory/store",
+      "payload": {
+        "content": "2026-04-17 完成了100键测试计划生成",
+        "layer": "L1",
+        "tags": [
+          "event",
+          "milestone"
+        ]
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "写入失败"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/memory/store",
+      "network_response_must_contain": [
+        "memory_id"
+      ],
+      "store_action_expected": "MEMORY_STORED"
+    },
+    {
+      "test_id": "tc_P3_053_memory_write_decision",
+      "name": "记忆写入 — 决策型记忆",
+      "page": "P3_memory",
+      "endpoint": "POST /api/v1/memory/store",
+      "payload": {
+        "content": "技术栈选择：Python FastAPI + Next.js",
+        "layer": "L2",
+        "tags": [
+          "decision",
+          "tech"
+        ]
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "写入失败"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/memory/store",
+      "network_response_must_contain": [
+        "memory_id"
+      ],
+      "store_action_expected": "MEMORY_STORED"
+    },
+    {
+      "test_id": "tc_P3_054_memory_write_task",
+      "name": "记忆写入 — 任务型记忆",
+      "page": "P3_memory",
+      "endpoint": "POST /api/v1/memory/store",
+      "payload": {
+        "content": "待完成：用户认证模块",
+        "layer": "L0",
+        "tags": [
+          "task",
+          "todo"
+        ]
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "写入失败"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/memory/store",
+      "network_response_must_contain": [
+        "memory_id"
+      ],
+      "store_action_expected": "MEMORY_STORED"
+    },
+    {
+      "test_id": "tc_P3_055_memory_write_insight",
+      "name": "记忆写入 — 洞察型记忆",
+      "page": "P3_memory",
+      "endpoint": "POST /api/v1/memory/store",
+      "payload": {
+        "content": "用户最关心真实可用的功能而非技术优雅",
+        "layer": "L3",
+        "tags": [
+          "insight",
+          "strategy"
+        ]
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "写入失败"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/memory/store",
+      "network_response_must_contain": [
+        "memory_id"
+      ],
+      "store_action_expected": "MEMORY_STORED"
+    },
+    {
+      "test_id": "tc_P3_056_memory_query_L0",
+      "name": "记忆查询 — L0层（工作记忆）",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/layer",
+      "payload": {
+        "layer": "L0",
+        "limit": 20
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "查询失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/layer",
+      "network_response_must_contain": [
+        "memories"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_057_memory_query_L1",
+      "name": "记忆查询 — L1层（短期记忆）",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/layer",
+      "payload": {
+        "layer": "L1",
+        "limit": 20
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "查询失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/layer",
+      "network_response_must_contain": [
+        "memories"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_058_memory_query_L2",
+      "name": "记忆查询 — L2层（长期记忆）",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/layer",
+      "payload": {
+        "layer": "L2",
+        "limit": 20
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "查询失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/layer",
+      "network_response_must_contain": [
+        "memories"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_059_memory_query_L3",
+      "name": "记忆查询 — L3层（核心价值观）",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory/layer",
+      "payload": {
+        "layer": "L3",
+        "limit": 20
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "查询失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/layer",
+      "network_response_must_contain": [
+        "memories"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P3_060_memory_query_all_layers",
+      "name": "记忆查询 — 跨层全查",
+      "page": "P3_memory",
+      "endpoint": "GET /api/v1/memory",
+      "payload": {
+        "limit": 50
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "查询失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory",
+      "network_response_must_contain": [
+        "memories"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P4_061_workflow_trinity_task1",
+      "name": "工作流 Trinity全核 — 分析任务",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "分析OpenAGI的竞争优势",
+        "core_count": 3,
+        "session_id": "tc_P4_061"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "核心面板不可用"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_062_workflow_trinity_task2",
+      "name": "工作流 Trinity全核 — 规划任务",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "制定下周的工作计划",
+        "core_count": 3,
+        "session_id": "tc_P4_062"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "核心面板不可用"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_063_workflow_trinity_task3",
+      "name": "工作流 Trinity全核 — 评审任务",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "评审这个产品方案的可行性",
+        "core_count": 3,
+        "session_id": "tc_P4_063"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "核心面板不可用"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_064_workflow_trinity_task4",
+      "name": "工作流 Trinity全核 — 创作任务",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "写一篇关于AI未来的文章",
+        "core_count": 3,
+        "session_id": "tc_P4_064"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "核心面板不可用"
+      ],
+      "dom_min_length": 50,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_065_workflow_trinity_task5",
+      "name": "工作流 Trinity全核 — 决策任务",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "帮我决定是否要进入海外市场",
+        "core_count": 3,
+        "session_id": "tc_P4_065"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "核心面板不可用"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_066_workflow_trinity_task6",
+      "name": "工作流 Trinity全核 — 优化任务",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "优化用户注册流程",
+        "core_count": 3,
+        "session_id": "tc_P4_066"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "核心面板不可用"
+      ],
+      "dom_min_length": 20,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_067_workflow_trinity_task7",
+      "name": "工作流 Trinity全核 — 研究任务",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "研究目前主流AI助手的定价策略",
+        "core_count": 3,
+        "session_id": "tc_P4_067"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "核心面板不可用"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_068_workflow_trinity_task8",
+      "name": "工作流 Trinity全核 — 比较任务",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "比较PostgreSQL和MongoDB的优缺点",
+        "core_count": 3,
+        "session_id": "tc_P4_068"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "核心面板不可用"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_069_workflow_trinity_task9",
+      "name": "工作流 Trinity全核 — 预测任务",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "预测2027年AI行业的发展趋势",
+        "core_count": 3,
+        "session_id": "tc_P4_069"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "核心面板不可用"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_070_workflow_trinity_task10",
+      "name": "工作流 Trinity全核 — 诊断任务",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "诊断为什么用户留存率低",
+        "core_count": 3,
+        "session_id": "tc_P4_070"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "核心面板不可用"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_071_workflow_history_query1",
+      "name": "工作流历史查询 — 最近5条",
+      "page": "P4_workflow",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "workflow",
+        "limit": 5
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "查询失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P4_072_workflow_history_query2",
+      "name": "工作流历史查询 — 按会话ID",
+      "page": "P4_workflow",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "tc_P4_061",
+        "limit": 10
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "查询失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P4_073_workflow_history_query3",
+      "name": "工作流历史查询 — 按日期",
+      "page": "P4_workflow",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "2026-04-17",
+        "limit": 20
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "查询失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P4_074_workflow_history_query4",
+      "name": "工作流历史查询 — 全量列表",
+      "page": "P4_workflow",
+      "endpoint": "GET /api/v1/memory",
+      "payload": {
+        "limit": 100
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "查询失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory",
+      "network_response_must_contain": [
+        "memories"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P4_075_workflow_history_query5",
+      "name": "工作流历史查询 — 按标签",
+      "page": "P4_workflow",
+      "endpoint": "GET /api/v1/memory/search",
+      "payload": {
+        "query": "task",
+        "limit": 20
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "查询失败"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/memory/search",
+      "network_response_must_contain": [
+        "results"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P4_076_workflow_core_count_1",
+      "name": "工作流 — core_count=1 执行",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "单核执行：分析市场规模",
+        "core_count": 1,
+        "session_id": "tc_P4_076"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 15,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_077_workflow_core_count_2",
+      "name": "工作流 — core_count=2 执行",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "双核执行：评估技术方案",
+        "core_count": 2,
+        "session_id": "tc_P4_077"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 20,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_078_workflow_core_count_3",
+      "name": "工作流 — core_count=3 执行",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "三核执行：产品路线图规划",
+        "core_count": 3,
+        "session_id": "tc_P4_078"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_079_workflow_core_count_4",
+      "name": "工作流 — core_count=4 执行",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "四核执行：战略分析",
+        "core_count": 4,
+        "session_id": "tc_P4_079"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P4_080_workflow_core_count_5",
+      "name": "工作流 — core_count=5 执行",
+      "page": "P4_workflow",
+      "endpoint": "POST /api/v1/chat/send",
+      "payload": {
+        "message": "五核执行：全方位业务评估",
+        "core_count": 5,
+        "session_id": "tc_P4_080"
+      },
+      "dom_must_not_contain": [
+        "DEMO",
+        "[错误",
+        "placeholder"
+      ],
+      "dom_min_length": 30,
+      "network_url_pattern": "/api/v1/chat/send",
+      "network_response_must_contain": [
+        "reply"
+      ],
+      "store_action_expected": "ADD_MESSAGE"
+    },
+    {
+      "test_id": "tc_P5_081_settings_model_switch_gpt4",
+      "name": "设置页模型切换 — GPT-4",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/models/primary",
+      "payload": {
+        "model": "gpt-4o",
+        "provider": "openai"
+      },
+      "dom_must_not_contain": [
+        "切换失败",
+        "error",
+        "[错误"
+      ],
+      "dom_min_length": 3,
+      "network_url_pattern": "/api/v1/models/primary",
+      "network_response_must_contain": [
+        "model"
+      ],
+      "store_action_expected": "UPDATE_MODEL"
+    },
+    {
+      "test_id": "tc_P5_082_settings_model_switch_claude",
+      "name": "设置页模型切换 — Claude",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/models/primary",
+      "payload": {
+        "model": "claude-3-5-sonnet-20241022",
+        "provider": "anthropic"
+      },
+      "dom_must_not_contain": [
+        "切换失败",
+        "error",
+        "[错误"
+      ],
+      "dom_min_length": 3,
+      "network_url_pattern": "/api/v1/models/primary",
+      "network_response_must_contain": [
+        "model"
+      ],
+      "store_action_expected": "UPDATE_MODEL"
+    },
+    {
+      "test_id": "tc_P5_083_settings_model_switch_ollama",
+      "name": "设置页模型切换 — Ollama本地",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/models/primary",
+      "payload": {
+        "model": "qwen2.5:0.5b",
+        "provider": "ollama"
+      },
+      "dom_must_not_contain": [
+        "切换失败",
+        "error",
+        "[错误"
+      ],
+      "dom_min_length": 3,
+      "network_url_pattern": "/api/v1/models/primary",
+      "network_response_must_contain": [
+        "model"
+      ],
+      "store_action_expected": "UPDATE_MODEL"
+    },
+    {
+      "test_id": "tc_P5_084_settings_model_switch_gemini",
+      "name": "设置页模型切换 — Gemini",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/models/primary",
+      "payload": {
+        "model": "gemini-pro",
+        "provider": "google"
+      },
+      "dom_must_not_contain": [
+        "切换失败",
+        "error",
+        "[错误"
+      ],
+      "dom_min_length": 3,
+      "network_url_pattern": "/api/v1/models/primary",
+      "network_response_must_contain": [
+        "model"
+      ],
+      "store_action_expected": "UPDATE_MODEL"
+    },
+    {
+      "test_id": "tc_P5_085_settings_model_get_list",
+      "name": "设置页模型列表获取",
+      "page": "P5_settings",
+      "endpoint": "GET /api/v1/models",
+      "payload": {},
+      "dom_must_not_contain": [
+        "error",
+        "undefined",
+        "null"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/models",
+      "network_response_must_contain": [
+        "models"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P5_086_settings_persona_xiaoxing",
+      "name": "设置页人格切换 — 小星",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/settings",
+      "payload": {
+        "persona": "xiaoxing"
+      },
+      "dom_must_not_contain": [
+        "人格加载失败",
+        "error",
+        "[错误"
+      ],
+      "dom_min_length": 3,
+      "network_url_pattern": "/api/v1/settings",
+      "network_response_must_contain": [
+        "persona"
+      ],
+      "store_action_expected": "UPDATE_PERSONA"
+    },
+    {
+      "test_id": "tc_P5_087_settings_persona_assistant",
+      "name": "设置页人格切换 — 通用助手",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/settings",
+      "payload": {
+        "persona": "assistant"
+      },
+      "dom_must_not_contain": [
+        "人格加载失败",
+        "error",
+        "[错误"
+      ],
+      "dom_min_length": 3,
+      "network_url_pattern": "/api/v1/settings",
+      "network_response_must_contain": [
+        "persona"
+      ],
+      "store_action_expected": "UPDATE_PERSONA"
+    },
+    {
+      "test_id": "tc_P5_088_settings_persona_teacher",
+      "name": "设置页人格切换 — 教师",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/settings",
+      "payload": {
+        "persona": "teacher"
+      },
+      "dom_must_not_contain": [
+        "人格加载失败",
+        "error",
+        "[错误"
+      ],
+      "dom_min_length": 3,
+      "network_url_pattern": "/api/v1/settings",
+      "network_response_must_contain": [
+        "persona"
+      ],
+      "store_action_expected": "UPDATE_PERSONA"
+    },
+    {
+      "test_id": "tc_P5_089_settings_persona_coder",
+      "name": "设置页人格切换 — 程序员",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/settings",
+      "payload": {
+        "persona": "coder"
+      },
+      "dom_must_not_contain": [
+        "人格加载失败",
+        "error",
+        "[错误"
+      ],
+      "dom_min_length": 3,
+      "network_url_pattern": "/api/v1/settings",
+      "network_response_must_contain": [
+        "persona"
+      ],
+      "store_action_expected": "UPDATE_PERSONA"
+    },
+    {
+      "test_id": "tc_P5_090_settings_persona_strategist",
+      "name": "设置页人格切换 — 战略家",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/settings",
+      "payload": {
+        "persona": "strategist"
+      },
+      "dom_must_not_contain": [
+        "人格加载失败",
+        "error",
+        "[错误"
+      ],
+      "dom_min_length": 3,
+      "network_url_pattern": "/api/v1/settings",
+      "network_response_must_contain": [
+        "persona"
+      ],
+      "store_action_expected": "UPDATE_PERSONA"
+    },
+    {
+      "test_id": "tc_P5_091_settings_ollama_status",
+      "name": "设置页Ollama状态检查",
+      "page": "P5_settings",
+      "endpoint": "GET /api/v1/ollama/status",
+      "payload": {},
+      "dom_must_not_contain": [
+        "error",
+        "500",
+        "未连接"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/ollama/status",
+      "network_response_must_contain": [
+        "available"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P5_092_settings_ollama_list_models",
+      "name": "设置页Ollama模型列表",
+      "page": "P5_settings",
+      "endpoint": "GET /api/v1/ollama/models",
+      "payload": {},
+      "dom_must_not_contain": [
+        "error",
+        "500"
+      ],
+      "dom_min_length": 1,
+      "network_url_pattern": "/api/v1/ollama/models",
+      "network_response_must_contain": [
+        "data"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P5_093_settings_ollama_pull_model",
+      "name": "设置页Ollama拉取模型",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/ollama/pull",
+      "payload": {
+        "model": "qwen2.5:0.5b"
+      },
+      "dom_must_not_contain": [
+        "error",
+        "拉取失败"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/ollama/pull",
+      "network_response_must_contain": [
+        "success"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P5_094_settings_ollama_chat_test",
+      "name": "设置页Ollama对话测试",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/ollama/chat",
+      "payload": {
+        "message": "你好",
+        "model": "qwen2.5:0.5b"
+      },
+      "dom_must_not_contain": [
+        "error",
+        "对话失败",
+        "模型未加载"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/ollama/chat",
+      "network_response_must_contain": [
+        "data"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P5_095_settings_ollama_recommended",
+      "name": "设置页Ollama推荐模型列表",
+      "page": "P5_settings",
+      "endpoint": "GET /api/v1/ollama/status",
+      "payload": {},
+      "dom_must_not_contain": [
+        "error",
+        "500"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/ollama/status",
+      "network_response_must_contain": [
+        "recommended"
+      ],
+      "store_action_expected": null
+    },
+    {
+      "test_id": "tc_P5_096_settings_patrol_enable",
+      "name": "设置页巡检开启",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/settings",
+      "payload": {
+        "patrol_enabled": true,
+        "patrol_interval": 600
+      },
+      "dom_must_not_contain": [
+        "error",
+        "[错误",
+        "设置失败"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/settings",
+      "network_response_must_contain": [
+        "patrol_enabled"
+      ],
+      "store_action_expected": "UPDATE_SETTINGS"
+    },
+    {
+      "test_id": "tc_P5_097_settings_patrol_disable",
+      "name": "设置页巡检关闭",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/settings",
+      "payload": {
+        "patrol_enabled": false
+      },
+      "dom_must_not_contain": [
+        "error",
+        "[错误",
+        "设置失败"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/settings",
+      "network_response_must_contain": [
+        "patrol_enabled"
+      ],
+      "store_action_expected": "UPDATE_SETTINGS"
+    },
+    {
+      "test_id": "tc_P5_098_settings_patrol_interval_5min",
+      "name": "设置页巡检间隔 — 5分钟",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/settings",
+      "payload": {
+        "patrol_enabled": true,
+        "patrol_interval": 300
+      },
+      "dom_must_not_contain": [
+        "error",
+        "[错误",
+        "设置失败"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/settings",
+      "network_response_must_contain": [
+        "patrol_interval"
+      ],
+      "store_action_expected": "UPDATE_SETTINGS"
+    },
+    {
+      "test_id": "tc_P5_099_settings_patrol_interval_30min",
+      "name": "设置页巡检间隔 — 30分钟",
+      "page": "P5_settings",
+      "endpoint": "POST /api/v1/settings",
+      "payload": {
+        "patrol_enabled": true,
+        "patrol_interval": 1800
+      },
+      "dom_must_not_contain": [
+        "error",
+        "[错误",
+        "设置失败"
+      ],
+      "dom_min_length": 2,
+      "network_url_pattern": "/api/v1/settings",
+      "network_response_must_contain": [
+        "patrol_interval"
+      ],
+      "store_action_expected": "UPDATE_SETTINGS"
+    },
+    {
+      "test_id": "tc_P5_100_settings_get_all",
+      "name": "设置页全量配置读取",
+      "page": "P5_settings",
+      "endpoint": "GET /api/v1/settings",
+      "payload": {},
+      "dom_must_not_contain": [
+        "error",
+        "undefined",
+        "null"
+      ],
+      "dom_min_length": 5,
+      "network_url_pattern": "/api/v1/settings",
+      "network_response_must_contain": [
+        "model"
+      ],
+      "store_action_expected": null
+    }
+  ]
+}

@@ -342,7 +342,7 @@ class MemoryManager:
     def list_sessions(self) -> list[dict]:
         """获取所有活跃会话的摘要列表（来自热记忆）。
 
-        🔴 陛下 2026-04-17 修复：working._items 历史数据中偶有 str 类型，做兼容。
+        🔴 2026-04-17 修复：working._items 历史数据中偶有 str 类型，做兼容。
         """
         sessions = {}
         for item in self.working._items:

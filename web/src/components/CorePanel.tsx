@@ -26,7 +26,7 @@ export default function CorePanel({ open, onToggle }: CorePanelProps) {
   const { state } = useStore();
   const { cores, isAIThinking, thinkingSeconds, coreCount } = state;
 
-  // 🔴 陛下 2026-04-17 修复：只显示启用的核数 coreCount 个，不是硬编码 5 个
+  // 🔴 2026-04-17 修复：只显示启用的核数 coreCount 个，不是硬编码 5 个
   const visibleCores = cores.slice(0, coreCount);
   const activeCount = visibleCores.filter(c => c.status === 'thinking').length;
   const doneCount = visibleCores.filter(c => c.status === 'done').length;

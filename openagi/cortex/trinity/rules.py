@@ -1,9 +1,7 @@
 """三阶段四核博弈 — 权威规则教材（唯一事实源）
 
-陛下 2026-04-17 亲定。任何子系统（orchestrator/prompts/api）需要查询规则时，
+2026-04-17 定稿。任何子系统（orchestrator/prompts/api）需要查询规则时，
 只能从这里导入常量，不得硬编码复制，以保证全局一致。
-
-参考：/Users/mc/.claude/CLAUDE.md 第二条「三核博弈机制」
 """
 
 from __future__ import annotations
@@ -43,7 +41,7 @@ ROLE_DEFAULT_MODEL: dict[CoreRole, str] = {
 
 SELF_CHECK_ITEMS: list[str] = [
     "上一轮任务100%完成？是否主动规划下三轮任务？",
-    "是否推回陛下？99/1准则？",
+    "是否推回用户？99/1准则？",
     "是否遗漏并行机会？是否充分运用146个AI专家团队？",
     "交付物能否直接使用？是否进行了充分验证？",
     "是否推进100万用户目标？",
@@ -90,7 +88,7 @@ CONTRIBUTION_DIMENSIONS: tuple[ContributionDimension, ...] = (
 
 CONFLICT_THRESHOLD_DIM = 4      # 任两方单维度分差 > 此值 → CEO 必须在定稿中逐条解释
 CONFLICT_THRESHOLD_TOTAL = 15   # 任两方总分差 > 此值 → CEO 必须在定稿中逐条解释
-CONFLICT_THRESHOLD_HALT = 25    # 任两方总分差 > 此值 → 强制暂停，请陛下裁决
+CONFLICT_THRESHOLD_HALT = 25    # 任两方总分差 > 此值 → 强制暂停，请用户裁决
 
 # ─── 6. 审计外子代理的 Prompt 约束 ──────────────────────────────────────────
 
@@ -143,7 +141,7 @@ class ContributionScore:
 
 # ─── 9. 规则版本号（规则变更时递增，供审计追溯） ───────────────────────────
 
-RULES_VERSION = "1.0.0-2026-04-17-陛下亲定"
+RULES_VERSION = "1.0.0-2026-04-17"
 
 
 def cores_for(level: int) -> list[CoreRole]:

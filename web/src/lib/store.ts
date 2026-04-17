@@ -207,7 +207,7 @@ const StoreContext = createContext<StoreContextValue | null>(null);
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
 
-  // 🔴 陛下 2026-04-17 修复：启动时从后端拉取 settings + 主模型，同步到 store
+  // 🔴 2026-04-17 修复：启动时从后端拉取 settings + 主模型，同步到 store
   // 否则前端一直显示 claude-opus-4 但实际调用 ollama/gemma3:1b
   React.useEffect(() => {
     const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8888';

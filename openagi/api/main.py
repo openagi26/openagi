@@ -49,6 +49,7 @@ from openagi.api.routes import screen as screen_routes
 from openagi.api.routes import tts as tts_routes
 from openagi.api.routes import vision as vision_routes
 from openagi.api.routes import ollama as ollama_routes
+from openagi.api.routes import audit as audit_routes
 from openagi.api.deps import init_deps
 
 logger = logging.getLogger("openagi.api")
@@ -114,12 +115,12 @@ async def lifespan(app: FastAPI):
     # 检测本地Claude
     router.detect_local_claude()
 
-    # 🔴 陛下 2026-04-17：GLM relay 不稳几小时测不通 → 切换为本地 Ollama（qwen2.5:0.5b）主模型
+    # 🔴 2026-04-17：GLM relay 不稳几小时测不通 → 切换为本地 Ollama（qwen2.5:0.5b）主模型
     # 本地实测 1.2 秒回复，稳定零依赖，多核博弈秒级响应
     try:
         from openagi.cortex.llm.router import ModelEntry
         relay_ollama = router.add_relay("Ollama本地", "http://localhost:11434", "ollama-local")
-        # 🔴 陛下 2026-04-17：0.5b 最快（1.4s/次），多核累积仍 < gemma3:1b 单次
+        # 🔴 2026-04-17：0.5b 最快（1.4s/次），多核累积仍 < gemma3:1b 单次
         # 经实测：gemma3:1b 单次 15-30s，2核累积 70+s；qwen2.5:0.5b 单次 1.4s，2核累积 8s
         ollama_entry = ModelEntry(
             model_id="ollama/qwen2.5:0.5b",
@@ -190,6 +191,7 @@ app.include_router(screen_routes.router)
 app.include_router(tts_routes.router)
 app.include_router(vision_routes.router)
 app.include_router(ollama_routes.router)
+app.include_router(audit_routes.router, prefix="/api/v1/audit", tags=["audit"])
 
 
 # ─── 请求/响应模型 ──────────────────────────────────────────────────────────
@@ -394,6 +396,28 @@ async def list_models():
         }
         for m in models
     ])
+
+
+class SetPrimaryRequest(BaseModel):
+    model_id: str
+    relay_name: str | None = None
+
+
+@app.post("/api/v1/models/primary", response_model=APIResponse)
+async def set_primary_model(req: SetPrimaryRequest):
+    """运行时切换主模型（不重启服务）。relay_name 为空时自动用第一个匹配模型的中转站。"""
+    try:
+        relay = req.relay_name
+        if not relay:
+            # 自动推断：找第一个匹配 model_id 的已注册模型
+            matched = next((m for m in router.list_models() if m.model_id == req.model_id), None)
+            relay = matched.relay_name if matched else ""
+        ok = router.set_primary(req.model_id, relay)
+        if not ok:
+            return APIResponse(success=False, error=f"模型 {req.model_id}（{relay}）不在注册列表中")
+        return APIResponse(success=True, data={"primary": req.model_id, "relay": relay})
+    except Exception as e:
+        return APIResponse(success=False, error=str(e))
 
 
 @app.get("/api/v1/models/relays", response_model=APIResponse)

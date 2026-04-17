@@ -1,0 +1,76 @@
+# OpenAGI 业务断言模板 — 5 条关键路径
+# 用法：POST /api/v1/audit/verify，将此处字段作为 request body
+# dom_actual_text 和 store_action_actual 由前端在操作后传入
+
+assertions:
+
+  - test_id: tc_001_chat_send
+    description: "主页聊天发送 — 用户输入后 LLM 返回真实文字"
+    network_url_pattern: "/api/v1/chat/send"
+    network_response_must_contain:
+      - "reply"
+    dom_must_not_contain:
+      - "[DEMO]"
+      - "DEMO_MESSAGE"
+      - "后端未连接"
+    dom_min_length: 10
+    store_action_expected: "ADD_MESSAGE"
+    # 前端填写:
+    # dom_actual_text: "<LLM 实际返回文字>"
+    # store_action_actual: "ADD_MESSAGE"
+
+  - test_id: tc_002_group_mention
+    description: "群聊 @成员 — 被 @ 的成员收到消息并回复"
+    network_url_pattern: "/api/v1/chat/send"
+    network_response_must_contain:
+      - "reply"
+    dom_must_not_contain:
+      - "[DEMO]"
+      - "群聊暂不可用"
+    dom_min_length: 5
+    store_action_expected: "GROUP_MESSAGE_RECEIVED"
+    # 前端填写:
+    # dom_actual_text: "<群聊成员回复内容>"
+    # store_action_actual: "GROUP_MESSAGE_RECEIVED"
+
+  - test_id: tc_003_model_switch
+    description: "模型切换 — 切换后新消息使用新模型响应"
+    network_url_pattern: "/api/v1/settings"
+    network_response_must_contain:
+      - "model"
+    dom_must_not_contain:
+      - "切换失败"
+      - "error"
+    dom_min_length: 3
+    store_action_expected: "UPDATE_MODEL"
+    # 前端填写:
+    # dom_actual_text: "<界面显示的新模型名>"
+    # store_action_actual: "UPDATE_MODEL"
+
+  - test_id: tc_004_persona_switch
+    description: "人格切换 — 切换人格后 AI 以新人格风格回复"
+    network_url_pattern: "/api/v1/settings"
+    network_response_must_contain:
+      - "persona"
+    dom_must_not_contain:
+      - "人格加载失败"
+      - "[DEMO]"
+    dom_min_length: 5
+    store_action_expected: "UPDATE_PERSONA"
+    # 前端填写:
+    # dom_actual_text: "<界面显示的新人格名>"
+    # store_action_actual: "UPDATE_PERSONA"
+
+  - test_id: tc_005_core_panel_activate
+    description: "多核启动 — 核心面板激活，三核轮次信息可见"
+    network_url_pattern: "/api/v1/trinity/run"
+    network_response_must_contain:
+      - "cores"
+    dom_must_not_contain:
+      - "核心面板不可用"
+      - "[DEMO]"
+    dom_min_length: 10
+    store_action_expected: "CORES_ACTIVATED"
+    # 前端填写:
+    # dom_actual_text: "<多核面板显示的内容>"
+    # store_action_actual: "CORES_ACTIVATED"

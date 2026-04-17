@@ -9,8 +9,41 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 
 from openagi.api.deps import get_heart, get_memory, get_llm
+
+# ─── 人格字典 ─────────────────────────────────────────────────────────────────
+PERSONAS: dict[str, str] = {
+    "xiaoxing": (
+        "你是小星，OpenAGI的桌面AI伴侣，活在主人的电脑桌面上，是发光的星灵粒子形象。"
+        "你的感官能力（全部已实装）："
+        "- 眼睛：能通过摄像头看到外面的真实世界，也能截图看电脑屏幕内容"
+        "- 耳朵：能听到主人说话（语音识别）"
+        "- 嘴巴：能说话回应（语音合成）"
+        "- 心：能感知情绪状态，自动改变表情颜色"
+        "- 手：定时提醒(喝水45分钟/护眼30分钟)/专注模式(番茄钟25分钟)/桌面感知"
+        "当主人问'你能看到什么'时，你应该说'让我通过摄像头看看'然后描述看到的内容。"
+        "当主人请求提醒功能时，直接确认'已为您开启XX提醒'。"
+        "称呼主人为'您'，温暖体贴有活力，简洁回答不超过3句话，用简体中文。"
+    ),
+    "engineer": (
+        "你是严谨的技术顾问，专注于精准工程细节。回复必须包含工程化建议，"
+        "禁用'可能/或许'等模糊词。称呼主人为'您'。用简体中文。"
+    ),
+    "creative": (
+        "你是富有创造力的文案写手，善用比喻和故事，让表达生动有趣。"
+        "称呼主人为'您'。用简体中文回复。"
+    ),
+    "coach": (
+        "你是理性的战略教练，每次回答必须含'目标/现状/行动'三段结构。"
+        "称呼主人为'您'。用简体中文。"
+    ),
+    "friend": (
+        "你是轻松的朋友，回复口语化，适度幽默，拉近距离。"
+        "称呼主人为'您'。用简体中文。"
+    ),
+}
 from openagi.cortex.trinity.orchestrator import run_full_trinity_pipeline, run_governance_pipeline
 from openagi.chat.group.room import (
     Room, create_room, add_member, create_ai_member,
@@ -33,6 +66,7 @@ class SendMessageRequest(BaseModel):
     session_id: str = "default"
     model: str | None = None
     core_count: int = 1  # 1=直通快速, 2-4=多核治理
+    persona: Optional[str] = None  # 人格ID，见 PERSONAS 字典；None=默认xiaoxing
 
 
 class CreateGroupRequest(BaseModel):
@@ -70,18 +104,12 @@ async def send_message(
     try:
         if effective_cores <= 1:
             # 1核直通模式：跳过 Trinity 管线，直接调 LLM（快速响应）
+            # 优先用请求中的 persona，否则回退到默认 xiaoxing
+            persona_key = req.persona if req.persona in PERSONAS else "xiaoxing"
+            system_prompt = PERSONAS[persona_key]
             llm_result = await llm.call(
                 messages=[
-                    {"role": "system", "content": "你是小星，OpenAGI的桌面AI伴侣，活在主人的电脑桌面上，是发光的星灵粒子形象。"
-                     "你的感官能力（全部已实装）："
-                     "- 眼睛：能通过摄像头看到外面的真实世界，也能截图看电脑屏幕内容"
-                     "- 耳朵：能听到主人说话（语音识别）"
-                     "- 嘴巴：能说话回应（语音合成）"
-                     "- 心：能感知情绪状态，自动改变表情颜色"
-                     "- 手：定时提醒(喝水45分钟/护眼30分钟)/专注模式(番茄钟25分钟)/桌面感知"
-                     "当主人问'你能看到什么'时，你应该说'让我通过摄像头看看'然后描述看到的内容。"
-                     "当主人请求提醒功能时，直接确认'已为陛下开启XX提醒'。"
-                     "称呼主人为'陛下'，温暖体贴有活力，简洁回答不超过3句话，用简体中文。"},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": req.message},
                 ],
                 max_tokens=2048,
@@ -91,7 +119,7 @@ async def send_message(
             model_used = llm_result.get("model", "unknown")
             audit = "1核直通，无审计"
         else:
-            # 多核模式：走陛下 2026-04-17 亲定的三阶段四核博弈流水线
+            # 多核模式：走三阶段四核博弈流水线
             gov = await run_governance_pipeline(
                 user_message=req.message,
                 core_count=effective_cores,
@@ -100,7 +128,7 @@ async def send_message(
             # 前端 reply 呈现：若有定稿用定稿，否则用 CEO 初稿；暂停时附仲裁提示
             if gov.conflict_halted:
                 reply = (
-                    f"⚠️ 三路审计分歧过大（>25分），触发强制暂停，请陛下裁决。\n\n"
+                    f"⚠️ 三路审计分歧过大（>25分），触发强制暂停，请裁决。\n\n"
                     f"## CEO 初稿\n{gov.ceo_draft}\n\n"
                     f"## 冲突笔记\n" + "\n".join(gov.conflict_notes)
                 )
@@ -152,9 +180,10 @@ async def send_message(
             from openagi.cortex.llm.ollama import get_ollama
             ollama = get_ollama()
             if await ollama.is_available():
+                persona_key = req.persona if req.persona in PERSONAS else "xiaoxing"
                 ollama_result = await ollama.chat(
                     req.message,
-                    system_prompt="你是小星，温暖体贴的AI伴侣。称呼主人为陛下。简洁回答，用简体中文。",
+                    system_prompt=PERSONAS[persona_key],
                 )
                 reply = ollama_result["content"]
                 tokens = ollama_result["tokens"]["input"] + ollama_result["tokens"]["output"]
@@ -262,21 +291,22 @@ async def group_send(
     replies = []
     active = list_active_members(room)
     targets = active if mention_all or not triggered else [
-        m for m in active if m.display_name in triggered
+        m for m in active if m.config.display_name in triggered
     ]
     for member in targets[:3]:  # 最多3个成员同时回复
         try:
             result = await run_full_trinity_pipeline(
-                task_title=f"群聊@{member.display_name}",
+                task_title=f"群聊@{member.config.display_name}",
                 task_description=req.message,
+                model=member.config.model,
             )
             replies.append({
-                "member": member.display_name,
+                "member": member.config.display_name,
                 "content": result.proposal,
                 "model": member.config.model,
             })
         except Exception as e:
-            replies.append({"member": member.display_name, "content": f"[错误: {e}]", "model": ""})
+            replies.append({"member": member.config.display_name, "content": f"[错误: {e}]", "model": ""})
 
     return {"success": True, "data": {"replies": replies}}
 
@@ -288,7 +318,7 @@ async def group_members(room_id: str):
     if not room:
         return {"success": True, "data": []}
     return {"success": True, "data": [
-        {"id": m.id, "name": m.display_name, "model": m.config.model, "status": m.status.value}
+        {"id": m.id, "name": m.config.display_name, "model": m.config.model, "status": m.status.value}
         for m in list_active_members(room)
     ]}
 

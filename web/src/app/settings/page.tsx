@@ -208,19 +208,47 @@ function ModelSettings({ relayUrl, setRelayUrl }: { relayUrl: string; setRelayUr
   const [fallbacks, setFallbacks] = useState(['claude-haiku-4.5', 'gpt-4o']);
   const [failThreshold, setFailThreshold] = useState(3);
   const [backoffStrategy, setBackoffStrategy] = useState('exponential');
+  type BackendModel = { id: string; name: string; provider: string; relay: string; role: string; latency_ms: number; local: boolean };
+  const [allModels, setAllModels] = useState<BackendModel[]>([]);
+  const [modelsError, setModelsError] = useState<string | null>(null);
+
+  const fetchModels = useCallback(async () => {
+    try {
+      const res = await fetch('http://localhost:8888/api/v1/models');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setAllModels(json.data);
+        setModelsError(null);
+      } else {
+        throw new Error('返回数据格式异常');
+      }
+    } catch {
+      setAllModels([]);
+      setModelsError('后端未连接，请启动 make dev');
+    }
+  }, []);
+
+  useEffect(() => { fetchModels(); }, [fetchModels]);
+
+  const handleSetPrimary = async (modelName: string, relay?: string) => {
+    try {
+      const res = await fetch('http://localhost:8888/api/v1/models/primary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model_id: modelName, relay_name: relay ?? null }),
+      });
+      const json = await res.json();
+      if (json.success) { setPrimaryModel(modelName); await fetchModels(); }
+    } catch (e) {
+      console.error('设为主模型失败:', e);
+    }
+  };
 
   const localModels = [
     { name: 'claude-opus-4-6', provider: 'Anthropic' },
     { name: 'claude-sonnet-4-6', provider: 'Anthropic' },
     { name: 'claude-haiku-4-5', provider: 'Anthropic' },
-  ];
-
-  const allModels = [
-    { name: 'claude-sonnet-4', provider: 'Anthropic', relay: 'OpenRouter', latency: '128ms', speed: 'fast', role: 'primary' as const },
-    { name: 'claude-haiku-4.5', provider: 'Anthropic', relay: 'OpenRouter', latency: '95ms', speed: 'fast', role: 'fallback1' as const },
-    { name: 'gpt-4o', provider: 'OpenAI', relay: '官方直连', latency: '342ms', speed: 'medium', role: 'fallback2' as const },
-    { name: 'deepseek-v3', provider: 'DeepSeek', relay: 'OneAPI', latency: '267ms', speed: 'medium', role: 'normal' as const },
-    { name: 'qwen-72b', provider: 'Ollama', relay: '本地', latency: '45ms', speed: 'fast', role: 'normal' as const },
   ];
 
   const doTestAll = async () => {
@@ -239,8 +267,8 @@ function ModelSettings({ relayUrl, setRelayUrl }: { relayUrl: string; setRelayUr
     setTesting(false);
   };
 
-  const roleIcon = (role: string) => role === 'primary' ? '⭐' : role === 'fallback1' ? '🔄①' : role === 'fallback2' ? '🔄②' : '';
-  const rowStyle = (role: string) => role === 'primary' ? { border: '1px solid #7c3aed', background: '#f5f3ff' } : role.startsWith('fallback') ? { border: '1px solid #fbbf24', background: '#fffbeb' } : { border: '1px solid var(--card-border)', background: 'var(--center-bg)' };
+  const roleIcon = (role: string) => role === 'primary' ? '⭐' : role === 'fallback' ? '🔄' : '';
+  const rowStyle = (role: string) => role === 'primary' ? { border: '1px solid #7c3aed', background: '#f5f3ff' } : role === 'fallback' ? { border: '1px solid #fbbf24', background: '#fffbeb' } : { border: '1px solid var(--card-border)', background: 'var(--center-bg)' };
 
   return (
     <section>
@@ -297,8 +325,8 @@ function ModelSettings({ relayUrl, setRelayUrl }: { relayUrl: string; setRelayUr
                 </div>
                 {m.ok && (
                   <div className="flex gap-1">
-                    <button className="text-xs px-2 py-0.5 rounded font-medium text-white" style={{ background: '#7c3aed' }}>设为主模型</button>
-                    <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }}>设为回退</button>
+                    <button className="text-xs px-2 py-0.5 rounded font-medium text-white" style={{ background: '#7c3aed' }} onClick={() => handleSetPrimary(m.name, m.relay)}>设为主模型</button>
+                    <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }} onClick={() => { setFallbacks(prev => [...new Set([...prev, m.name])].slice(0, 2)); }}>设为回退</button>
                   </div>
                 )}
               </div>
@@ -318,51 +346,63 @@ function ModelSettings({ relayUrl, setRelayUrl }: { relayUrl: string; setRelayUr
               <div className="text-xs" style={{ color: '#059669' }}>{m.provider} · 本地 Claude Code 自动识别 · 免API</div>
             </div>
             <span className="text-xs" style={{ color: '#059669' }}>本地直连</span>
-            <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }}>设为主模型</button>
-            <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }}>设为回退</button>
+            <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }} onClick={() => handleSetPrimary(m.name)}>设为主模型</button>
+            <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }} onClick={() => { setFallbacks(prev => [...new Set([...prev, m.name])].slice(0, 2)); }}>设为回退</button>
           </div>
         ))}
         <p className="text-xs mt-1" style={{ color: '#059669' }}>💡 自动检测到本机 Claude Code，已加入可用模型列表</p>
       </Card>
 
-      {/* 卡片3：可用模型列表 */}
-      <Card title="可用模型列表" tag={`已登记 ${allModels.length + localModels.length} 个模型（含${localModels.length}个本地）`} tagColor="tag-green">
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>按优先级排列：⭐主模型 → 🔄回退①② → 其他</span>
-          <div className="flex gap-2 items-center">
-            <button className="text-xs px-2 py-1 rounded-md font-semibold" style={{ border: '1px solid var(--card-border)', color: 'var(--text-secondary)' }}>☑ 全选</button>
-            <button className="text-xs px-2 py-1 rounded-md" style={{ border: '1px solid var(--card-border)', color: 'var(--text-secondary)' }}>🔍 一键并行测试选中模型</button>
+      {/* 卡片3：可用模型列表（从后端 GET /api/v1/models 实时拉取） */}
+      <Card title="可用模型列表" tag={modelsError ? '后端未连接' : `已登记 ${allModels.length} 个模型`} tagColor={modelsError ? 'tag-orange' : 'tag-green'}>
+        {modelsError ? (
+          <div className="py-4 px-3 rounded-lg text-sm text-center" style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#dc2626' }}>
+            {modelsError}
           </div>
-        </div>
-        {allModels.map(m => (
-          <div key={m.name} className="flex items-center gap-2 py-2 px-3 rounded-lg mb-1.5" style={rowStyle(m.role)}>
-            <input type="checkbox" defaultChecked />
-            <span className="text-sm w-6 text-center">{roleIcon(m.role)}</span>
-            <div className="flex-1">
-              <div className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{m.name}</div>
-              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {m.provider} · <span style={{ color: m.relay === 'OpenRouter' ? '#7c3aed' : m.relay === 'OneAPI' ? '#ea580c' : '#059669' }}>{m.relay}</span>
-                {m.role === 'primary' && ' · 主模型'}
-                {m.role === 'fallback1' && <> · <b>回退①</b></>}
-                {m.role === 'fallback2' && <> · <b>回退②</b></>}
+        ) : (
+          <>
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>按优先级排列：⭐主模型 → 🔄回退 → 其他</span>
+              <div className="flex gap-2 items-center">
+                <button className="text-xs px-2 py-1 rounded-md font-semibold" style={{ border: '1px solid var(--card-border)', color: 'var(--text-secondary)' }} onClick={() => alert('全选功能开发中')}>☑ 全选</button>
+                <button className="text-xs px-2 py-1 rounded-md" style={{ border: '1px solid var(--card-border)', color: 'var(--text-secondary)' }} onClick={() => alert('一键并行测试选中模型功能开发中')}>🔍 一键并行测试选中模型</button>
               </div>
             </div>
-            <span className="text-xs" style={{ color: m.speed === 'fast' ? '#059669' : '#d97706' }}>{m.latency}</span>
-            <div className="flex gap-1">
-              {m.role === 'primary' ? (
-                <button className="text-xs px-2 py-0.5 rounded opacity-40" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }} disabled>已是主模型</button>
-              ) : (
-                <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }}>设为主模型</button>
-              )}
-              {m.role.startsWith('fallback') ? (
-                <button className="text-xs px-2 py-0.5 rounded opacity-40" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }} disabled>已是回退</button>
-              ) : (
-                <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }}>设为回退</button>
-              )}
-              <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #dc2626', color: '#dc2626' }}>删除</button>
-            </div>
-          </div>
-        ))}
+            {allModels.map(m => {
+              const latencyStr = m.latency_ms > 0 ? `${m.latency_ms}ms` : '-';
+              const isFast = m.latency_ms > 0 && m.latency_ms < 200;
+              return (
+                <div key={m.id} className="flex items-center gap-2 py-2 px-3 rounded-lg mb-1.5" style={rowStyle(m.role)}>
+                  <input type="checkbox" defaultChecked />
+                  <span className="text-sm w-6 text-center">{roleIcon(m.role)}</span>
+                  <div className="flex-1">
+                    <div className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{m.name}</div>
+                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {m.provider} · <span style={{ color: '#059669' }}>{m.relay}</span>
+                      {m.role === 'primary' && ' · 主模型'}
+                      {m.role === 'fallback' && <> · <b>回退</b></>}
+                    </div>
+                  </div>
+                  <span className="text-xs" style={{ color: isFast ? '#059669' : '#d97706' }}>{latencyStr}</span>
+                  <div className="flex gap-1">
+                    {m.role === 'primary' ? (
+                      <button className="text-xs px-2 py-0.5 rounded opacity-40" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }} disabled>已是主模型</button>
+                    ) : (
+                      <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }}
+                        onClick={() => handleSetPrimary(m.id, m.relay)}>设为主模型</button>
+                    )}
+                    {m.role === 'fallback' ? (
+                      <button className="text-xs px-2 py-0.5 rounded opacity-40" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }} disabled>已是回退</button>
+                    ) : (
+                      <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #7c3aed', color: '#7c3aed' }} onClick={() => setFallbacks(prev => [...new Set([...prev, m.id])].slice(0, 2))}>设为回退</button>
+                    )}
+                    <button className="text-xs px-2 py-0.5 rounded" style={{ border: '1px solid #dc2626', color: '#dc2626' }} onClick={() => setAllModels(prev => prev.filter(x => x.id !== m.id))}>删除</button>
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        )}
       </Card>
 
       {/* 卡片4：故障转移策略 */}
@@ -456,7 +496,7 @@ function ApiKeySettings() {
           <input type="password" placeholder="sk-ant-..." className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
             style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
           <button className="px-3 py-1.5 rounded-md text-sm font-medium text-white flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)' }}>验证</button>
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)' }} onClick={() => alert('Anthropic API Key 验证功能开发中')}>验证</button>
         </FormRow>
         <FormRow label="组织ID" desc="可选，企业账户使用">
           <input type="text" placeholder="org-..." className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
@@ -469,7 +509,7 @@ function ApiKeySettings() {
           <input type="password" placeholder="sk-proj-..." className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
             style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
           <button className="px-3 py-1.5 rounded-md text-sm font-medium text-white flex-shrink-0"
-            style={{ background: '#10a37f' }}>验证</button>
+            style={{ background: '#10a37f' }} onClick={() => alert('OpenAI API Key 验证功能开发中')}>验证</button>
         </FormRow>
       </Card>
 
@@ -478,7 +518,7 @@ function ApiKeySettings() {
           <input type="password" placeholder="AIza..." className="flex-1 px-3 py-1.5 rounded-md text-sm outline-none"
             style={{ border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--text-primary)' }} />
           <button className="px-3 py-1.5 rounded-md text-sm font-medium text-white flex-shrink-0"
-            style={{ background: '#4285f4' }}>验证</button>
+            style={{ background: '#4285f4' }} onClick={() => alert('Google Gemini API Key 验证功能开发中')}>验证</button>
         </FormRow>
       </Card>
     </section>
@@ -793,7 +833,8 @@ function ThemeSettings() {
           {THEME_COLORS.map(color => (
             <button key={color} className="w-8 h-8 rounded-full transition-all flex items-center justify-center"
               style={{ background: color, outline: color === '#7c3aed' ? '2px solid #7c3aed' : 'none', outlineOffset: 2 }}
-              aria-label={`选择颜色 ${color}`}>
+              aria-label={`选择颜色 ${color}`}
+              onClick={() => alert(`主题色 ${color} 切换功能开发中`)}>
               {color === '#7c3aed' && <span className="text-white text-xs">✓</span>}
             </button>
           ))}
@@ -870,7 +911,8 @@ function PersonaSettings() {
           包含 162 位跨领域专家人格模板：前端工程师、后端架构师、产品经理、营销专家、安全审计官等
         </div>
         <button className="mt-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
-          style={{ background: 'var(--session-active)', color: '#7c3aed', border: '1px solid #7c3aed30' }}>
+          style={{ background: 'var(--session-active)', color: '#7c3aed', border: '1px solid #7c3aed30' }}
+          onClick={() => alert('162专家人格库浏览功能开发中')}>
           浏览专家库 →
         </button>
       </Card>
@@ -999,6 +1041,7 @@ function GatewaySettings() {
                 </div>
               </div>
               <button className="text-xs px-3 py-1 rounded-md font-medium transition-all"
+                onClick={() => alert(`${gw.name} 消息网关配置功能开发中`)}
                 style={{
                   background: gw.status === 'connected' ? '#ecfdf5' : 'var(--center-bg)',
                   color: gw.status === 'connected' ? '#059669' : 'var(--text-secondary)',
@@ -1153,7 +1196,7 @@ function Toggle({ defaultOn, onChange }: { defaultOn?: boolean; onChange?: (v: b
   );
 }
 
-// ======== Ollama 本地模型（陛下 2026-04-17 亲定） ========
+// ======== Ollama 本地模型 ========
 
 type OllamaStatus = {
   available: boolean;
@@ -1310,7 +1353,7 @@ function OllamaSettings() {
       )}
 
       <div className="text-xs p-3 rounded-lg" style={{ background: 'rgba(251,191,36,0.08)', color: 'var(--text-secondary)', border: '1px solid rgba(251,191,36,0.2)' }}>
-        💡 陛下 2026-04-17 亲定：本地 Ollama 作主模型的优势——稳定、零延迟、免费、无需梯子。推荐 qwen2.5:0.5b 作日常多核博弈主核，多核 LLM 调用累积秒级响应。
+        💡 本地 Ollama 作主模型的优势——稳定、零延迟、免费、无需梯子。推荐 qwen2.5:0.5b 作日常多核博弈主核，多核 LLM 调用累积秒级响应。
       </div>
     </div>
   );

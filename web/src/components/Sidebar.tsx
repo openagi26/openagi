@@ -178,7 +178,7 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
           className="border-t p-3 flex gap-2"
           style={{ borderColor: 'var(--sidebar-border)' }}
         >
-          {['群聊', '设置', '帮助'].map(label => (
+          {(['群聊', '设置', '帮助'] as const).map(label => (
             <button
               key={label}
               className="flex-1 py-1.5 rounded-md text-xs transition-all"
@@ -194,6 +194,11 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
               onMouseLeave={e => {
                 (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--sidebar-border)';
                 (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)';
+              }}
+              onClick={() => {
+                if (label === '群聊') window.location.href = '/group';
+                else if (label === '设置') window.location.href = '/settings';
+                else alert('帮助文档开发中');
               }}
             >
               {label}

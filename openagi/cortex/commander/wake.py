@@ -10,7 +10,7 @@
 巡检流程：
   唤醒 → 读取使命目标(L3 DNA)
        → 检查待办事项
-       → 检查陛下的健康数据
+       → 检查用户的健康数据
        → 检查新通知
        → 生成巡检报告
        → 判断是否需要主动提醒
@@ -44,7 +44,7 @@ DEFAULT_CONFIG = {
         # "birthday": "2000-01-01",
         # "anniversary": "2026-04-16",
     },
-    "mission": "帮助陛下实现100万用户目标",
+    "mission": "帮助用户实现100万用户目标",
 }
 
 
@@ -177,7 +177,7 @@ class WakeManager:
         if report["actions"]:
             summary += f"待办：{'; '.join(report['actions'])}。"
         else:
-            summary += "一切正常，继续守护陛下！"
+            summary += "一切正常，继续守护！"
 
         return summary
 
