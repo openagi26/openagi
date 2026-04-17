@@ -7,12 +7,13 @@ import Sidebar from '@/components/Sidebar';
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8888';
 
 // AI团队成员配置
+// 🔧 2026-04-18 F3修复：模型名改为后端真实注册的 ID（原 claude-opus-4 等无效）
 const DEFAULT_MEMBERS = [
-  { id: 'ceo', name: 'CEO主核', model: 'claude-opus-4', role: '决策与协调', color: '#7c3aed', emoji: '👑', online: true },
-  { id: 'auditor-a', name: '审计-外A', model: 'claude-sonnet-4', role: '质量审计', color: '#2563eb', emoji: '🔍', online: true },
-  { id: 'auditor-b', name: '审计-外B', model: 'claude-haiku-4', role: '快速校验', color: '#059669', emoji: '⚡', online: true },
-  { id: 'auditor-c', name: '审计-外C', model: 'claude-opus-4', role: '深度审计', color: '#d97706', emoji: '🧠', online: true },
-  { id: 'executor', name: '执行代理', model: 'claude-sonnet-4', role: '任务执行', color: '#dc2626', emoji: '🚀', online: false },
+  { id: 'ceo', name: 'CEO主核', model: 'claude-opus-4-6', role: '决策与协调', color: '#7c3aed', emoji: '👑', online: true },
+  { id: 'auditor-a', name: '审计-外A', model: 'claude-sonnet-4-6', role: '质量审计', color: '#2563eb', emoji: '🔍', online: true },
+  { id: 'auditor-b', name: '审计-外B', model: 'claude-haiku-4-5-20251001', role: '快速校验', color: '#059669', emoji: '⚡', online: true },
+  { id: 'auditor-c', name: '审计-外C', model: 'claude-opus-4-6', role: '深度审计', color: '#d97706', emoji: '🧠', online: true },
+  { id: 'executor', name: '执行代理', model: 'claude-sonnet-4-6', role: '任务执行', color: '#dc2626', emoji: '🚀', online: false },
 ];
 
 // 预设团队模板（借鉴 OpenTeams 的 Team Protocol 设计）
@@ -266,6 +267,13 @@ export default function GroupPage() {
     setMessages([sysMsg]);
   };
 
+  // 🔧 2026-04-18 F3修复：解析消息中的 @成员名，返回匹配的成员名数组
+  const parseMentions = (text: string, members: typeof DEFAULT_MEMBERS): string[] => {
+    const matches = text.match(/@(\S+)/g) || [];
+    const names = members.map(m => m.name);
+    return matches.map(m => m.slice(1)).filter(n => names.includes(n));
+  };
+
   const handleSend = async () => {
     const text = input.trim();
     if (!text || isSending) return;
@@ -298,7 +306,7 @@ export default function GroupPage() {
       const sendRes = await fetch(`${BASE_URL}/api/v1/chat/group/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ room_id: currentRoomId, message: text, mentions: [] }),
+        body: JSON.stringify({ room_id: currentRoomId, message: text, mentions: parseMentions(text, teamMembers) }),
       });
       const sendData = await sendRes.json();
       if (!sendData.success) throw new Error(sendData.message || '发送失败');

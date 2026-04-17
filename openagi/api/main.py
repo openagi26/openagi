@@ -131,8 +131,14 @@ async def lifespan(app: FastAPI):
             is_local=True,
         )
         router._models.insert(0, ollama_entry)
-        router.set_primary("ollama/qwen2.5:0.5b", "Ollama本地")
-        logger.info("✅ 主模型切回 Ollama qwen2.5:0.5b（397MB，极速）")
+        # 🔧 2026-04-18 F3修复：只在没有其他主模型时才把 Ollama 设为 primary
+        # 避免覆盖 RELAY_CLAUDE_KEY / ZHIPU_API_KEY 等真实模型配置
+        existing_primary = next((m for m in router._models if getattr(m, 'role', None) == 'primary' and m.model_id != "ollama/qwen2.5:0.5b"), None)
+        if not existing_primary:
+            router.set_primary("ollama/qwen2.5:0.5b", "Ollama本地")
+            logger.info("✅ 主模型切回 Ollama qwen2.5:0.5b（397MB，极速，无其他主模型）")
+        else:
+            logger.info(f"✅ Ollama qwen2.5:0.5b 注册为备用，主模型保持: {existing_primary.model_id}")
     except Exception as e:
         logger.warning(f"Ollama 接入失败: {e}，回退 GLM")
     router._max_retries = 2
