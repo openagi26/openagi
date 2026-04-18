@@ -146,8 +146,16 @@ const electronAPI = {
         'memory:get',
         // 小星（Spirit）W15 语音聊天
         'spirit:voice-input',
+        // 小星（Spirit）W15 语音转文字（audio）：传入录音 base64 → 返回识别文字
+        'spirit:voice-transcribe',
+        // 小星（Spirit）W15/W21 临时控制窗口焦点（录音/摄像头前调用）
+        'spirit:set-focusable',
         // 小星（Spirit）W16 视频拍照
         'spirit:photo-input',
+        // 小星（Spirit）MVP 文字聊天
+        'spirit:chat-toggle',
+        'spirit:chat-input',
+        'spirit:mood-set',
       ];
 
       if (validChannels.includes(channel)) {
@@ -198,6 +206,9 @@ const electronAPI = {
         'spirit:speak',
         // 小星（Spirit）W16 视频回复推送
         'spirit:photo-reply',
+        // 小星（Spirit）MVP 新增事件
+        'spirit:fatigue',
+        'spirit:chat-reply',
       ];
 
       if (validChannels.includes(channel)) {

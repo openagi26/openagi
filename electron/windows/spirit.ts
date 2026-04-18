@@ -5,7 +5,8 @@
  */
 import { BrowserWindow, screen, ipcMain } from 'electron';
 import { join } from 'path';
-import { generateGreeting, addFact, touchLastSeen, getMemory } from '../memory/spirit-memory';
+import { generateGreeting, addFact, touchLastSeen, getMemory, loadMemory, saveMemory } from '../memory/spirit-memory';
+import { getMood, setMood, getLastPositiveMoodEvent } from '../memory/emotion';
 
 let spiritWindow: BrowserWindow | null = null;
 
@@ -14,14 +15,37 @@ let spiritWindow: BrowserWindow | null = null;
  * mainWindow 参数保留供未来扩展（例如同步状态），当前通过 registerSpiritIpcHandlers 关联
  */
 export function createSpiritWindow(_mainWindow: BrowserWindow): BrowserWindow {
+  // 检查是否应该隐藏
+  const mem = loadMemory() as any;
+  if (mem.hide_permanent) return null as any;
+  if (mem.hide_until && new Date(mem.hide_until) > new Date()) return null as any;
+
+  // W21：媒体权限（摄像头/麦克风）handler 已在主进程 app.whenReady() 最开始注册
+  // 此处无需重复设置，避免覆盖导致竞态（race condition）
+
   // 获取主显示器（primary display）尺寸
   const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
 
+  // 恢复上次位置，并做越界检测
+  const savedPos = mem.window_position;
+  let x = screenWidth - 160;
+  let y = screenHeight - 200;
+  if (
+    savedPos &&
+    typeof savedPos.x === 'number' &&
+    typeof savedPos.y === 'number' &&
+    savedPos.x >= 0 && savedPos.x + 120 <= screenWidth &&
+    savedPos.y >= 0 && savedPos.y + 200 <= screenHeight
+  ) {
+    x = savedPos.x;
+    y = savedPos.y;
+  }
+
   const win = new BrowserWindow({
     width: 120,
-    height: 200,  // W15：增高 40px，为语音按钮（VoiceButton）留空间
-    x: screenWidth - 160,
-    y: screenHeight - 200,
+    height: 230,  // MVP：增高至 230px，为语音按钮 + 点击聊天预留空间
+    x,
+    y,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
@@ -49,6 +73,18 @@ export function createSpiritWindow(_mainWindow: BrowserWindow): BrowserWindow {
 
   // 允许拖动（macOS 通过 -webkit-app-region: drag 实现，Electron 也支持 setMovable）
   win.setMovable(true);
+
+  // 监听窗口移动，防抖500ms后写入位置记忆
+  let saveTimer: NodeJS.Timeout | null = null;
+  win.on('move', () => {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      const [wx, wy] = win.getPosition();
+      const currentMem = loadMemory() as any;
+      currentMem.window_position = { x: wx, y: wy };
+      saveMemory(currentMem);
+    }, 500);
+  });
 
   // 窗口关闭时清理引用
   win.on('closed', () => {
@@ -95,7 +131,18 @@ export function broadcastSpiritMood(mood: string): void {
  * @param mainWindow 主窗口，点击小星时聚焦
  */
 export function registerSpiritIpcHandlers(mainWindow: BrowserWindow): void {
-  // 点击小星 → 唤起主窗口
+  // W21：摄像头访问 — 临时将 Spirit 窗口设为可聚焦（focusable），解决 Chromium 130+ 中
+  // focusable:false 的窗口调用 getUserMedia 会因无有效用户激活（user activation）而被拒绝
+  ipcMain.handle('spirit:set-focusable', (_event, focusable: boolean) => {
+    if (spiritWindow && !spiritWindow.isDestroyed()) {
+      spiritWindow.setFocusable(focusable);
+      if (focusable) {
+        spiritWindow.focus();
+      }
+    }
+  });
+
+  // 点击小星 → 唤起主窗口并导航到聊天页面
   ipcMain.handle('spirit:focus-main', () => {
     if (!mainWindow || mainWindow.isDestroyed()) return;
     if (mainWindow.isMinimized()) {
@@ -103,6 +150,42 @@ export function registerSpiritIpcHandlers(mainWindow: BrowserWindow): void {
     }
     mainWindow.show();
     mainWindow.focus();
+    // 导航到聊天首页（前端监听 navigate:to 事件）
+    mainWindow.webContents.send('navigate:to', '/');
+  });
+
+  // 小星模式切换（companion 伴侣模式 / assistant 助手模式）
+  ipcMain.handle('spirit:set-mode', (_event, mode: string) => {
+    // 向主窗口广播模式变更（供未来扩展）
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    mainWindow.webContents.send('spirit:mode-changed', mode);
+  });
+
+  // 隐藏小星
+  ipcMain.handle('spirit:hide', (_event, type: 'session' | 'day' | 'permanent') => {
+    if (spiritWindow && !spiritWindow.isDestroyed()) {
+      spiritWindow.hide();
+    }
+    if (type === 'day') {
+      const mem = loadMemory();
+      (mem as any).hide_until = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      saveMemory(mem);
+    } else if (type === 'permanent') {
+      const mem = loadMemory();
+      (mem as any).hide_permanent = true;
+      saveMemory(mem);
+    }
+  });
+
+  // 恢复显示小星（Settings 页恢复开关用）
+  ipcMain.handle('spirit:show', () => {
+    const mem = loadMemory();
+    (mem as any).hide_permanent = false;
+    delete (mem as any).hide_until;
+    saveMemory(mem);
+    if (spiritWindow && !spiritWindow.isDestroyed()) {
+      spiritWindow.show();
+    }
   });
 
   // W10：记忆相关 IPC handlers
@@ -121,5 +204,60 @@ export function registerSpiritIpcHandlers(mainWindow: BrowserWindow): void {
   // 读取当前全部记忆（供调试 / 测试用）
   ipcMain.handle('memory:get', () => {
     return getMemory();
+  });
+
+  // 渲染层获取当前情绪状态
+  ipcMain.handle('spirit:mood-get', () => {
+    try {
+      return getMood();
+    } catch {
+      return null;
+    }
+  });
+
+  // 渲染层设置情绪（被夸时调用）
+  ipcMain.handle('spirit:mood-set', (_event, mood: string, reason: string) => {
+    try {
+      setMood(mood as any, reason);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
+  // 渲染层获取最近一次 happy 情绪事件（用于启动时情绪传染记忆气泡）
+  ipcMain.handle('spirit:last-positive-mood-event', () => {
+    try {
+      return getLastPositiveMoodEvent();
+    } catch {
+      return null;
+    }
+  });
+
+  // MVP：聊天框开关 → 动态调整 Spirit 窗口大小
+  let preChatPos: { x: number; y: number } | null = null;
+  ipcMain.handle('spirit:chat-toggle', (_event, open: boolean) => {
+    if (!spiritWindow || spiritWindow.isDestroyed()) return;
+    if (open) {
+      const [wx, wy] = spiritWindow.getPosition();
+      preChatPos = { x: wx, y: wy };
+      const { width: sw, height: sh } = screen.getPrimaryDisplay().workAreaSize;
+      const newW = 300;
+      const newH = 480;
+      // 优先向左/上扩展，防止超出屏幕边界
+      const newX = Math.max(0, Math.min(wx - (newW - 120), sw - newW));
+      const newY = Math.max(0, Math.min(wy - (newH - 230), sh - newH));
+      spiritWindow.setSize(newW, newH);
+      spiritWindow.setPosition(newX, newY);
+      spiritWindow.setFocusable(true);
+      spiritWindow.focus();
+    } else {
+      spiritWindow.setSize(120, 230);
+      if (preChatPos) {
+        spiritWindow.setPosition(preChatPos.x, preChatPos.y);
+        preChatPos = null;
+      }
+      spiritWindow.setFocusable(false);
+    }
   });
 }

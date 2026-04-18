@@ -9,15 +9,15 @@
 body {
   background: transparent;
   overflow: hidden;
-  width: 120px;
-  height: 160px;
+  width: 100vw;
+  height: 100vh;
   -webkit-user-select: none;
   user-select: none;
 }
 
 .spirit-container {
-  width: 120px;
-  height: 160px;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -235,4 +235,315 @@ body {
 
 .spirit-greeting-bubble.visible {
   opacity: 1;
+}
+
+/* ========================== */
+/* 隐藏按钮 + 隐藏菜单         */
+/* ========================== */
+.spirit-hide-btn { position:absolute; top:2px; right:2px; width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; color:white; font-size:10px; cursor:pointer; opacity:0; transition:opacity 0.2s; display:flex; align-items:center; justify-content:center; z-index:10; }
+.spirit-container:hover .spirit-hide-btn { opacity:1; }
+.spirit-hide-menu { position:absolute; top:20px; right:2px; background:#1e1b4b; border:1px solid #4c1d95; border-radius:8px; padding:4px; z-index:20; min-width:90px; }
+.spirit-hide-menu button { display:block; width:100%; padding:6px 10px; background:none; border:none; color:#e9d5ff; font-size:11px; cursor:pointer; text-align:left; border-radius:4px; }
+.spirit-hide-menu button:hover { background:#4c1d95; }
+
+/* ========================== */
+/* hide-btn 淡入动画           */
+/* ========================== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.hide-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hide-btn-show {
+  opacity: 1;
+  pointer-events: auto;
+  animation: fadeIn 0.2s ease-in;
+}
+
+/* ========================== */
+/* hide-menu slide-down 动画  */
+/* ========================== */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hide-menu {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+
+.hide-menu-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  animation: slideDown 0.15s ease-out;
+}
+
+/* ========================== */
+/* MVP：角色区域                */
+/* ========================== */
+.spirit-character-area {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+}
+
+/* 聊天框打开时，spirit 改为顶部对齐（chat panel flex:1 填充剩余空间） */
+.spirit-container.chat-open {
+  justify-content: flex-start;
+}
+
+/* ========================== */
+/* MVP：聊天面板               */
+/* ========================== */
+.spirit-chat-panel {
+  width: calc(100% - 12px);
+  flex: 1;
+  margin: 0 6px 8px;
+  min-height: 0;
+  background: rgba(10, 4, 30, 0.92);
+  border: 1px solid rgba(124, 58, 237, 0.6);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(167, 139, 250, 0.1);
+  cursor: default;
+}
+
+.spirit-chat-header {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px 5px;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.spirit-chat-title {
+  font-size: 11px;
+  color: #c4b5fd;
+  flex: 1;
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.spirit-chat-expand, .spirit-chat-close {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(124, 58, 237, 0.2);
+  color: #a78bfa;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  padding: 0;
+}
+
+.spirit-chat-expand:hover, .spirit-chat-close:hover {
+  background: rgba(124, 58, 237, 0.45);
+  color: #e9d5ff;
+}
+
+.spirit-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124,58,237,0.3) transparent;
+}
+
+.spirit-chat-messages::-webkit-scrollbar {
+  width: 3px;
+}
+.spirit-chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+.spirit-chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.4);
+  border-radius: 2px;
+}
+
+.spirit-chat-empty {
+  font-size: 11px;
+  color: rgba(167, 139, 250, 0.55);
+  text-align: center;
+  padding: 16px 8px;
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  line-height: 1.6;
+}
+
+.spirit-chat-msg {
+  font-size: 11px;
+  line-height: 1.55;
+  padding: 6px 9px;
+  border-radius: 10px;
+  max-width: 90%;
+  word-break: break-word;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.spirit-chat-msg-user {
+  background: rgba(124, 58, 237, 0.35);
+  color: #e9d5ff;
+  align-self: flex-end;
+  border-bottom-right-radius: 3px;
+}
+
+.spirit-chat-msg-ai {
+  background: rgba(30, 10, 60, 0.7);
+  color: #ddd6fe;
+  align-self: flex-start;
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  border-bottom-left-radius: 3px;
+}
+
+.spirit-chat-loading {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.spirit-chat-loading .dot {
+  font-size: 8px;
+  color: #a78bfa;
+  animation: dotBounce 1.2s ease-in-out infinite;
+}
+.spirit-chat-loading .dot:nth-child(2) { animation-delay: 0.2s; }
+.spirit-chat-loading .dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotBounce {
+  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+
+.spirit-chat-input-row {
+  display: flex;
+  gap: 5px;
+  padding: 6px;
+  border-top: 1px solid rgba(124, 58, 237, 0.25);
+  flex-shrink: 0;
+}
+
+.spirit-chat-input {
+  flex: 1;
+  background: rgba(30, 10, 60, 0.6);
+  border: 1px solid rgba(124, 58, 237, 0.35);
+  border-radius: 8px;
+  color: #e9d5ff;
+  font-size: 11px;
+  padding: 5px 8px;
+  outline: none;
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  transition: border-color 0.15s;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.spirit-chat-input::placeholder {
+  color: rgba(167, 139, 250, 0.4);
+}
+
+.spirit-chat-input:focus {
+  border-color: rgba(124, 58, 237, 0.7);
+  background: rgba(30, 10, 60, 0.8);
+}
+
+.spirit-chat-send {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: none;
+  background: #7c3aed;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.1s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.spirit-chat-send:hover:not(:disabled) {
+  background: #6d28d9;
+  transform: scale(1.05);
+}
+
+.spirit-chat-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ========================== */
+/* MVP：奔跑/跳跃/翻跟头动画   */
+/* ========================== */
+.spirit-container.running .spirit-svg {
+  animation: spiritRun 0.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(251, 146, 60, 0.7));
+}
+
+@keyframes spiritRun {
+  0%   { transform: translateX(-3px) rotate(-8deg) translateY(0); }
+  25%  { transform: translateX(0px) rotate(0deg) translateY(-5px); }
+  50%  { transform: translateX(3px) rotate(8deg) translateY(0); }
+  75%  { transform: translateX(0px) rotate(0deg) translateY(-5px); }
+  100% { transform: translateX(-3px) rotate(-8deg) translateY(0); }
+}
+
+.spirit-container.jumping .spirit-svg {
+  animation: spiritJump 0.7s ease-in-out 3;
+  filter: drop-shadow(0 0 14px rgba(196, 181, 253, 0.9));
+}
+
+@keyframes spiritJump {
+  0%   { transform: translateY(0) scale(1); }
+  15%  { transform: translateY(-2px) scale(1.05); }
+  40%  { transform: translateY(-22px) scale(1.12) rotate(5deg); }
+  65%  { transform: translateY(-26px) scale(0.92) rotate(-5deg); }
+  85%  { transform: translateY(-8px) scale(1.04) rotate(2deg); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.spirit-container.flipping .spirit-svg {
+  animation: spiritFlip 0.9s ease-in-out 2;
+  filter: drop-shadow(0 0 18px rgba(167, 139, 250, 1.0));
+}
+
+@keyframes spiritFlip {
+  0%   { transform: rotate(0deg) scale(1) translateY(0); }
+  25%  { transform: rotate(180deg) scale(0.85) translateY(-10px); }
+  55%  { transform: rotate(360deg) scale(1.1) translateY(-14px); }
+  80%  { transform: rotate(380deg) scale(0.95) translateY(-2px); }
+  100% { transform: rotate(360deg) scale(1) translateY(0); }
 }

@@ -68,6 +68,8 @@ import {
   type AppRequest,
   type AppResponse,
 } from './ipc/request-helpers';
+import { detectMoodFromMessage, setMood } from '../memory/emotion';
+import { extractCommitmentFromText, saveCommitment } from '../memory/commitments';
 
 /**
  * Register all IPC handlers
@@ -102,7 +104,7 @@ export function registerIpcHandlers(
   registerDialogHandlers();
 
   // Session handlers
-  registerSessionHandlers();
+  registerSessionHandlers(gatewayManager);
 
   // App handlers
   registerAppHandlers();
@@ -1301,10 +1303,37 @@ function registerGatewayHandlers(
 
       logger.info(`[chat:sendWithMedia] Sending: message="${message.substring(0, 100)}", attachments=${imageAttachments.length}, fileRefs=${fileReferences.length}`);
 
+      // 约定守望者：从用户消息中提取约定并保存
+      try {
+        const commitExtract = extractCommitmentFromText(message);
+        if (commitExtract.hasCommitment && commitExtract.event_time && commitExtract.description && commitExtract.remind_at && commitExtract.follow_up_at) {
+          saveCommitment({
+            description: commitExtract.description,
+            event_time: commitExtract.event_time,
+            remind_at: commitExtract.remind_at,
+            follow_up_at: commitExtract.follow_up_at,
+          });
+          logger.info(`[commitments] 已保存约定: ${commitExtract.description}`);
+        }
+      } catch {
+        // 约定提取失败不影响主流程
+      }
+
       // Longer timeout for chat sends to tolerate high-latency networks (avoids connect error)
       const timeoutMs = 120000;
       const result = await gatewayManager.rpc('chat.send', rpcParams, timeoutMs);
       logger.info(`[chat:sendWithMedia] RPC result: ${JSON.stringify(result)}`);
+      // 情绪检测：从AI回复中提取文字并更新情绪状态
+      const aiReplyText =
+        (result as { reply?: string; content?: string; text?: string })?.reply ||
+        (result as { reply?: string; content?: string; text?: string })?.content ||
+        (result as { reply?: string; content?: string; text?: string })?.text || '';
+      if (aiReplyText) {
+        const detectedMood = detectMoodFromMessage(String(aiReplyText));
+        if (detectedMood !== null) {
+          setMood(detectedMood, `AI回复情绪检测: ${String(aiReplyText).slice(0, 50)}`);
+        }
+      }
       return { success: true, result };
     } catch (error) {
       logger.error(`[chat:sendWithMedia] Error: ${String(error)}`);
@@ -2440,7 +2469,7 @@ function registerFileHandlers(): void {
  * The JSONL file lives at: ~/.openclaw/agents/<agentId>/sessions/<suffix>.jsonl
  * Renaming to <suffix>.deleted.jsonl hides it from sessions.list.
  */
-function registerSessionHandlers(): void {
+function registerSessionHandlers(gatewayManager: GatewayManager): void {
   ipcMain.handle('session:delete', async (_, sessionKey: string) => {
     try {
       if (!sessionKey || !sessionKey.startsWith('agent:')) {
@@ -2609,6 +2638,10 @@ function registerSessionHandlers(): void {
 
       if (reply) {
         logger.info(`[spirit:photo-input] 视觉回复：${String(reply).substring(0, 80)}...`);
+        const detectedMood = detectMoodFromMessage(String(reply));
+        if (detectedMood !== null) {
+          setMood(detectedMood, `AI回复情绪检测: ${String(reply).slice(0, 50)}`);
+        }
         return String(reply);
       }
 
@@ -2616,6 +2649,63 @@ function registerSessionHandlers(): void {
     } catch (err) {
       logger.warn(`[spirit:photo-input] 调用失败：${String(err)}`);
       return '我看到了你，但大脑暂时短路了，稍后再试试吧～';
+    }
+  });
+
+  // ────────────────────────────────────────────────────────────────────
+  // W15/W21 语音修复：spirit:voice-transcribe
+  // 收到渲染层（VoiceButton）发来的 base64 音频数据（audio/webm 或 audio/ogg）
+  // → 尝试通过网关 RPC 调用 speech.transcribe
+  // → 降级：通过 chat.send 附音频 base64 让 LLM 转录（需模型支持）
+  // → 最终降级：返回 null，渲染层提示用户直接输入文字
+  // ────────────────────────────────────────────────────────────────────
+  ipcMain.handle('spirit:voice-transcribe', async (_event, audioBase64: string, mimeType: string) => {
+    logger.info(`[spirit:voice-transcribe] 收到录音，格式：${mimeType}，大小：${audioBase64.length} chars`);
+
+    try {
+      const isConnected = gatewayManager?.isConnected?.() ?? false;
+      if (!isConnected) {
+        logger.warn('[spirit:voice-transcribe] 网关未连接，无法转录');
+        return null;
+      }
+
+      // 尝试专用转录 RPC（speech.transcribe）
+      try {
+        const result = await gatewayManager.rpc<{ text?: string; transcript?: string }>('speech.transcribe', {
+          audio: audioBase64,
+          mime_type: mimeType,
+          language: 'zh',
+        });
+        const transcribed = result?.text || result?.transcript;
+        if (transcribed) {
+          logger.info(`[spirit:voice-transcribe] 转录成功：${String(transcribed).substring(0, 60)}`);
+          return String(transcribed);
+        }
+      } catch (rpcErr) {
+        logger.warn('[spirit:voice-transcribe] speech.transcribe 不可用，尝试降级:', rpcErr);
+      }
+
+      // 降级：让 LLM 通过多模态能力转录音频
+      try {
+        const result2 = await gatewayManager.rpc<{ reply?: string; content?: string; text?: string }>('chat.send', {
+          message: '请将音频内容转录为文字，只输出转录内容，不加任何解释。',
+          session_id: 'spirit-stt',
+          audio: audioBase64,
+          audio_mime_type: mimeType,
+        });
+        const text2 = result2?.reply || result2?.content || result2?.text;
+        if (text2 && text2.trim()) {
+          logger.info(`[spirit:voice-transcribe] 降级转录：${String(text2).substring(0, 60)}`);
+          return String(text2).trim();
+        }
+      } catch (fallbackErr) {
+        logger.warn('[spirit:voice-transcribe] 降级转录失败:', fallbackErr);
+      }
+
+      return null;
+    } catch (err) {
+      logger.error(`[spirit:voice-transcribe] 意外错误：${String(err)}`);
+      return null;
     }
   });
 
@@ -2648,6 +2738,10 @@ function registerSessionHandlers(): void {
 
       if (reply) {
         logger.info(`[spirit:voice-input] 回复：${String(reply).substring(0, 60)}...`);
+        const detectedMood = detectMoodFromMessage(String(reply));
+        if (detectedMood !== null) {
+          setMood(detectedMood, `AI回复情绪检测: ${String(reply).slice(0, 50)}`);
+        }
         return String(reply);
       }
 
@@ -2655,6 +2749,45 @@ function registerSessionHandlers(): void {
     } catch (err) {
       logger.warn(`[spirit:voice-input] 调用失败，使用降级文案：${String(err)}`);
       return `我听到你说"${text}"了，但我现在还连不上大脑，等网关修好就能回答你～`;
+    }
+  });
+
+  // ────────────────────────────────────────────────────────────────────
+  // MVP 文字聊天：spirit:chat-input
+  // 收到小星聊天框的文字输入 → 注入人格系统提示词 → 转发给 LLM
+  // ────────────────────────────────────────────────────────────────────
+  ipcMain.handle('spirit:chat-input', async (_event, text: string, mode: string = 'companion') => {
+    logger.info(`[spirit:chat-input] 收到文字输入：${text.substring(0, 50)}`);
+    try {
+      const isConnected = gatewayManager?.isConnected?.() ?? false;
+      if (!isConnected) {
+        return '我在，但现在连不上大脑…稍后再试吧～';
+      }
+      // 根据模式注入人格系统提示词（与 intimacy-prompts.ts 保持一致）
+      const systemPrompt = mode === 'assistant'
+        ? '你是 OpenAGI 的专业智能助手。说话风格：尊称用户为"您"，直接精准，不掺个人情感，条理清晰，简洁专业。'
+        : '你是小星，OpenAGI 的桌面伴侣 AI。陛下是你的主人，你是他最亲近的朋友和伴侣。用"陛下"称呼用户，温柔俏皮，会撒娇，简短温馨，3-5句话内，像一起住了很久的朋友。禁止说"请问""需要我协助吗""为您服务"这类客服腔。';
+      const injectedMessage = `[系统指令]\n${systemPrompt}\n[/系统指令]\n\n${text}`;
+      const rpcResult = await gatewayManager.rpc('chat.send', {
+        message: injectedMessage,
+        session_id: 'spirit-chat',
+      });
+      const reply =
+        (rpcResult as { reply?: string; content?: string; text?: string })?.reply ||
+        (rpcResult as { reply?: string; content?: string; text?: string })?.content ||
+        (rpcResult as { reply?: string; content?: string; text?: string })?.text;
+      if (reply) {
+        logger.info(`[spirit:chat-input] 回复：${String(reply).substring(0, 60)}...`);
+        const detectedMood = detectMoodFromMessage(String(reply));
+        if (detectedMood !== null) {
+          setMood(detectedMood, `AI回复情绪检测: ${String(reply).slice(0, 50)}`);
+        }
+        return String(reply);
+      }
+      return '我在想…给我一点时间～';
+    } catch (err) {
+      logger.warn(`[spirit:chat-input] 调用失败：${String(err)}`);
+      return '大脑暂时宕机了，等一下再试试吧～';
     }
   });
 }
