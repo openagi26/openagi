@@ -11,9 +11,11 @@ type VoiceMood = 'idle' | 'listening' | 'thinking' | 'replying';
 
 interface VoiceButtonProps {
   onMoodChange?: (mood: VoiceMood) => void;
+  /** 检测到唤醒词"小星"时触发，参数是唤醒词之后的剩余文字（可能为空） */
+  onWakeWord?: (remainingText: string) => void;
 }
 
-export function VoiceButton({ onMoodChange }: VoiceButtonProps) {
+export function VoiceButton({ onMoodChange, onWakeWord }: VoiceButtonProps) {
   const [state, setState] = useState<VoiceMood>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const stopListeningRef = useRef<(() => void) | null>(null);
@@ -26,8 +28,17 @@ export function VoiceButton({ onMoodChange }: VoiceButtonProps) {
 
   // 发送文字给主进程，获取回复并 TTS 播放
   const sendAndSpeak = useCallback(async (text: string) => {
-    setMood('thinking');
     setErrorMsg(null);
+
+    // 唤醒词检测：包含"小星"时触发 onWakeWord 回调
+    if (onWakeWord && (text.includes('小星') || text.includes('小 星') || text.includes('xiǎo xīng'))) {
+      const afterWake = text.replace(/小\s*星|xiǎo\s*xīng/gi, '').trim();
+      setMood('idle');
+      onWakeWord(afterWake);
+      return;
+    }
+
+    setMood('thinking');
 
     try {
       // 通过 IPC（进程间通信）发送给主进程

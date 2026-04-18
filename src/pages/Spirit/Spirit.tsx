@@ -372,6 +372,16 @@ export function Spirit() {
               clearReplyTimer();
               setMood(voiceMood);
             }}
+            onWakeWord={(remaining) => {
+              // 检测到唤醒词"小星" → 打开聊天框
+              if (!chatOpen) {
+                setChatOpen(true);
+                window.electron?.ipcRenderer?.invoke?.('spirit:chat-toggle', true).catch(() => {});
+              }
+              // "小星帮我查天气" → 自动填入"帮我查天气"
+              if (remaining) setChatInput(remaining);
+              setTimeout(() => chatInputRef.current?.focus(), 350);
+            }}
           />
           <VideoButton
             onMoodChange={(videoMood) => {

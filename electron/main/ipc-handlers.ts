@@ -69,6 +69,7 @@ import {
   type AppResponse,
 } from './ipc/request-helpers';
 import { detectMoodFromMessage, setMood } from '../memory/emotion';
+import { getSpiritWindow } from '../windows/spirit';
 import { extractCommitmentFromText, saveCommitment } from '../memory/commitments';
 
 /**
@@ -2778,9 +2779,19 @@ function registerSessionHandlers(gatewayManager: GatewayManager): void {
         (rpcResult as { reply?: string; content?: string; text?: string })?.text;
       if (reply) {
         logger.info(`[spirit:chat-input] 回复：${String(reply).substring(0, 60)}...`);
+        // 情绪检测 → 动画映射（参考 RobotDuck map_emotion_to_esp32_expr 逻辑）
         const detectedMood = detectMoodFromMessage(String(reply));
         if (detectedMood !== null) {
           setMood(detectedMood, `AI回复情绪检测: ${String(reply).slice(0, 50)}`);
+          // happy/excited → 触发跳跃或翻跟头动画（广播给 Spirit 渲染层）
+          const spiritWin = getSpiritWindow();
+          if (spiritWin && !spiritWin.isDestroyed()) {
+            if (detectedMood === 'happy') {
+              spiritWin.webContents.send('spirit:mood', 'jumping');
+            } else if (detectedMood === 'thoughtful') {
+              spiritWin.webContents.send('spirit:mood', 'thinking');
+            }
+          }
         }
         return String(reply);
       }
