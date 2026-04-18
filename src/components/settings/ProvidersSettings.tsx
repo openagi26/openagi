@@ -166,11 +166,12 @@ export function ProvidersSettings() {
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingProvider, setEditingProvider] = useState<string | null>(null);
-  const vendorMap = new Map(vendors.map((vendor) => [vendor.id, vendor]));
+  const safeVendors = Array.isArray(vendors) ? vendors : [];
+  const vendorMap = new Map(safeVendors.map((vendor) => [vendor.id, vendor]));
   const existingVendorIds = new Set(accounts.map((account) => account.vendorId));
   const displayProviders = useMemo(
-    () => buildProviderListItems(accounts, statuses, vendors, defaultAccountId),
-    [accounts, statuses, vendors, defaultAccountId],
+    () => buildProviderListItems(accounts, statuses, safeVendors, defaultAccountId),
+    [accounts, statuses, safeVendors, defaultAccountId],
   );
 
   // Fetch providers on mount
@@ -965,7 +966,8 @@ function AddProviderDialog({
     : providerDocsUrl;
   const isOAuth = typeInfo?.isOAuth ?? false;
   const supportsApiKey = typeInfo?.supportsApiKey ?? false;
-  const vendorMap = new Map(vendors.map((vendor) => [vendor.id, vendor]));
+  const safeVendors2 = Array.isArray(vendors) ? vendors : [];
+  const vendorMap = new Map(safeVendors2.map((vendor) => [vendor.id, vendor]));
   const selectedVendor = selectedType ? vendorMap.get(selectedType) : undefined;
   const showUserAgentInAddDialog = shouldShowUserAgentFieldForNewProvider(selectedType);
   const preferredOAuthMode = selectedVendor?.supportedAuthModes.includes('oauth_browser')
