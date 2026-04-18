@@ -60,6 +60,11 @@ export function Spirit() {
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
 
+  // 摄像头预览状态
+  const [cameraOn, setCameraOn] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const videoPreviewRef = useRef<HTMLVideoElement>(null);
+
   // 组件挂载时获取情绪状态
   useEffect(() => {
     window.electron?.ipcRenderer?.invoke?.('spirit:mood-get')
@@ -134,6 +139,50 @@ export function Spirit() {
     }
   }, [chatMessages, chatLoading]);
 
+  // cameraStream 更新时同步到 video 元素
+  useEffect(() => {
+    if (videoPreviewRef.current && cameraStream) {
+      videoPreviewRef.current.srcObject = cameraStream;
+    }
+  }, [cameraStream]);
+
+  // 摄像头开关
+  const toggleCamera = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (cameraOn) {
+      cameraStream?.getTracks().forEach(t => t.stop());
+      setCameraStream(null);
+      setCameraOn(false);
+    } else {
+      await window.electron?.ipcRenderer?.invoke?.('spirit:set-focusable', true);
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 160, height: 120 },
+          audio: false,
+        });
+        setCameraStream(stream);
+        setCameraOn(true);
+        if (videoPreviewRef.current) {
+          videoPreviewRef.current.srcObject = stream;
+        }
+      } catch {
+        await window.electron?.ipcRenderer?.invoke?.('spirit:set-focusable', false);
+      }
+    }
+  }, [cameraOn, cameraStream]);
+
+  // 截取当前帧为 base64（仅用于未来扩展，当前 MVP 只附加文字上下文）
+  const captureVideoFrame = useCallback((): string | null => {
+    if (!videoPreviewRef.current || !cameraOn) return null;
+    const canvas = document.createElement('canvas');
+    canvas.width = 160;
+    canvas.height = 120;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(videoPreviewRef.current, 0, 0, 160, 120);
+    return canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+  }, [cameraOn]);
+
   const getIdleBubble = () => {
     if (mood !== 'idle') return MOOD_BUBBLES[mood];
     if (fatigue === 1) return '（揉揉眼睛）今天有点累呢～';
@@ -180,7 +229,10 @@ export function Spirit() {
     clearReplyTimer();
     setMood('thinking');
     try {
-      const reply = await window.electron?.ipcRenderer?.invoke?.('spirit:chat-input', text, spiritMode);
+      // 摄像头开启时，在文字前附加上下文提示（captureVideoFrame 预留供未来多模态扩展）
+      void captureVideoFrame();
+      const textToSend = cameraOn ? `[用户当前开着摄像头] ${text}` : text;
+      const reply = await window.electron?.ipcRenderer?.invoke?.('spirit:chat-input', textToSend, spiritMode);
       clearReplyTimer();
       setMood('replying');
       setChatMessages(prev => [...prev, { role: 'ai', text: (reply as string) || '我在想…给我一点时间～' }]);
@@ -191,7 +243,7 @@ export function Spirit() {
     } finally {
       setChatLoading(false);
     }
-  }, [chatInput, chatLoading, spiritMode, clearReplyTimer]);
+  }, [chatInput, chatLoading, spiritMode, cameraOn, captureVideoFrame, clearReplyTimer]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -209,9 +261,13 @@ export function Spirit() {
   // 关闭聊天框
   const handleCloseChat = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    // 关闭聊天框时同步关闭摄像头
+    cameraStream?.getTracks().forEach(t => t.stop());
+    setCameraStream(null);
+    setCameraOn(false);
     setChatOpen(false);
     window.electron?.ipcRenderer?.invoke?.('spirit:chat-toggle', false).catch(() => {});
-  }, []);
+  }, [cameraStream]);
 
   return (
     <div
@@ -409,6 +465,20 @@ export function Spirit() {
             >×</button>
           </div>
 
+          {/* 摄像头预览（条件渲染） */}
+          {cameraOn && (
+            <div className="spirit-chat-video-preview">
+              <video
+                ref={videoPreviewRef}
+                autoPlay
+                muted
+                playsInline
+                className="spirit-chat-video"
+              />
+              <span className="spirit-chat-video-label">摄像头</span>
+            </div>
+          )}
+
           {/* 消息列表 */}
           <div className="spirit-chat-messages" ref={chatScrollRef}>
             {chatMessages.length === 0 && (
@@ -430,6 +500,13 @@ export function Spirit() {
 
           {/* 输入区域 */}
           <div className="spirit-chat-input-row">
+            <button
+              className={`spirit-chat-camera${cameraOn ? ' camera-on' : ''}`}
+              onClick={toggleCamera}
+              title={cameraOn ? '关闭摄像头' : '开启摄像头'}
+            >
+              {cameraOn ? '📷' : '🎥'}
+            </button>
             <input
               ref={chatInputRef}
               className="spirit-chat-input"

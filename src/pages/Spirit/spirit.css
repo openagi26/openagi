@@ -547,3 +547,61 @@ body {
   80%  { transform: rotate(380deg) scale(0.95) translateY(-2px); }
   100% { transform: rotate(360deg) scale(1) translateY(0); }
 }
+
+/* ========================== */
+/* MVP：摄像头预览             */
+/* ========================== */
+.spirit-chat-video-preview {
+  position: relative;
+  margin: 0 6px 4px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.spirit-chat-video {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  display: block;
+  border-radius: 7px;
+  transform: scaleX(-1); /* 镜像翻转，更自然 */
+}
+
+.spirit-chat-video-label {
+  position: absolute;
+  bottom: 4px;
+  left: 6px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.spirit-chat-camera {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: none;
+  background: rgba(124, 58, 237, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  padding: 0;
+}
+
+.spirit-chat-camera:hover {
+  background: rgba(124, 58, 237, 0.45);
+}
+
+.spirit-chat-camera.camera-on {
+  background: rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
