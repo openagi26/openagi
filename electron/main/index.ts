@@ -199,9 +199,10 @@ function createWindow(): BrowserWindow {
       rendererUrl.searchParams.set('e2eSkipSetup', '1');
     }
     win.loadURL(rendererUrl.toString());
-    if (!isE2EMode) {
-      win.webContents.openDevTools();
-    }
+    // DevTools 默认关闭 — 避免遮挡小星浮窗，需要时手动 Ctrl+Shift+I 打开
+    // if (!isE2EMode) {
+    //   win.webContents.openDevTools();
+    // }
   } else {
     win.loadFile(join(__dirname, '../../dist/index.html'), {
       query: shouldSkipSetupForE2E

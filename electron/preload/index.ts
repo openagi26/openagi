@@ -156,6 +156,13 @@ const electronAPI = {
         'spirit:chat-toggle',
         'spirit:chat-input',
         'spirit:mood-set',
+        // 小星（Spirit）情绪状态读取（Spirit.tsx useEffect 调用）
+        'spirit:mood-get',
+        'spirit:last-positive-mood-event',
+        // 小星（Spirit）隐藏控制
+        'spirit:hide',
+        // 小星（Spirit）模式切换
+        'spirit:set-mode',
       ];
 
       if (validChannels.includes(channel)) {

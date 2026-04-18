@@ -601,6 +601,17 @@ body {
   background: rgba(124, 58, 237, 0.45);
 }
 
+/* DEBUG: 临时调试样式 — 让小星在任何背景下可见，截图验证后可删除 */
+.spirit-body {
+  background: rgba(124, 58, 237, 0.3) !important;
+  border-radius: 50% !important;
+}
+
+/* 调试：确保角色区域有最小高度，防止 flex 布局塌陷 */
+.spirit-character-area {
+  min-height: 140px;
+}
+
 .spirit-chat-camera.camera-on {
   background: rgba(239, 68, 68, 0.3);
   border: 1px solid rgba(239, 68, 68, 0.5);

@@ -26,16 +26,16 @@ export function createSpiritWindow(_mainWindow: BrowserWindow): BrowserWindow {
   // 获取主显示器（primary display）尺寸
   const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
 
-  // 恢复上次位置，并做越界检测
+  // 默认位置：右上角（置顶显示），距右边缘 20px，距顶部 40px（避开 macOS 菜单栏）
   const savedPos = mem.window_position;
-  let x = screenWidth - 160;
-  let y = screenHeight - 200;
+  let x = screenWidth - 140;
+  let y = 40;
   if (
     savedPos &&
     typeof savedPos.x === 'number' &&
     typeof savedPos.y === 'number' &&
     savedPos.x >= 0 && savedPos.x + 120 <= screenWidth &&
-    savedPos.y >= 0 && savedPos.y + 200 <= screenHeight
+    savedPos.y >= 0 && savedPos.y + 230 <= screenHeight
   ) {
     x = savedPos.x;
     y = savedPos.y;
