@@ -63,16 +63,29 @@ export function getBestChineseVoice(): Promise<SpeechSynthesisVoice | null> {
       resolve(trySelect());
     } else {
       // voices 列表异步加载，监听 onvoiceschanged 事件
-      speechSynthesis.onvoiceschanged = () => {
-        resolve(trySelect());
-      };
-      // 2 秒超时兜底
-      setTimeout(() => {
-        if (!voiceLoadAttempted) {
-          voiceLoadAttempted = true;
-          resolve(trySelect());
+      // 注：Electron 中此事件有时不触发，需配合轮询（polling）兜底
+      let resolved = false;
+      const doResolve = (voice: SpeechSynthesisVoice | null) => {
+        if (!resolved) {
+          resolved = true;
+          resolve(voice);
         }
-      }, 2000);
+      };
+
+      speechSynthesis.onvoiceschanged = () => {
+        doResolve(trySelect());
+      };
+
+      // 轮询兜底：每 200ms 检查一次，最多等 3 秒（Electron 中 voices 加载通常 <1s）
+      let pollCount = 0;
+      const pollTimer = setInterval(() => {
+        pollCount++;
+        const v = trySelect();
+        if (v !== null || pollCount >= 15) {
+          clearInterval(pollTimer);
+          doResolve(v);
+        }
+      }, 200);
     }
   });
 }
@@ -87,6 +100,9 @@ export async function speak(text: string, options: TTSOptions = {}): Promise<voi
   if (!('speechSynthesis' in window)) {
     throw new Error('浏览器不支持语音合成（speechSynthesis）');
   }
+
+  // 空文本直接返回，避免 Electron 中 speak('') 引发不必要的错误
+  if (!text.trim()) return;
 
   // 先停止正在播放的内容
   speechSynthesis.cancel();

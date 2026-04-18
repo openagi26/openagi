@@ -20,9 +20,6 @@ export function createSpiritWindow(_mainWindow: BrowserWindow): BrowserWindow {
   if (mem.hide_permanent) return null as any;
   if (mem.hide_until && new Date(mem.hide_until) > new Date()) return null as any;
 
-  // W21：媒体权限（摄像头/麦克风）handler 已在主进程 app.whenReady() 最开始注册
-  // 此处无需重复设置，避免覆盖导致竞态（race condition）
-
   // 获取主显示器（primary display）尺寸
   const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
 
@@ -63,6 +60,26 @@ export function createSpiritWindow(_mainWindow: BrowserWindow): BrowserWindow {
     },
     title: '小星',
   });
+
+  // 自动允许麦克风/摄像头权限 — spirit 浮窗专用
+  // 注：主进程 app.whenReady() 只申请了系统级权限（systemPreferences.askForMediaAccess），
+  // 但 Chromium（铬浏览器引擎）还有第二层拦截：session 层 setPermissionRequestHandler。
+  // 不设置此 handler，Web Speech API 在 Electron 中会被默认拒绝。
+  win.webContents.session.setPermissionRequestHandler(
+    (_webContents, permission, callback) => {
+      const allowed = ['media', 'microphone', 'camera', 'audioCapture', 'videoCapture'];
+      callback(allowed.includes(permission));
+    }
+  );
+
+  // 权限检查：让 Electron 认为这些权限是预先授予的
+  // navigator.permissions.query({ name: 'microphone' }) 会调用此 handler
+  win.webContents.session.setPermissionCheckHandler(
+    (_webContents, permission) => {
+      const allowed = ['media', 'microphone', 'camera', 'audioCapture', 'videoCapture'];
+      return allowed.includes(permission);
+    }
+  );
 
   // 加载 Spirit 页面
   if (process.env.VITE_DEV_SERVER_URL) {

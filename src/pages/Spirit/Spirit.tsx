@@ -150,24 +150,30 @@ export function Spirit() {
   const toggleCamera = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (cameraOn) {
+      // 关闭摄像头：停止所有轨道（track），清空 stream
       cameraStream?.getTracks().forEach(t => t.stop());
       setCameraStream(null);
       setCameraOn(false);
-    } else {
+      // 注意：聊天框打开时 focusable 已由 spirit:chat-toggle 设为 true，无需在此重置
+      return;
+    }
+    try {
+      // 1. 先让窗口可聚焦（focusable），解锁 Chromium 130+ 的用户激活（user activation）要求
       await window.electron?.ipcRenderer?.invoke?.('spirit:set-focusable', true);
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 160, height: 120 },
-          audio: false,
-        });
-        setCameraStream(stream);
-        setCameraOn(true);
-        if (videoPreviewRef.current) {
-          videoPreviewRef.current.srcObject = stream;
-        }
-      } catch {
-        await window.electron?.ipcRenderer?.invoke?.('spirit:set-focusable', false);
-      }
+      // 2. 等待窗口真正获得焦点（focus），给 Chromium 足够时间确认激活状态
+      await new Promise<void>(r => setTimeout(r, 200));
+      // 3. 申请摄像头 stream
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 160, height: 120 },
+        audio: false,
+      });
+      setCameraStream(stream);
+      setCameraOn(true);
+      // videoPreviewRef 在条件渲染（cameraOn=true）后才挂载；
+      // 直接赋值可能为 null，通过 useEffect[cameraStream] 确保 DOM ready 后再绑定
+    } catch (err) {
+      console.error('[Spirit] 摄像头访问失败:', err);
+      // 获取失败时保持当前 focusable 状态不变（聊天框开启时本身就是 focusable）
     }
   }, [cameraOn, cameraStream]);
 
@@ -465,19 +471,21 @@ export function Spirit() {
             >×</button>
           </div>
 
-          {/* 摄像头预览（条件渲染） */}
-          {cameraOn && (
-            <div className="spirit-chat-video-preview">
-              <video
-                ref={videoPreviewRef}
-                autoPlay
-                muted
-                playsInline
-                className="spirit-chat-video"
-              />
-              <span className="spirit-chat-video-label">摄像头</span>
-            </div>
-          )}
+          {/* 摄像头预览：始终挂载 video 元素，确保 videoPreviewRef 在开启摄像头时已就绪
+               用 style 控制显示/隐藏，避免条件渲染导致 ref 在 srcObject 赋值时为 null */}
+          <div
+            className="spirit-chat-video-preview"
+            style={{ display: cameraOn ? 'block' : 'none' }}
+          >
+            <video
+              ref={videoPreviewRef}
+              autoPlay
+              muted
+              playsInline
+              className="spirit-chat-video"
+            />
+            <span className="spirit-chat-video-label">摄像头</span>
+          </div>
 
           {/* 消息列表 */}
           <div className="spirit-chat-messages" ref={chatScrollRef}>

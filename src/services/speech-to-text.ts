@@ -81,12 +81,14 @@ export function startListening(
 
   recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
     const errorMessages: Record<string, string> = {
-      'network': '请检查网络连接，语音识别需要联网',
-      'not-allowed': '麦克风权限被拒绝，请在系统设置中允许麦克风访问',
-      'no-speech': '没有检测到说话声音',
+      'network': '语音识别需要联网（Chrome Speech API 需要访问 Google 服务器），请检查网络连接',
+      'not-allowed': '麦克风权限被拒绝，请在系统设置 → 隐私与安全性 → 麦克风 中允许 OpenAGI 访问',
+      'no-speech': '没有检测到说话声音，请靠近麦克风后重试',
       'aborted': '语音识别已取消',
-      'audio-capture': '无法访问麦克风设备',
-      'service-not-allowed': '语音识别服务不可用',
+      'audio-capture': '无法访问麦克风设备，请检查麦克风是否已连接',
+      // service-not-allowed：Electron 中 Chrome Speech API 需要 API key（应用密钥），
+      // 未配置时会返回此错误。用户遇到此错误通常是因为网络不通或 API key 未注入。
+      'service-not-allowed': '语音识别服务不可用（可能需要科学上网或应用尚未配置 Speech API key）',
     };
     const msg = errorMessages[event.error] ?? `语音识别错误：${event.error}`;
     onError(msg);
